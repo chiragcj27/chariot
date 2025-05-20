@@ -1,5 +1,5 @@
 {
-  "name": "Chariot",
+  "name": "chariot",
   "private": true,
   "scripts": {
     "build": "turbo run build",
