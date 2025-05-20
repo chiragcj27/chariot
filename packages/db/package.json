@@ -6,18 +6,19 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:connection": "ts-node src/test-connection.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@chariot/schema": "workspace:*",
-    "mongoose": "^8.2.0",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "mongoose": "^8.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }
 }
