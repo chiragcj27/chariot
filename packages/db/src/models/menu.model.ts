@@ -1,14 +1,27 @@
 import mongoose, { model, Schema } from 'mongoose';
 
-interface IMenuItem extends Document {
+interface IItem {
+    id: string;
     title: string;
     slug: string;
-    parentId: mongoose.Schema.Types.ObjectId;
-    pageId: mongoose.Schema.Types.ObjectId;
-    filters: string[];
 }
-const menuItemSchema = new Schema<IMenuItem>({
-    title : {
+interface ISubCategory {
+    id: string;
+    title: string;
+    slug: string;
+    items: IItem[];
+}
+interface ICategory {
+    title: string;
+    slug: string;
+    subCategories: ISubCategory[];
+}
+const itemSchema = new mongoose.Schema<IItem>({
+    id: {
+        type: String,
+        required: true,
+    },
+    title: {
         type: String,
         required: true,
     },
@@ -16,16 +29,40 @@ const menuItemSchema = new Schema<IMenuItem>({
         type: String,
         required: true,
     },
-    parentId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'MenuItem',
+},{_id: false});
+
+const subCategorySchema = new mongoose.Schema<ISubCategory>({
+    id: {
+        type: String,
+        required: true,
     },
-    pageId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Page',
-        default: null,
+    title: {
+        type: String,
+        required: true,
     },
-    filters: [String],
+    items: {
+        type: [itemSchema],
+        required: true,
+    },
+    slug: {
+        type: String,
+        required: true,
+    },
+}, { _id: false });
+
+const categorySchema = new mongoose.Schema<ICategory>({
+    title: {
+        type: String,
+        required: true,
+    },
+    slug: {
+        type: String,
+        required: true,
+    },
+    subCategories: {
+        type: [subCategorySchema],
+        required: true,
+    },
 });
 
-export const MenuItem = model<IMenuItem>('MenuItem', menuItemSchema);
+export const Menu = model<ICategory>('Menu', categorySchema);
