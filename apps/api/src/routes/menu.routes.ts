@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { menuController } from '../controllers/menu.controller';
 
-const router = Router();
+const router: Router = Router();
 
 // Get all categories
 router.get('/categories', menuController.getAllCategories);
