@@ -33,9 +33,13 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MenuItem = void 0;
+exports.Menu = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const menuItemSchema = new mongoose_1.Schema({
+const itemSchema = new mongoose_1.default.Schema({
+    id: {
+        type: String,
+        required: true,
+    },
     title: {
         type: String,
         required: true,
@@ -44,15 +48,63 @@ const menuItemSchema = new mongoose_1.Schema({
         type: String,
         required: true,
     },
-    parentId: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'MenuItem',
+}, { _id: false });
+const subCategorySchema = new mongoose_1.default.Schema({
+    id: {
+        type: String,
+        required: true,
     },
-    pageId: {
-        type: mongoose_1.default.Schema.Types.ObjectId,
-        ref: 'Page',
-        default: null,
+    title: {
+        type: String,
+        required: true,
     },
-    filters: [String],
+    items: {
+        type: [itemSchema],
+        required: true,
+    },
+    slug: {
+        type: String,
+        required: true,
+    },
+}, { _id: false });
+const featuredItemSchema = new mongoose_1.default.Schema({
+    id: {
+        type: String,
+        required: true,
+    },
+    title: {
+        type: String,
+        required: true,
+    },
+    price: {
+        type: Number,
+        required: true,
+    },
+    image: {
+        type: String,
+        required: true,
+    },
+    slug: {
+        type: String,
+        required: true,
+    },
+}, { _id: false });
+const categorySchema = new mongoose_1.default.Schema({
+    title: {
+        type: String,
+        required: true,
+    },
+    slug: {
+        type: String,
+        required: true,
+    },
+    subCategories: {
+        type: [subCategorySchema],
+        required: true,
+    },
+    featuredItems: {
+        type: [featuredItemSchema],
+        required: true,
+    },
 });
-exports.MenuItem = (0, mongoose_1.model)('MenuItem', menuItemSchema);
+exports.Menu = (0, mongoose_1.model)('Menu', categorySchema);
