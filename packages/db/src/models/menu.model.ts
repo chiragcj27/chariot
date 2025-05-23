@@ -11,10 +11,18 @@ interface ISubCategory {
     slug: string;
     items: IItem[];
 }
+interface IFeaturedItem {
+    id: string;
+    title: string;
+    price: number;
+    image: string;
+    slug: string;
+}
 interface ICategory {
     title: string;
     slug: string;
     subCategories: ISubCategory[];
+    featuredItems: IFeaturedItem[];
 }
 const itemSchema = new mongoose.Schema<IItem>({
     id: {
@@ -50,6 +58,29 @@ const subCategorySchema = new mongoose.Schema<ISubCategory>({
     },
 }, { _id: false });
 
+const featuredItemSchema = new mongoose.Schema({
+    id: {
+        type: String,
+        required: true,
+    },
+    title: {
+        type: String,
+        required: true,
+    },
+    price: {
+        type: Number,
+        required: true,
+    },
+    image: {
+        type: String,
+        required: true,
+    },
+    slug: {
+        type: String,
+        required: true,
+    },
+}, { _id: false });
+
 const categorySchema = new mongoose.Schema<ICategory>({
     title: {
         type: String,
@@ -61,6 +92,10 @@ const categorySchema = new mongoose.Schema<ICategory>({
     },
     subCategories: {
         type: [subCategorySchema],
+        required: true,
+    },
+    featuredItems: {
+        type: [featuredItemSchema],
         required: true,
     },
 });
