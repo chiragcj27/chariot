@@ -2,3 +2,4 @@
 src/**/*.js
 !jest.config.js
 
+
