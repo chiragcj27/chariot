@@ -2,5 +2,3 @@
 src/**/*.js
 !jest.config.js
 
-# Keep TypeScript source files
-*.ts 
