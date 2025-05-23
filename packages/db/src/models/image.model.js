@@ -1,15 +1,7 @@
-import { model, Schema } from "mongoose";
-
-interface IImage extends Document {
-    filename: string;
-    originalname: string;
-    url: string;
-    size: number;
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-const imageSchema = new Schema<IImage>({
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const mongoose_1 = require("mongoose");
+const imageSchema = new mongoose_1.Schema({
     filename: {
         type: String,
         required: true,
@@ -35,7 +27,5 @@ const imageSchema = new Schema<IImage>({
         default: Date.now,
     },
 });
-
-const Image = model<IImage>("Image", imageSchema);
-
-export default Image;
+const Image = (0, mongoose_1.model)("Image", imageSchema);
+exports.default = Image;
