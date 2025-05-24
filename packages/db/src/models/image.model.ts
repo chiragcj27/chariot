@@ -1,14 +1,23 @@
-import { model, Schema } from "mongoose";
+import { model, Schema, Document, Types } from "mongoose";
 
+// Base image interface
 interface IImage extends Document {
     filename: string;
     originalname: string;
     url: string;
     size: number;
+    mimetype: string;
+    width?: number;
+    height?: number;
+    bucket?: string;
+    status: 'pending' | 'uploaded' | 'failed';
+    metadata?: Record<string, any>;
     createdAt: Date;
     updatedAt: Date;
+    imageType: string;
 }
 
+// Base image schema
 const imageSchema = new Schema<IImage>({
     filename: {
         type: String,
@@ -26,6 +35,32 @@ const imageSchema = new Schema<IImage>({
         type: Number,
         required: true,
     },
+    mimetype: {
+        type: String,
+        required: true,
+    },
+    width: {
+        type: Number,
+    },
+    height: {
+        type: Number,
+    },
+    bucket: {
+        type: String,
+    },
+    status: {
+        type: String,
+        enum: ['pending', 'uploaded', 'failed'],
+        default: 'pending',
+    },
+    metadata: {
+        type: Schema.Types.Mixed,
+    },
+    imageType: {
+        type: String,
+        required: true,
+        enum: ['profile', 'product', 'menu', 'featured', 'promotional', 'item'],
+    },
     createdAt: {
         type: Date,
         default: Date.now,
@@ -34,8 +69,39 @@ const imageSchema = new Schema<IImage>({
         type: Date,
         default: Date.now,
     },
+}, {
+    discriminatorKey: 'imageType',
+    timestamps: true,
 });
 
+// Promotional Image Schema
+interface IPromotionalImage extends IImage {
+    redirectUrl: string;
+}
+
+const promotionalImageSchema = new Schema<IPromotionalImage>({
+    redirectUrl: {
+        type: String,
+        required: true,
+    },
+});
+
+export interface IItemImage extends IImage {
+    itemId: Types.ObjectId;
+}
+const itemImageSchema = new Schema<IItemImage>({
+    itemId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Item',
+        required: true,
+    },
+});
+
+// Create base Image model
 const Image = model<IImage>("Image", imageSchema);
+
+// Create discriminator models
+export const PromotionalImage = Image.discriminator<IPromotionalImage>("promotional", promotionalImageSchema);
+export const ItemImage = Image.discriminator<IItemImage>("item", itemImageSchema);
 
 export default Image;

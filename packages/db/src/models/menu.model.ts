@@ -1,16 +1,23 @@
-import mongoose, { model, Schema } from 'mongoose';
+import mongoose, { model, Schema, Types } from 'mongoose';
+import { ItemImage } from './image.model';
 
 interface IItem {
     id: string;
     title: string;
     slug: string;
+    image: Types.ObjectId;
+    description: string;
+    subCategoryId: string;
 }
+
 interface ISubCategory {
     id: string;
     title: string;
     slug: string;
-    items: IItem[];
+    description: string;
+    categoryId: string;
 }
+
 interface IFeaturedItem {
     id: string;
     title: string;
@@ -18,17 +25,14 @@ interface IFeaturedItem {
     image: string;
     slug: string;
 }
+
 interface ICategory {
     title: string;
     slug: string;
-    subCategories: ISubCategory[];
     featuredItems: IFeaturedItem[];
 }
+
 const itemSchema = new mongoose.Schema<IItem>({
-    id: {
-        type: String,
-        required: true,
-    },
     title: {
         type: String,
         required: true,
@@ -37,26 +41,40 @@ const itemSchema = new mongoose.Schema<IItem>({
         type: String,
         required: true,
     },
-},{_id: false});
+    image: {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: 'ItemImage'
+    },
+    description: {
+        type: String,
+    },
+    subCategoryId: {
+        type: String,
+        required: true,
+        ref: 'SubCategory'
+    }
+});
 
 const subCategorySchema = new mongoose.Schema<ISubCategory>({
-    id: {
-        type: String,
-        required: true,
-    },
     title: {
         type: String,
-        required: true,
-    },
-    items: {
-        type: [itemSchema],
         required: true,
     },
     slug: {
         type: String,
         required: true,
     },
-}, { _id: false });
+    description: {
+        type: String,
+        required: true,
+    },
+    categoryId: {
+        type: String,
+        required: true,
+        ref: 'Category'
+    }
+});
 
 const featuredItemSchema = new mongoose.Schema({
     id: {
@@ -90,14 +108,12 @@ const categorySchema = new mongoose.Schema<ICategory>({
         type: String,
         required: true,
     },
-    subCategories: {
-        type: [subCategorySchema],
-        required: true,
-    },
     featuredItems: {
         type: [featuredItemSchema],
-        required: true,
+        required: false,
     },
 });
 
 export const Menu = model<ICategory>('Menu', categorySchema);
+export const SubCategory = model<ISubCategory>('SubCategory', subCategorySchema);
+export const Item = model<IItem>('Item', itemSchema);

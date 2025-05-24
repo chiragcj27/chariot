@@ -7,7 +7,7 @@ interface PromotionalStripBody {
 }
 
 export const adminController = {
-    async createPromotionalStrip(req: Request<{}, {}, PromotionalStripBody>, res: Response) {
+    async addPromotionalStrip(req: Request<{}, {}, PromotionalStripBody>, res: Response) {
         try {
             const {stripContent, stripLink} = req.body;
             const newStrip = await PromotionalStrip.create({stripContent, stripLink});
@@ -23,5 +23,6 @@ export const adminController = {
         } catch (error) {
             res.status(500).json({message: 'Error getting promotional strip', error});
         }
-    }
+    },
+    
 }

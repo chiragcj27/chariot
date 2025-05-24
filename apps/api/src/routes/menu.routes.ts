@@ -3,19 +3,16 @@ import { menuController } from '../controllers/menu.controller';
 
 const router: Router = Router();
 
-// Get all categories
-router.get('/categories', menuController.getAllCategories);
+// Get full menu structure
+router.get('/structure', menuController.getFullMenuStructure);
 
-// Get a single category by slug
-router.get('/categories/:slug', menuController.getCategoryBySlug);
+// Get items by subcategory ID
+router.get('/subcategory/:subCategoryId/items', menuController.getItemsBySubCategoryId);
 
-// Create a new category
-router.post('/categories', menuController.createCategory);
+// Get items by subcategory slug
+router.get('/subcategory/by-slug/:slug/items', menuController.getItemsBySubCategorySlug);
 
-// Update a category
-router.put('/categories/:slug', menuController.updateCategory);
-
-// Delete a category
-router.delete('/categories/:slug', menuController.deleteCategory);
+// Get subCategory by slug
+router.get('/subcategory/by-slug/:slug', menuController.getSubCategoryBySlug);
 
 export default router; 

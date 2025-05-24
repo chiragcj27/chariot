@@ -1,111 +1,176 @@
-import { Request, Response } from 'express';
-import { Menu } from '@chariot/db/src';
-import { createSlug } from '@chariot/utils';
+import { Menu, SubCategory } from "@chariot/db";
+import mongoose from "mongoose";
+import { Request, Response } from "express";
 
 export const menuController = {
-  // Get all menu categories
-  async getAllCategories(req: Request, res: Response) {
+  async getFullMenuStructure(req: Request, res: Response) {
     try {
-      const categories = await Menu.find();
-      res.json(categories);
-    } catch (error) {
-      res.status(500).json({ message: 'Error fetching categories', error });
-    }
-  },
-
-  // Get a single category by slug
-  async getCategoryBySlug(req: Request, res: Response) {
-    try {
-      const { slug } = req.params;
-      const category = await Menu.findOne({ slug });
-      if (!category) {
-        return res.status(404).json({ message: 'Category not found' });
-      }
-      res.json(category);
-    } catch (error) {
-      res.status(500).json({ message: 'Error fetching category', error });
-    }
-  },
-
-  // Create a new category
-  async createCategory(req: Request, res: Response) {
-    try {
-      const { title, subCategories, featuredItems } = req.body;
-      const slug = createSlug(title);
-
-      const category = new Menu({
-        title,
-        slug,
-        subCategories: subCategories.map((sub: any) => ({
-          ...sub,
-          slug: createSlug(sub.title),
-          items: sub.items.map((item: any) => ({
-            ...item,
-            slug: createSlug(item.title)
-          }))
-        })),
-        featuredItems: featuredItems.map((item: any) => ({
-          ...item,
-          slug: createSlug(item.title)
-        }))
-      });
-
-      await category.save();
-      res.status(201).json(category);
-    } catch (error) {
-      res.status(500).json({ message: 'Error creating category', error });
-    }
-  },
-
-  // Update a category
-  async updateCategory(req: Request, res: Response) {
-    try {
-      const { slug } = req.params;
-      const { title, subCategories, featuredItems } = req.body;
-      
-      const category = await Menu.findOne({ slug });
-      if (!category) {
-        return res.status(404).json({ message: 'Category not found' });
-      }
-
-      const updatedCategory = await Menu.findOneAndUpdate(
-        { slug },
+      const menuStructure = await Menu.aggregate([
+        // Start with categories
         {
-          title,
-          slug: createSlug(title),
-          subCategories: subCategories.map((sub: any) => ({
-            ...sub,
-            slug: createSlug(sub.title),
-            items: sub.items.map((item: any) => ({
-              ...item,
-              slug: createSlug(item.title)
-            }))
-          })),
-          featuredItems: featuredItems.map((item: any) => ({
-            ...item,
-            slug: createSlug(item.title)
-          }))
+          $lookup: {
+            from: "subcategories",
+            localField: "_id",
+            foreignField: "categoryId",
+            as: "subCategories",
+          },
         },
-        { new: true }
-      );
+        // For each subcategory, lookup its items
+        {
+          $lookup: {
+            from: "items",
+            localField: "subCategories._id",
+            foreignField: "subCategoryId",
+            as: "items",
+          },
+        },
+        // Reshape the data to match the desired structure
+        {
+          $addFields: {
+            subCategories: {
+              $map: {
+                input: "$subCategories",
+                as: "subCategory",
+                in: {
+                  $mergeObjects: [
+                    "$$subCategory",
+                    {
+                      items: {
+                        $filter: {
+                          input: "$items",
+                          as: "item",
+                          cond: {
+                            $eq: ["$$item.subCategoryId", "$$subCategory._id"],
+                          },
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+        // Remove the temporary items field
+        {
+          $project: {
+            items: 0,
+          },
+        },
+      ]);
 
-      res.json(updatedCategory);
+      res.status(200).json(menuStructure);
     } catch (error) {
-      res.status(500).json({ message: 'Error updating category', error });
+      res
+        .status(500)
+        .json({ message: "Error getting full menu structure", error });
     }
   },
 
-  // Delete a category
-  async deleteCategory(req: Request, res: Response) {
+  async getItemsBySubCategoryId(req: Request, res: Response) {
+    try {
+      const { subCategoryId } = req.params;
+      if (!subCategoryId) {
+        return res.status(400).json({ message: "SubCategory ID is required" });
+      }
+
+      const subCategoryWithItems = await SubCategory.aggregate([
+        // Match the specific subcategory
+        {
+          $match: {
+            _id: new mongoose.Types.ObjectId(subCategoryId),
+          },
+        },
+        // Lookup items for this subcategory
+        {
+          $lookup: {
+            from: "items",
+            localField: "_id",
+            foreignField: "subCategoryId",
+            as: "items",
+          },
+        },
+        // Sort items if needed (e.g., by title)
+        {
+          $addFields: {
+            items: {
+              $sortArray: {
+                input: "$items",
+                sortBy: { title: 1 },
+              },
+            },
+          },
+        },
+      ]);
+
+      res.status(200).json(subCategoryWithItems[0] || null);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error getting items by subcategory", error });
+    }
+  },
+
+  async getItemsBySubCategorySlug(req: Request, res: Response) {
     try {
       const { slug } = req.params;
-      const category = await Menu.findOneAndDelete({ slug });
-      if (!category) {
-        return res.status(404).json({ message: 'Category not found' });
+      if (!slug) {
+        return res.status(400).json({ message: "SubCategory slug is required" });
       }
-      res.json({ message: 'Category deleted successfully' });
+
+      const subCategoryWithItems = await SubCategory.aggregate([
+        // Match the specific subcategory by slug
+        {
+          $match: {
+            slug: slug,
+          },
+        },
+        // Lookup items for this subcategory
+        {
+          $lookup: {
+            from: "items",
+            localField: "_id",
+            foreignField: "subCategoryId",
+            as: "items",
+          },
+        },
+        // Sort items if needed (e.g., by title)
+        {
+          $addFields: {
+            items: {
+              $sortArray: {
+                input: "$items",
+                sortBy: { title: 1 },
+              },
+            },
+          },
+        },
+      ]);
+
+      res.status(200).json(subCategoryWithItems[0] || null);
     } catch (error) {
-      res.status(500).json({ message: 'Error deleting category', error });
+      res
+        .status(500)
+        .json({ message: "Error getting items by subcategory slug", error });
     }
-  }
-}; 
+  },
+
+  async getSubCategoryBySlug(req: Request, res: Response) {
+    try {
+      const { slug } = req.params;
+      if (!slug) {
+        return res.status(400).json({ message: "SubCategory slug is required" });
+      }
+
+      const subCategory = await SubCategory.findOne({ slug });
+      if (!subCategory) {
+        return res.status(404).json({ message: "SubCategory not found" });
+      }
+      res.status(200).json(subCategory);
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error getting subCategory by slug", error });
+    }
+  },
+};

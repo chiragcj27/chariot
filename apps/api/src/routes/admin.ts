@@ -5,9 +5,9 @@ import { adminController } from '../controllers/admin.controller';
 const router : Router = Router();
 
 // Create a promotional strip
-router.post('/admin/promotional-strip', requireAdmin, adminController.createPromotionalStrip);
+router.post('/admin/add-promotional-strip', requireAdmin, adminController.addPromotionalStrip);
 
 // Get promotional strip
-router.get('/admin/promotional-strip', requireAdmin, adminController.getPromotionalStrip);
+router.get('/admin/get-promotional-strip', requireAdmin, adminController.getPromotionalStrip);
 
 export default router; 
