@@ -5,7 +5,18 @@ interface IItem {
     id: string;
     title: string;
     slug: string;
-    image: Types.ObjectId;
+    image: {
+        filename: string;
+        originalname: string;
+        url: string;
+        size: number;
+        mimetype: string;
+        width?: number;
+        height?: number;
+        bucket?: string;
+        status: 'pending' | 'uploaded' | 'failed';
+        metadata?: Record<string, any>;
+    };
     description: string;
     subCategoryId: string;
 }
