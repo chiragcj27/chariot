@@ -3,6 +3,8 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import menuRoutes from './routes/menu.routes';
+import imageRoutes from './routes/image.routes';
+
 
 dotenv.config();
 
@@ -16,7 +18,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/menu', menuRoutes);
-
+app.use('/api/image', imageRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
   .then(() => {

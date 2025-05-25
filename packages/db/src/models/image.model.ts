@@ -1,7 +1,7 @@
 import { model, Schema, Document, Types } from "mongoose";
 
 // Base image interface
-interface IImage extends Document {
+export interface IImage extends Document {
     filename: string;
     originalname: string;
     url: string;
@@ -98,7 +98,7 @@ const itemImageSchema = new Schema<IItemImage>({
 });
 
 // Create base Image model
-const Image = model<IImage>("Image", imageSchema);
+export const Image = model<IImage>("Image", imageSchema);
 
 // Create discriminator models
 export const PromotionalImage = Image.discriminator<IPromotionalImage>("promotional", promotionalImageSchema);
