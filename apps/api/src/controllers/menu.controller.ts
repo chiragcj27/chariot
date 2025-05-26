@@ -1,4 +1,4 @@
-import { Menu, SubCategory, Item } from "@chariot/db";
+import { Menu, SubCategory, Item, ItemImage } from "@chariot/db";
 import mongoose from "mongoose";
 import { Request, Response } from "express";
 
@@ -348,8 +348,63 @@ export const menuController = {
     }
   },
 
-  
- 
+  async createItem(req: Request, res: Response) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Expect an array of items in the request body
+      const items = Array.isArray(req.body) ? req.body : [req.body];
+
+      // Validate that all items have required fields
+      const invalidItems = items.filter(item => !item.subCategoryId || !item.title || !item.slug);
+      if (invalidItems.length > 0) {
+        return res.status(400).json({ 
+          message: "Subcategory ID, title, and slug are required for all items" 
+        });
+      }
+
+      const createdItems = [];
+
+      // Process each item
+      for (const itemData of items) {
+        const item = await Item.create([{
+          title: itemData.title,
+          slug: itemData.slug,
+          subCategoryId: itemData.subCategoryId,
+          description: itemData.description,
+          image: null, // set later
+        }], { session });
+        
+        const itemImage = await ItemImage.create([{
+          ...itemData.image,
+          itemId: item[0]!._id,
+          bucket: "chariot-images",
+          imageType: "item",
+          status: "uploaded"
+        }], { session });
+
+        await Item.findByIdAndUpdate(item[0]!._id, { image: itemImage[0]!._id }, { session });
+        
+        createdItems.push(item[0]);
+      }
+
+      await session.commitTransaction();
+      res.status(201).json({
+        message: "Items created successfully",
+        items: createdItems
+      });
+    } catch (error: unknown) {
+      await session.abortTransaction();
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      res.status(500).json({
+        message: "Error creating items",
+        error: errorMessage
+      });
+    } finally {
+      session.endSession();
+    }
+  },
 };
 
 
