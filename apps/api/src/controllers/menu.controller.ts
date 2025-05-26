@@ -301,15 +301,34 @@ export const menuController = {
         throw new Error("Failed to create subcategory");
       }
 
-      // If items are provided, create them
+      // If items are provided, create them with their images
       if (items && Array.isArray(items)) {
-        const itemPromises = items.map(item => 
-          Item.create([{
-            ...item,
-            subCategoryId: subCategory[0]!._id
-          }], { session })
-        );
-        await Promise.all(itemPromises);
+        const createdItems = [];
+
+        for (const itemData of items) {
+          // Create the item
+          const item = await Item.create([{
+            title: itemData.title,
+            slug: itemData.slug,
+            subCategoryId: subCategory[0]!._id,
+            description: itemData.description,
+            image: null, // set later
+          }], { session });
+          
+          // Create the item image
+          const itemImage = await ItemImage.create([{
+            ...itemData.image,
+            itemId: item[0]!._id,
+            bucket: "chariot-images",
+            imageType: "item",
+            status: "uploaded"
+          }], { session });
+
+          // Update the item with the image reference
+          await Item.findByIdAndUpdate(item[0]!._id, { image: itemImage[0]!._id }, { session });
+          
+          createdItems.push(item[0]);
+        }
       }
 
       await session.commitTransaction();
