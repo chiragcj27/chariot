@@ -1,70 +1,146 @@
-'use client';
+"use client"
 
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import type React from "react"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+
+interface SubCategory {
+  _id: string
+  title: string
+  slug: string
+  description: string
+  categoryId: string
+  items: Record<string, unknown>[]
+}
 
 interface CreateSubCategoryDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  categoryId: string | null;
+  children: React.ReactNode
+  categoryId: string
+  onSubCategoryCreated?: string
 }
 
 export function CreateSubCategoryDialog({
-  open,
-  onOpenChange,
+  children,
   categoryId,
+  onSubCategoryCreated = "subcategory-created",
 }: CreateSubCategoryDialogProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({
+    title: "",
+    slug: "",
+    description: "",
+  })
+
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "")
+  }
+
+  const handleTitleChange = (title: string) => {
+    setFormData({
+      ...formData,
+      title,
+      slug: generateSlug(title),
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!categoryId) return;
-    // TODO: Implement API call to create subcategory
-    onOpenChange(false);
-  };
+    e.preventDefault()
+    setLoading(true)
+
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      const newSubCategory = {
+        _id: Date.now().toString(),
+        title: formData.title,
+        slug: formData.slug,
+        description: formData.description,
+        categoryId,
+        items: [],
+      }
+
+      // Dispatch custom event instead of callback
+      const event = new CustomEvent<SubCategory>(onSubCategoryCreated, { detail: newSubCategory })
+      window.dispatchEvent(event)
+
+      setFormData({ title: "", slug: "", description: "" })
+      setOpen(false)
+    } catch (error) {
+      console.error("Error creating subcategory:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Subcategory</DialogTitle>
+          <DialogDescription>Add a new subcategory to organize your items.</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter subcategory title"
-              required
-            />
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={formData.title}
+                onChange={(e) => handleTitleChange(e.target.value)}
+                placeholder="Enter subcategory title"
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
+                value={formData.slug}
+                onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                placeholder="subcategory-slug"
+                required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Enter subcategory description"
+                required
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter subcategory description"
-              required
-            />
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={!categoryId}>
-              Create Subcategory
+            <Button type="submit" disabled={loading}>
+              {loading ? "Creating..." : "Create Subcategory"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  );
-} 
+  )
+}

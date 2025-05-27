@@ -19,7 +19,7 @@ const navigation = [
   { name: 'Pricing & Discounts', href: '/pricing', icon: CurrencyDollarIcon },
   { name: 'Marketing', href: '/marketing', icon: MegaphoneIcon },
   { name: 'Customers', href: '/customers', icon: UsersIcon },
-  { name: 'Master Settings', href: '/settings', icon: Cog6ToothIcon },
+  { name: 'Menu Settings', href: '/menu', icon: Cog6ToothIcon },
 ];
 
 export default function DashboardLayout({

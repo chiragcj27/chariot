@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import Image from "next/image"
 
 import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
@@ -15,31 +16,29 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Upload, X, ImageIcon } from "lucide-react"
-import Image from "next/image"
+import { Upload, X, ImageIcon, Star } from "lucide-react"
 
-interface Item {
-  _id: string
+interface FeaturedItem {
+  id: string
   title: string
   slug: string
-  description: string
+  price: number
   image: string
-  subCategoryId: string
+  categoryId: string
 }
 
-interface CreateItemDialogProps {
+interface CreateFeaturedItemDialogProps {
   children: React.ReactNode
-  subCategoryId: string
-  onItemCreated?: string
+  categoryId: string
+  onFeaturedItemCreated?: string
 }
 
-export function CreateItemDialog({
+export function CreateFeaturedItemDialog({
   children,
-  subCategoryId,
-  onItemCreated = "item-created",
-}: CreateItemDialogProps) {
+  categoryId,
+  onFeaturedItemCreated = "featured-item-created",
+}: CreateFeaturedItemDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
@@ -49,7 +48,7 @@ export function CreateItemDialog({
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
-    description: "",
+    price: "",
     imageUrl: "",
   })
 
@@ -145,24 +144,31 @@ export function CreateItemDialog({
         finalImageUrl = await uploadImage(selectedFile)
       }
 
+      // Validate price
+      const price = Number.parseFloat(formData.price)
+      if (isNaN(price) || price < 0) {
+        alert("Please enter a valid price")
+        return
+      }
+
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      const newItem = {
-        _id: Date.now().toString(),
+      const newFeaturedItem = {
+        id: Date.now().toString(),
         title: formData.title,
         slug: formData.slug,
-        description: formData.description,
-        image: finalImageUrl || "/placeholder.svg?height=50&width=50",
-        subCategoryId,
+        price: price,
+        image: finalImageUrl || "/placeholder.svg?height=100&width=100",
+        categoryId,
       }
 
       // Dispatch custom event instead of callback
-      const event = new CustomEvent<Item>(onItemCreated, { detail: newItem })
+      const event = new CustomEvent<FeaturedItem>(onFeaturedItemCreated, { detail: newFeaturedItem })
       window.dispatchEvent(event)
 
       // Reset form
-      setFormData({ title: "", slug: "", description: "", imageUrl: "" })
+      setFormData({ title: "", slug: "", price: "", imageUrl: "" })
       setSelectedFile(null)
       setImagePreview(null)
       if (fileInputRef.current) {
@@ -170,14 +176,14 @@ export function CreateItemDialog({
       }
       setOpen(false)
     } catch (error) {
-      console.error("Error creating item:", error)
+      console.error("Error creating featured item:", error)
     } finally {
       setLoading(false)
     }
   }
 
   const resetForm = () => {
-    setFormData({ title: "", slug: "", description: "", imageUrl: "" })
+    setFormData({ title: "", slug: "", price: "", imageUrl: "" })
     setSelectedFile(null)
     setImagePreview(null)
     if (fileInputRef.current) {
@@ -198,8 +204,11 @@ export function CreateItemDialog({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Item</DialogTitle>
-          <DialogDescription>Add a new item to this subcategory.</DialogDescription>
+          <DialogTitle className="flex items-center gap-2">
+            <Star className="w-5 h-5 text-yellow-500" />
+            Create Featured Item
+          </DialogTitle>
+          <DialogDescription>Add a featured item to highlight in this category&apos;s mega menu.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
@@ -209,7 +218,7 @@ export function CreateItemDialog({
                 id="title"
                 value={formData.title}
                 onChange={(e) => handleTitleChange(e.target.value)}
-                placeholder="Enter item title"
+                placeholder="Enter featured item title"
                 required
               />
             </div>
@@ -220,20 +229,27 @@ export function CreateItemDialog({
                 id="slug"
                 value={formData.slug}
                 onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                placeholder="item-slug"
+                placeholder="featured-item-slug"
                 required
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Enter item description (optional)"
-                rows={3}
-              />
+              <Label htmlFor="price">Price</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
+                <Input
+                  id="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  placeholder="0.00"
+                  className="pl-8"
+                  required
+                />
+              </div>
             </div>
 
             <div className="grid gap-2">
@@ -302,7 +318,7 @@ export function CreateItemDialog({
                   <Input
                     value={formData.imageUrl}
                     onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    placeholder="https://example.com/image.jpg"
+                    placeholder="https://example.com/featured-image.jpg"
                   />
                   {formData.imageUrl && (
                     <div className="relative inline-block">
@@ -329,7 +345,7 @@ export function CreateItemDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={loading || uploadingImage}>
-              {uploadingImage ? "Uploading..." : loading ? "Creating..." : "Create Item"}
+              {uploadingImage ? "Uploading..." : loading ? "Creating..." : "Create Featured Item"}
             </Button>
           </DialogFooter>
         </form>
