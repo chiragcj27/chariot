@@ -1,7 +1,7 @@
 // Main entry point for the database package
 import connectDB from './config/database';
 import { Image, ItemImage, PromotionalImage, IImage } from './models/image.model';
-import { Item, Menu, SubCategory } from './models/menu.model';
+import { Item, Menu, SubCategory, IItem } from './models/menu.model';
 import { PromotionalStrip } from './models/promotionalStrip.model';
 import { User} from './models/user.model';
 
@@ -15,7 +15,8 @@ export {
   Image,
   ItemImage,
   PromotionalImage,
-  IImage
+  IImage,
+  IItem
 };
 
 export const hello = (): string => {
