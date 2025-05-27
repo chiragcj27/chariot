@@ -4,13 +4,14 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import menuRoutes from './routes/menu.routes';
 import imageRoutes from './routes/image.routes';
+import path from 'path';
 
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/chariot';
+const MONGODB_URI = process.env.MONGODB_URI || '';
 
 // Middleware
 app.use(cors());

@@ -10,9 +10,35 @@ router.get('/structure', menuController.getFullMenuStructure);
 router.get('/subcategory/:subCategoryId/items', menuController.getItemsBySubCategoryId);
 
 // Get items by subcategory slug
-router.get('/subcategory/by-slug/:slug/items', menuController.getItemsBySubCategorySlug);
+router.get('/subcategory/slug/:slug/items', menuController.getItemsBySubCategorySlug);
 
-// Get subCategory by slug
-router.get('/subcategory/by-slug/:slug', menuController.getSubCategoryBySlug);
+// Get subcategory by slug
+router.get('/subcategory/slug/:slug', menuController.getSubCategoryBySlug);
+
+// Create category
+router.post('/category', menuController.createCategory);
+
+// Get all category titles
+router.get('/categories/titles', menuController.getAllCategoriesTitles);
+
+// Get category ID by title
+router.get('/category/title/:title', menuController.getCategoryIdByTitle);
+
+// Create subcategory
+router.post('/subcategory', menuController.createSubCategory);
+
+// Get all subcategory titles
+router.get('/subcategories/titles', menuController.getAllSubCategoriesTitles);
+
+// Get subcategory ID by title
+router.get('/subcategory/title/:title', menuController.getSubCategoryIdByTitle);
+
+// Create item(s)
+router.post('/items', menuController.createItem);
+
+// Check title uniqueness
+router.get('/check-category-title/:title', menuController.checkCategoryTitleUnique);
+router.get('/check-subcategory-title/:title', menuController.checkSubCategoryTitleUnique);
+router.get('/check-item-title/:title', menuController.checkItemTitleUnique);
 
 export default router; 

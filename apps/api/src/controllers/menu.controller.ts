@@ -1,6 +1,7 @@
 import { Menu, SubCategory, Item, ItemImage } from "@chariot/db";
 import mongoose from "mongoose";
 import { Request, Response } from "express";
+import { menuService } from "../services/menu.service";
 
 export const menuController = {
   async getFullMenuStructure(req: Request, res: Response) {
@@ -217,10 +218,7 @@ export const menuController = {
           // If items are provided for this subcategory, create them
           if (items && Array.isArray(items)) {
             const itemPromises = items.map(item => 
-              Item.create([{
-                ...item,
-                subCategoryId: newSubCategory[0]!._id
-              }], { session })
+              menuService.createItemWithImage(item, newSubCategory[0]!._id, session)
             );
             await Promise.all(itemPromises);
           }
@@ -304,30 +302,9 @@ export const menuController = {
       // If items are provided, create them with their images
       if (items && Array.isArray(items)) {
         const createdItems = [];
-
         for (const itemData of items) {
-          // Create the item
-          const item = await Item.create([{
-            title: itemData.title,
-            slug: itemData.slug,
-            subCategoryId: subCategory[0]!._id,
-            description: itemData.description,
-            image: null, // set later
-          }], { session });
-          
-          // Create the item image
-          const itemImage = await ItemImage.create([{
-            ...itemData.image,
-            itemId: item[0]!._id,
-            bucket: "chariot-images",
-            imageType: "item",
-            status: "uploaded"
-          }], { session });
-
-          // Update the item with the image reference
-          await Item.findByIdAndUpdate(item[0]!._id, { image: itemImage[0]!._id }, { session });
-          
-          createdItems.push(item[0]);
+          const item = await menuService.createItemWithImage(itemData, subCategory[0]!._id, session);
+          createdItems.push(item);
         }
       }
 
@@ -387,25 +364,8 @@ export const menuController = {
 
       // Process each item
       for (const itemData of items) {
-        const item = await Item.create([{
-          title: itemData.title,
-          slug: itemData.slug,
-          subCategoryId: itemData.subCategoryId,
-          description: itemData.description,
-          image: null, // set later
-        }], { session });
-        
-        const itemImage = await ItemImage.create([{
-          ...itemData.image,
-          itemId: item[0]!._id,
-          bucket: "chariot-images",
-          imageType: "item",
-          status: "uploaded"
-        }], { session });
-
-        await Item.findByIdAndUpdate(item[0]!._id, { image: itemImage[0]!._id }, { session });
-        
-        createdItems.push(item[0]);
+        const item = await menuService.createItemWithImage(itemData, itemData.subCategoryId, session);
+        createdItems.push(item);
       }
 
       await session.commitTransaction();
@@ -422,6 +382,57 @@ export const menuController = {
       });
     } finally {
       session.endSession();
+    }
+  },
+
+  async checkCategoryTitleUnique(req: Request, res: Response) {
+    try {
+      const { title } = req.params;
+      if (!title) {
+        return res.status(400).json({ message: "Title is required" });
+      }
+
+      const existingCategory = await Menu.findOne({ title });
+      res.status(200).json({ isUnique: !existingCategory });
+    } catch (error) {
+      res.status(500).json({ 
+        message: "Error checking category title uniqueness", 
+        error 
+      });
+    }
+  },
+
+  async checkSubCategoryTitleUnique(req: Request, res: Response) {
+    try {
+      const { title } = req.params;
+      if (!title) {
+        return res.status(400).json({ message: "Title is required" });
+      }
+
+      const existingSubCategory = await SubCategory.findOne({ title });
+      res.status(200).json({ isUnique: !existingSubCategory });
+    } catch (error) {
+      res.status(500).json({ 
+        message: "Error checking subcategory title uniqueness", 
+        error 
+      });
+    }
+  },
+
+  async checkItemTitleUnique(req: Request, res: Response) {
+    try {
+      const { title } = req.params;
+      if (!title) {
+        return res.status(400).json({ message: "Title is required" });
+      }
+
+      const existingItem = await Item.findOne({ title });
+      res.status(200).json({ isUnique: !existingItem });
+    } catch (error) {
+      res.status(500).json({ 
+        message: "Error checking item title uniqueness", 
+        error 
+      });
     }
   },
 };

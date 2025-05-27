@@ -1,7 +1,7 @@
 import mongoose, { model, Schema, Types } from 'mongoose';
 import { ItemImage } from './image.model';
 
-interface IItem {
+export interface IItem {
     id: string;
     title: string;
     slug: string;
