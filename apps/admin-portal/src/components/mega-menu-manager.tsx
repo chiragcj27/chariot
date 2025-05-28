@@ -12,13 +12,23 @@ import { CreateItemDialog } from "@/components/create-item-dialog"
 import { Badge } from "@/components/ui/badge"
 import { CreateFeaturedItemDialog } from "@/components/create-featured-item-dialog"
 import { cn } from "@/lib/utils"
+import { menuApi } from "@/lib/api/menu"
 
 interface Item {
   _id: string
   title: string
   slug: string
   description?: string
-  image: string
+  image: {
+    url: string
+    filename: string
+    originalname: string
+    size: number
+    mimetype: string
+    bucket: string
+    imageType: string
+    status: string
+  }
   subCategoryId: string
 }
 
@@ -104,106 +114,19 @@ export function MegaMenuManager() {
     }
   }, [])
 
-  // Mock data - replace with actual API calls
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setCategories([
-        {
-          _id: "1",
-          title: "Marketing & Sales",
-          slug: "marketing-sales",
-          featuredItems: [
-            {
-              id: "1",
-              title: "Catalogs",
-              price: 1000,
-              image: "/placeholder.svg?height=100&width=100",
-              slug: "catalogs",
-              categoryId: "1",
-            },
-            {
-              id: "2",
-              title: "Flyers",
-              price: 1999,
-              image: "/placeholder.svg?height=100&width=100",
-              slug: "flyers",
-              categoryId: "1",
-            },
-          ],
-          subCategories: [
-            {
-              _id: "1",
-              title: "Print Marketing",
-              slug: "print-marketing",
-              description: "Print marketing materials",
-              categoryId: "1",
-              items: [
-                {
-                  _id: "1",
-                  title: "Catalogs",
-                  slug: "catalogs",
-                  description: "All the catalogs we have",
-                  image: "/placeholder.svg?height=50&width=50",
-                  subCategoryId: "1",
-                },
-                {
-                  _id: "2",
-                  title: "Leaflets",
-                  slug: "leaflets",
-                  description: "All the leaflets we have",
-                  image: "/placeholder.svg?height=50&width=50",
-                  subCategoryId: "1",
-                },
-              ],
-            },
-            {
-              _id: "2",
-              title: "Digital Marketing",
-              slug: "digital-marketing",
-              description: "Digital marketing materials",
-              categoryId: "1",
-              items: [
-                {
-                  _id: "3",
-                  title: "Social Media",
-                  slug: "social-media",
-                  description: "All the social media services we have",
-                  image: "/placeholder.svg?height=50&width=50",
-                  subCategoryId: "2",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          _id: "2",
-          title: "Design Services",
-          slug: "design-services",
-          featuredItems: [
-            {
-              id: "3",
-              title: "3D Modeling",
-              price: 299,
-              image: "/placeholder.svg?height=100&width=100",
-              slug: "3d-modeling",
-              categoryId: "2",
-            },
-          ],
-          subCategories: [
-            {
-              _id: "3",
-              title: "Jewelry Design",
-              slug: "jewelry-design",
-              description: "Jewelry design services",
-              categoryId: "2",
-              items: [],
-            },
-          ],
-        },
-      ])
-      setLoading(false)
-    }, 1500)
+    const fetchMenuStructure = async () => {
+      try {
+        const data = await menuApi.getFullMenuStructure()
+        setCategories(data as Category[])
+        setLoading(false)
+      } catch (error) {
+        console.error('Failed to fetch menu structure:', error)
+        setLoading(false)
+      }
+    }
+
+    fetchMenuStructure()
   }, [])
 
   const toggleCategory = (categoryId: string) => {
@@ -388,30 +311,31 @@ export function MegaMenuManager() {
                                   </div>
 
                                   <div className="space-y-2 ml-4">
-                                    {subCategory.items?.map((item, itemIndex) => (
+                                    {subCategory.items?.map((item) => (
                                       <div
                                         key={item._id}
-                                        className={cn(
-                                          "flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-all duration-200 transform hover:scale-[1.01] group",
-                                          "animate-in slide-in-from-left-2 fade-in-0",
-                                        )}
-                                        style={{
-                                          animationDelay: `${(index * 100) + (subIndex * 50) + itemIndex * 25}ms`,
-                                        }}
+                                        className="group flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200"
                                       >
                                         <div className="flex items-center space-x-3">
-                                          <div className="relative">
+                                          <div className="relative w-10 h-10 rounded-lg overflow-hidden border">
                                             <Image
-                                              src={item.image || "/placeholder.svg"}
+                                              src={item.image?.url || "/placeholder.svg"}
                                               alt={item.title}
-                                              width={40}
-                                              height={40}
-                                              className="w-10 h-10 rounded-lg object-cover border-2 border-gray-200 group-hover:border-gray-300 transition-colors"
+                                              fill
+                                              sizes="(max-width: 40px) 100vw, 40px"
+                                              className="object-cover"
+                                              onError={(e) => {
+                                                e.currentTarget.src = "/placeholder.svg"
+                                              }}
                                             />
                                           </div>
                                           <div>
-                                            <p className="text-sm font-medium text-gray-900">{item.title}</p>
-                                            <p className="text-xs text-muted-foreground font-mono">/{item.slug}</p>
+                                            <h6 className="text-sm font-medium">{item.title}</h6>
+                                            {item.description && (
+                                              <p className="text-xs text-muted-foreground line-clamp-1">
+                                                {item.description}
+                                              </p>
+                                            )}
                                           </div>
                                         </div>
                                         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -553,3 +477,106 @@ export function MegaMenuManager() {
     </div>
   )
 }
+
+
+
+
+/*
+    // Simulate API call
+    setTimeout(() => {
+      setCategories([
+        {
+          _id: "1",
+          title: "Marketing & Sales",
+          slug: "marketing-sales",
+          featuredItems: [
+            {
+              id: "1",
+              title: "Catalogs",
+              price: 1000,
+              image: "/placeholder.svg?height=100&width=100",
+              slug: "catalogs",
+              categoryId: "1",
+            },
+            {
+              id: "2",
+              title: "Flyers",
+              price: 1999,
+              image: "/placeholder.svg?height=100&width=100",
+              slug: "flyers",
+              categoryId: "1",
+            },
+          ],
+          subCategories: [
+            {
+              _id: "1",
+              title: "Print Marketing",
+              slug: "print-marketing",
+              description: "Print marketing materials",
+              categoryId: "1",
+              items: [
+                {
+                  _id: "1",
+                  title: "Catalogs",
+                  slug: "catalogs",
+                  description: "All the catalogs we have",
+                  image: "/placeholder.svg?height=50&width=50",
+                  subCategoryId: "1",
+                },
+                {
+                  _id: "2",
+                  title: "Leaflets",
+                  slug: "leaflets",
+                  description: "All the leaflets we have",
+                  image: "/placeholder.svg?height=50&width=50",
+                  subCategoryId: "1",
+                },
+              ],
+            },
+            {
+              _id: "2",
+              title: "Digital Marketing",
+              slug: "digital-marketing",
+              description: "Digital marketing materials",
+              categoryId: "1",
+              items: [
+                {
+                  _id: "3",
+                  title: "Social Media",
+                  slug: "social-media",
+                  description: "All the social media services we have",
+                  image: "/placeholder.svg?height=50&width=50",
+                  subCategoryId: "2",
+                },
+              ],
+            },
+          ],
+        },
+        {
+          _id: "2",
+          title: "Design Services",
+          slug: "design-services",
+          featuredItems: [
+            {
+              id: "3",
+              title: "3D Modeling",
+              price: 299,
+              image: "/placeholder.svg?height=100&width=100",
+              slug: "3d-modeling",
+              categoryId: "2",
+            },
+          ],
+          subCategories: [
+            {
+              _id: "3",
+              title: "Jewelry Design",
+              slug: "jewelry-design",
+              description: "Jewelry design services",
+              categoryId: "2",
+              items: [],
+            },
+          ],
+        },
+      ]
+
+*/

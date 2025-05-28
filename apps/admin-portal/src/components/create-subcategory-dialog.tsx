@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { menuApi } from "@/lib/api/menu"
 
 interface SubCategory {
   _id: string
@@ -23,7 +24,14 @@ interface SubCategory {
   slug: string
   description: string
   categoryId: string
-  items: Record<string, unknown>[]
+  items?: Array<{
+    _id: string
+    title: string
+    slug: string
+    description: string
+    image: string
+    subCategoryId: string
+  }>
 }
 
 interface CreateSubCategoryDialogProps {
@@ -65,20 +73,15 @@ export function CreateSubCategoryDialog({
     setLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      const newSubCategory = {
-        _id: Date.now().toString(),
+      const { subCategory } = await menuApi.createSubCategory({
         title: formData.title,
         slug: formData.slug,
         description: formData.description,
         categoryId,
-        items: [],
-      }
+      })
 
       // Dispatch custom event instead of callback
-      const event = new CustomEvent<SubCategory>(onSubCategoryCreated, { detail: newSubCategory })
+      const event = new CustomEvent<SubCategory>(onSubCategoryCreated, { detail: subCategory })
       window.dispatchEvent(event)
 
       setFormData({ title: "", slug: "", description: "" })

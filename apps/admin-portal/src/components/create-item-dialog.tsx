@@ -107,31 +107,52 @@ export function CreateItemDialog({
     setUploadingImage(true)
 
     try {
-      // Create FormData for file upload
-      const formData = new FormData()
-      formData.append("image", file)
-
-      // Upload to API
-      const response = await fetch("/api/upload-image", {
+      // First, get the pre-signed URL from our API
+      const getUrlResponse = await fetch("http://localhost:3001/api/images/upload-url", {
         method: "POST",
-        body: formData,
-      })
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          fileType: file.type,
+        }),
+      });
 
-      const data = await response.json()
-
-      if (!data.success) {
-        throw new Error(data.error || "Upload failed")
+      if (!getUrlResponse.ok) {
+        throw new Error("Failed to get upload URL");
       }
 
-      return data.imageUrl
+      const { uploadUrl, url } = await getUrlResponse.json();
+
+      // Upload the file directly to S3 using the pre-signed URL
+      const uploadResponse = await fetch(uploadUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        console.error("S3 Upload failed:", {
+          status: uploadResponse.status,
+          statusText: uploadResponse.statusText,
+          headers: Object.fromEntries(uploadResponse.headers.entries())
+        });
+        throw new Error(`Failed to upload to S3: ${uploadResponse.statusText}`);
+      }
+
+      // Return the final URL where the image can be accessed
+      return url;
     } catch (error) {
-      console.error("Upload error:", error)
-      alert("Failed to upload image. Please try again.")
-      throw error
+      console.error("Upload error:", error);
+      alert("Failed to upload image. Please try again.");
+      throw error;
     } finally {
-      setUploadingImage(false)
+      setUploadingImage(false);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -145,19 +166,48 @@ export function CreateItemDialog({
         finalImageUrl = await uploadImage(selectedFile)
       }
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      const newItem = {
-        _id: Date.now().toString(),
+      // Prepare the item data according to the API expectations
+      const itemData = {
         title: formData.title,
         slug: formData.slug,
         description: formData.description,
-        image: finalImageUrl || "/placeholder.svg?height=50&width=50",
-        subCategoryId,
+        subCategoryId: subCategoryId,
+        image: finalImageUrl ? {
+          filename: selectedFile?.name || "image.jpg",
+          originalname: selectedFile?.name || "image.jpg",
+          url: finalImageUrl,
+          size: selectedFile?.size || 0,
+          mimetype: selectedFile?.type || "image/jpeg",
+          bucket: "chariot-images",
+          imageType: "item",
+          status: "uploaded"
+        } : undefined
       }
 
-      // Dispatch custom event instead of callback
+      // Make the API call to create the item
+      const response = await fetch("http://localhost:3001/api/menu/items", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(itemData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error("Failed to create item:", {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorData,
+          requestData: itemData
+        });
+        throw new Error(errorData.message || `Failed to create item: ${response.statusText}`);
+      }
+
+      const { items } = await response.json()
+      const newItem = items[0] // Since we're creating one item at a time
+
+      // Dispatch custom event with the created item
       const event = new CustomEvent<Item>(onItemCreated, { detail: newItem })
       window.dispatchEvent(event)
 
@@ -171,6 +221,7 @@ export function CreateItemDialog({
       setOpen(false)
     } catch (error) {
       console.error("Error creating item:", error)
+      alert(error instanceof Error ? error.message : "Failed to create item")
     } finally {
       setLoading(false)
     }
@@ -255,6 +306,9 @@ export function CreateItemDialog({
                             width={128}
                             height={128}
                             className="w-32 h-32 object-cover rounded-lg border"
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder.svg"
+                            }}
                           />
                           <Button
                             type="button"
@@ -313,7 +367,7 @@ export function CreateItemDialog({
                         height={128}
                         className="w-32 h-32 object-cover rounded-lg border"
                         onError={(e) => {
-                          e.currentTarget.src = "/placeholder.svg?height=128&width=128"
+                          e.currentTarget.src = "/placeholder.svg"
                         }}
                       />
                     </div>
