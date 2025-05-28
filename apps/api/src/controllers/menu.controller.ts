@@ -11,8 +11,14 @@ export const menuController = {
         {
           $lookup: {
             from: "subcategories",
-            localField: "_id",
-            foreignField: "categoryId",
+            let: { categoryId: { $toString: "$_id" } },
+            pipeline: [
+              {
+                $match: {
+                  $expr: { $eq: ["$categoryId", "$$categoryId"] },
+                },
+              },
+            ],
             as: "subCategories",
           },
         },
@@ -23,6 +29,26 @@ export const menuController = {
             localField: "subCategories._id",
             foreignField: "subCategoryId",
             as: "items",
+          },
+        },
+        // Lookup images for items
+        {
+          $lookup: {
+            from: "images",
+            let: { itemImages: "$items.image" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $in: ["$_id", "$$itemImages"] },
+                      { $eq: ["$imageType", "item"] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "itemImages",
           },
         },
         // Reshape the data to match the desired structure
@@ -37,11 +63,50 @@ export const menuController = {
                     "$$subCategory",
                     {
                       items: {
-                        $filter: {
-                          input: "$items",
+                        $map: {
+                          input: {
+                            $filter: {
+                              input: "$items",
+                              as: "item",
+                              cond: {
+                                $eq: [
+                                  "$$item.subCategoryId",
+                                  "$$subCategory._id",
+                                ],
+                              },
+                            },
+                          },
                           as: "item",
-                          cond: {
-                            $eq: ["$$item.subCategoryId", "$$subCategory._id"],
+                          in: {
+                            $mergeObjects: [
+                              "$$item",
+                              {
+                                image: {
+                                  $let: {
+                                    vars: {
+                                      matchedImage: {
+                                        $arrayElemAt: [
+                                          {
+                                            $filter: {
+                                              input: "$itemImages",
+                                              as: "img",
+                                              cond: {
+                                                $eq: [
+                                                  { $toString: "$$img._id" },
+                                                  { $toString: "$$item.image" },
+                                                ],
+                                              },
+                                            },
+                                          },
+                                          0,
+                                        ],
+                                      },
+                                    },
+                                    in: "$$matchedImage",
+                                  },
+                                },
+                              },
+                            ],
                           },
                         },
                       },
@@ -52,10 +117,11 @@ export const menuController = {
             },
           },
         },
-        // Remove the temporary items field
+        // Remove the temporary fields
         {
           $project: {
             items: 0,
+            itemImages: 0,
           },
         },
       ]);
@@ -68,202 +134,52 @@ export const menuController = {
     }
   },
 
-  async getItemsBySubCategoryId(req: Request, res: Response) {
-    try {
-      const { subCategoryId } = req.params;
-      if (!subCategoryId) {
-        return res.status(400).json({ message: "SubCategory ID is required" });
-      }
-
-      const subCategoryWithItems = await SubCategory.aggregate([
-        // Match the specific subcategory
-        {
-          $match: {
-            _id: new mongoose.Types.ObjectId(subCategoryId),
-          },
-        },
-        // Lookup items for this subcategory
-        {
-          $lookup: {
-            from: "items",
-            localField: "_id",
-            foreignField: "subCategoryId",
-            as: "items",
-          },
-        },
-        // Sort items if needed (e.g., by title)
-        {
-          $addFields: {
-            items: {
-              $sortArray: {
-                input: "$items",
-                sortBy: { title: 1 },
-              },
-            },
-          },
-        },
-      ]);
-
-      res.status(200).json(subCategoryWithItems[0] || null);
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error getting items by subcategory", error });
-    }
-  },
-
-  async getItemsBySubCategorySlug(req: Request, res: Response) {
-    try {
-      const { slug } = req.params;
-      if (!slug) {
-        return res.status(400).json({ message: "SubCategory slug is required" });
-      }
-
-      const subCategoryWithItems = await SubCategory.aggregate([
-        // Match the specific subcategory by slug
-        {
-          $match: {
-            slug: slug,
-          },
-        },
-        // Lookup items for this subcategory
-        {
-          $lookup: {
-            from: "items",
-            localField: "_id",
-            foreignField: "subCategoryId",
-            as: "items",
-          },
-        },
-        // Sort items if needed (e.g., by title)
-        {
-          $addFields: {
-            items: {
-              $sortArray: {
-                input: "$items",
-                sortBy: { title: 1 },
-              },
-            },
-          },
-        },
-      ]);
-
-      res.status(200).json(subCategoryWithItems[0] || null);
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error getting items by subcategory slug", error });
-    }
-  },
-
-  async getSubCategoryBySlug(req: Request, res: Response) {
-    try {
-      const { slug } = req.params;
-      if (!slug) {
-        return res.status(400).json({ message: "SubCategory slug is required" });
-      }
-
-      const subCategory = await SubCategory.findOne({ slug });
-      if (!subCategory) {
-        return res.status(404).json({ message: "SubCategory not found" });
-      }
-      res.status(200).json(subCategory);
-    } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error getting subCategory by slug", error });
-    }
-  },
-
   async createCategory(req: Request, res: Response) {
     const session = await mongoose.startSession();
     session.startTransaction();
-
     try {
-      const { title, slug, featuredItems, subCategories } = req.body;
+      const { title, slug } = req.body;
 
-      // Validate required fields
       if (!title || !slug) {
         return res.status(400).json({ message: "Title and slug are required" });
       }
 
-      // Create the category
-      const category = await Menu.create([{
-        title,
-        slug,
-        featuredItems: featuredItems || []
-      }], { session });
+      const category = await Menu.create(
+        [
+          {
+            title,
+            slug,
+            featuredItems: [],
+            subCategories: [],
+          },
+        ],
+        { session }
+      );
 
       if (!category || !category[0]) {
         throw new Error("Failed to create category");
       }
 
-      // If subcategories are provided, create them
-      if (subCategories && Array.isArray(subCategories)) {
-        const subCategoryPromises = subCategories.map(async (subCategory) => {
-          const { title, slug, description, items } = subCategory;
-
-          // Create subcategory
-          const newSubCategory = await SubCategory.create([{
-            title,
-            slug,
-            description,
-            categoryId: category[0]!._id
-          }], { session });
-
-          if (!newSubCategory || !newSubCategory[0]) {
-            throw new Error("Failed to create subcategory");
-          }
-
-          // If items are provided for this subcategory, create them
-          if (items && Array.isArray(items)) {
-            const itemPromises = items.map(item => 
-              menuService.createItemWithImage(item, newSubCategory[0]!._id, session)
-            );
-            await Promise.all(itemPromises);
-          }
-
-          return newSubCategory[0];
-        });
-
-        await Promise.all(subCategoryPromises);
-      }
-
       await session.commitTransaction();
       res.status(201).json({
         message: "Category created successfully",
-        category: category[0]
+        category: {
+          ...category[0].toObject(),
+          featuredItems: [],
+          subCategories: [],
+        },
       });
     } catch (error: unknown) {
       await session.abortTransaction();
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-      res.status(500).json({
-        message: "Error creating category",
-        error: errorMessage
-      });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      res
+        .status(500)
+        .json({ message: "Error creating category", error: errorMessage });
     } finally {
       session.endSession();
     }
   },
-
-  async getAllCategoriesTitles(req: Request, res: Response) {
-    try {
-      const categories = await Menu.find({}, { title: 1 });
-      res.status(200).json(categories.map(category => category.title));
-    } catch (error) {
-      res.status(500).json({ message: "Error getting all categories", error });
-    }
-  },
-
-  async getCategoryIdByTitle(req: Request, res: Response) {
-    try {
-      const { title } = req.params;
-      const category = await Menu.findOne({ title });
-      res.status(200).json(category?._id);
-    } catch (error) {
-      res.status(500).json({ message: "Error getting category ID by title", error });
-    }
-  },  
 
   async createSubCategory(req: Request, res: Response) {
     const session = await mongoose.startSession();
@@ -274,75 +190,55 @@ export const menuController = {
 
       // Validate required fields
       if (!categoryId || !title || !slug) {
-        return res.status(400).json({ 
-          message: "Category ID, title, and slug are required" 
+        return res.status(400).json({
+          message: "Category ID, title, and slug are required",
         });
       }
 
       // Check if category exists
       const category = await Menu.findById(categoryId);
       if (!category) {
-        return res.status(404).json({ 
-          message: "Parent category not found" 
+        return res.status(404).json({
+          message: "Parent category not found",
         });
       }
 
       // Create subcategory
-      const subCategory = await SubCategory.create([{
-        title,
-        slug,
-        description,
-        categoryId
-      }], { session });
+      const subCategory = await SubCategory.create(
+        [
+          {
+            title,
+            slug,
+            description,
+            categoryId,
+            items: [],
+          },
+        ],
+        { session }
+      );
 
       if (!subCategory || !subCategory[0]) {
         throw new Error("Failed to create subcategory");
       }
 
-      // If items are provided, create them with their images
-      if (items && Array.isArray(items)) {
-        const createdItems = [];
-        for (const itemData of items) {
-          const item = await menuService.createItemWithImage(itemData, subCategory[0]!._id, session);
-          createdItems.push(item);
-        }
-      }
-
       await session.commitTransaction();
       res.status(201).json({
         message: "Subcategory created successfully",
-        subCategory: subCategory[0]
+        subCategory: subCategory[0],
       });
     } catch (error: unknown) {
       await session.abortTransaction();
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
       res.status(500).json({
         message: "Error creating subcategory",
-        error: errorMessage
+        error: errorMessage,
       });
     } finally {
       session.endSession();
     }
   },
 
-  async getAllSubCategoriesTitles(req: Request, res: Response) {
-    try {
-      const subCategories = await SubCategory.find({}, { title: 1 });
-      res.status(200).json(subCategories.map(subCategory => subCategory.title));
-    } catch (error) {
-      res.status(500).json({ message: "Error getting all subcategories titles", error });
-    }
-  },
-
-  async getSubCategoryIdByTitle(req: Request, res: Response) {
-    try {
-      const { title } = req.params;
-      const subCategory = await SubCategory.findOne({ title });
-      res.status(200).json(subCategory?._id);
-    } catch (error) {
-      res.status(500).json({ message: "Error getting subcategory ID by title", error });  
-    }
-  },
 
   async createItem(req: Request, res: Response) {
     const session = await mongoose.startSession();
@@ -353,32 +249,48 @@ export const menuController = {
       const items = Array.isArray(req.body) ? req.body : [req.body];
 
       // Validate that all items have required fields
-      const invalidItems = items.filter(item => !item.subCategoryId || !item.title || !item.slug);
+      const invalidItems = items.filter(
+        (item) => !item.subCategoryId || !item.title || !item.slug
+      );
       if (invalidItems.length > 0) {
-        return res.status(400).json({ 
-          message: "Subcategory ID, title, and slug are required for all items" 
+        return res.status(400).json({
+          message: "Subcategory ID, title, and slug are required for all items",
         });
       }
 
       const createdItems = [];
 
-      // Process each item
       for (const itemData of items) {
-        const item = await menuService.createItemWithImage(itemData, itemData.subCategoryId, session);
-        createdItems.push(item);
+        const item = await menuService.createItemWithImage(
+          itemData,
+          itemData.subCategoryId,
+          session
+        );
+        if (!item) {
+          throw new Error("Failed to create item");
+        }
+        // Ensure the image data is populated
+        const populatedItem = await Item.findById(item._id)
+          .populate({ path: "image", model: "Image" })
+          .session(session);
+        if (!populatedItem) {
+          throw new Error("Failed to populate item data");
+        }
+        createdItems.push(populatedItem);
       }
 
       await session.commitTransaction();
       res.status(201).json({
         message: "Items created successfully",
-        items: createdItems
+        items: createdItems,
       });
     } catch (error: unknown) {
       await session.abortTransaction();
-      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
       res.status(500).json({
         message: "Error creating items",
-        error: errorMessage
+        error: errorMessage,
       });
     } finally {
       session.endSession();
@@ -395,9 +307,9 @@ export const menuController = {
       const existingCategory = await Menu.findOne({ title });
       res.status(200).json({ isUnique: !existingCategory });
     } catch (error) {
-      res.status(500).json({ 
-        message: "Error checking category title uniqueness", 
-        error 
+      res.status(500).json({
+        message: "Error checking category title uniqueness",
+        error,
       });
     }
   },
@@ -412,9 +324,9 @@ export const menuController = {
       const existingSubCategory = await SubCategory.findOne({ title });
       res.status(200).json({ isUnique: !existingSubCategory });
     } catch (error) {
-      res.status(500).json({ 
-        message: "Error checking subcategory title uniqueness", 
-        error 
+      res.status(500).json({
+        message: "Error checking subcategory title uniqueness",
+        error,
       });
     }
   },
@@ -429,16 +341,67 @@ export const menuController = {
       const existingItem = await Item.findOne({ title });
       res.status(200).json({ isUnique: !existingItem });
     } catch (error) {
-      res.status(500).json({ 
-        message: "Error checking item title uniqueness", 
-        error 
+      res.status(500).json({
+        message: "Error checking item title uniqueness",
+        error,
       });
     }
   },
+
+  async deleteCategory(req: Request, res: Response) {
+    try {
+      const { categoryId } = req.params;
+      if (!categoryId) {
+        return res.status(400).json({ message: "Category ID is required" });
+      }
+
+      const result = await Menu.findByIdAndDelete(categoryId);
+      if (!result) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      res.status(200).json({ message: "Category deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting category", error });
+    }
+  },
+
+  async deleteSubCategory(req: Request, res: Response) {
+    try {
+      const { subCategoryId } = req.params;
+      if (!subCategoryId) {
+        return res.status(400).json({ message: "SubCategory ID is required" });
+      }
+
+      const result = await SubCategory.findByIdAndDelete(subCategoryId);
+      if (!result) {
+        return res.status(404).json({ message: "SubCategory not found" });
+      }
+
+      res.status(200).json({ message: "SubCategory deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting subcategory", error });
+    }
+  },
+
+  async deleteItem(req: Request, res: Response) {
+    try {
+      const { itemId } = req.params;
+      if (!itemId) {
+        return res.status(400).json({ message: "Item ID is required" });
+      }
+
+      const result = await Item.findByIdAndDelete(itemId);
+      if (!result) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+
+      res.status(200).json({ message: "Item deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting item", error });
+    }
+  },
 };
-
-
-
 
 /*
 Create SubCategory POST request will have a body like this:
@@ -531,5 +494,3 @@ Create Category POST request will have a body like this:
   ]
 }
 */
-
-

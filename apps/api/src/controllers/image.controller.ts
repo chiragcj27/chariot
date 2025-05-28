@@ -15,9 +15,11 @@ export const imageController = {
       const uploadData = await s3Service.getUploadUrl(fileName, fileType);
       res.status(200).json(uploadData);
     } catch (error) {
+      console.error('Error in getUploadUrl:', error);
       res.status(500).json({
         message: "Error generating upload URL",
-        error: error instanceof Error ? error.message : "Unknown error"
+        error: error instanceof Error ? error.message : "Unknown error",
+        details: error instanceof Error ? error.stack : undefined
       });
     }
   },

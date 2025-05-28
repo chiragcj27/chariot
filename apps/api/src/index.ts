@@ -19,7 +19,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/menu', menuRoutes);
-app.use('/api/image', imageRoutes);
+app.use('/api/images', imageRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
   .then(() => {

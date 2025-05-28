@@ -6,32 +6,20 @@ const router: Router = Router();
 // Get full menu structure
 router.get('/structure', menuController.getFullMenuStructure);
 
-// Get items by subcategory ID
-router.get('/subcategory/:subCategoryId/items', menuController.getItemsBySubCategoryId);
-
-// Get items by subcategory slug
-router.get('/subcategory/slug/:slug/items', menuController.getItemsBySubCategorySlug);
-
-// Get subcategory by slug
-router.get('/subcategory/slug/:slug', menuController.getSubCategoryBySlug);
-
 // Create category
 router.post('/category', menuController.createCategory);
 
-// Get all category titles
-router.get('/categories/titles', menuController.getAllCategoriesTitles);
+// Delete category
+router.delete('/category/:categoryId', menuController.deleteCategory);
 
-// Get category ID by title
-router.get('/category/title/:title', menuController.getCategoryIdByTitle);
+// Delete subcategory
+router.delete('/subcategory/:subCategoryId', menuController.deleteSubCategory);
+
+// Delete item
+router.delete('/item/:itemId', menuController.deleteItem);
 
 // Create subcategory
 router.post('/subcategory', menuController.createSubCategory);
-
-// Get all subcategory titles
-router.get('/subcategories/titles', menuController.getAllSubCategoriesTitles);
-
-// Get subcategory ID by title
-router.get('/subcategory/title/:title', menuController.getSubCategoryIdByTitle);
 
 // Create item(s)
 router.post('/items', menuController.createItem);

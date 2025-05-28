@@ -18,7 +18,7 @@ export interface IItem {
         metadata?: Record<string, any>;
     };
     description: string;
-    subCategoryId: string;
+    subCategoryId: Types.ObjectId;
 }
 
 interface ISubCategory {
@@ -55,13 +55,13 @@ const itemSchema = new mongoose.Schema<IItem>({
     image: {
         type: Schema.Types.ObjectId,
         required: true,
-        ref: 'ItemImage'
+        ref: 'Image'
     },
     description: {
         type: String,
     },
     subCategoryId: {
-        type: String,
+        type: Schema.Types.ObjectId,
         required: true,
         ref: 'SubCategory'
     }
