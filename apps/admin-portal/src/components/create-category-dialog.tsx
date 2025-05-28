@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { menuApi } from "@/lib/api/menu"
 
 interface CreateCategoryDialogProps {
   children: React.ReactNode
@@ -46,18 +47,13 @@ export function CreateCategoryDialog({ children }: CreateCategoryDialogProps) {
     setLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      const newCategory = {
-        _id: Date.now().toString(),
+      const response = await menuApi.createCategory({
         title: formData.title,
         slug: formData.slug,
-        subCategories: [],
-      }
+      })
 
-      // Dispatch custom event
-      const event = new CustomEvent('categoryCreated', { detail: newCategory })
+      // Dispatch custom event with the category from the response
+      const event = new CustomEvent('categoryCreated', { detail: response.category })
       window.dispatchEvent(event)
       
       setFormData({ title: "", slug: "" })
