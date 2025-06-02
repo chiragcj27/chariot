@@ -1,6 +1,9 @@
+'use client';
+
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
-import { mainCategories } from './Header';
+import Link from 'next/link';
+import { mainCategories } from '@/data/categories';
 import { menuData } from '../data/menuData';
 
 interface MobileMenuProps {
@@ -79,12 +82,13 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
                             <ul className="pl-4 py-1 space-y-1">
                               {subcat.items.map((item) => (
                                 <li key={item.id}>
-                                  <a
-                                    href={`#${item.id}`}
+                                  <Link
+                                    href={`/${category.id}/${subcat.id}/${item.id}`}
+                                    onClick={onClose}
                                     className="block p-2 text-navy-700 hover:text-navy-900 text-sm"
                                   >
                                     {item.name}
-                                  </a>
+                                  </Link>
                                 </li>
                               ))}
                             </ul>
@@ -101,12 +105,20 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
         
         <div className="p-4 border-t border-navy-100">
           <div className="flex flex-col space-y-2">
-            <a href="#account" className="block w-full py-2 px-4 text-center bg-navy-50 text-navy-900 rounded-md">
+            <Link 
+              href="/account" 
+              onClick={onClose}
+              className="block w-full py-2 px-4 text-center bg-navy-50 text-navy-900 rounded-md"
+            >
               Sign In / Register
-            </a>
-            <a href="#cart" className="block w-full py-2 px-4 text-center bg-navy-900 text-cream rounded-md">
+            </Link>
+            <Link 
+              href="/cart" 
+              onClick={onClose}
+              className="block w-full py-2 px-4 text-center bg-navy-900 text-cream rounded-md"
+            >
               View Cart (2)
-            </a>
+            </Link>
           </div>
         </div>
       </div>
