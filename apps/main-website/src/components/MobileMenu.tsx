@@ -1,10 +1,8 @@
-'use client';
 
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, X } from 'lucide-react';
 import Link from 'next/link';
-import { mainCategories } from '@/data/categories';
-import { menuData } from '../data/menuData';
+import { useMenu } from '@/hooks/useMenu';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -14,8 +12,41 @@ interface MobileMenuProps {
 export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [activeSubcategory, setActiveSubcategory] = useState<string | null>(null);
+  const { menuData, loading, error } = useMenu();
 
   if (!isOpen) return null;
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 z-50 bg-cream lg:hidden">
+        <div className="flex flex-col h-full overflow-y-auto">
+          <div className="flex justify-between items-center p-4 border-b border-navy-100">
+            <h2 className="text-lg font-serif text-navy-900">Menu</h2>
+            <button onClick={onClose} className="p-2 text-navy-900">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <div className="p-4">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !menuData) {
+    return (
+      <div className="fixed inset-0 z-50 bg-cream lg:hidden">
+        <div className="flex flex-col h-full overflow-y-auto">
+          <div className="flex justify-between items-center p-4 border-b border-navy-100">
+            <h2 className="text-lg font-serif text-navy-900">Menu</h2>
+            <button onClick={onClose} className="p-2 text-navy-900">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          <div className="p-4">Error loading menu</div>
+        </div>
+      </div>
+    );
+  }
 
   const handleCategoryClick = (categoryId: string) => {
     if (activeCategory === categoryId) {
@@ -36,7 +67,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-cream lg:hidden animate-slideIn">
+    <div className="fixed inset-0 z-50 bg-cream lg:hidden">
       <div className="flex flex-col h-full overflow-y-auto">
         <div className="flex justify-between items-center p-4 border-b border-navy-100">
           <h2 className="text-lg font-serif text-navy-900">Menu</h2>
@@ -47,7 +78,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
         
         <nav className="flex-1 overflow-y-auto">
           <ul className="divide-y divide-navy-100">
-            {mainCategories.map((category) => (
+            {menuData.categories.map((category) => (
               <li key={category.id} className="py-1">
                 <button
                   className="flex justify-between items-center w-full p-4 text-left text-navy-900 font-medium"
@@ -61,10 +92,10 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
                   )}
                 </button>
                 
-                {activeCategory === category.id && menuData[category.id] && (
+                {activeCategory === category.id && (
                   <div className="pl-4 pr-2 pb-2">
                     <ul className="divide-y divide-navy-50">
-                      {menuData[category.id].subcategories.map((subcat) => (
+                      {category.subcategories.map((subcat) => (
                         <li key={subcat.id} className="py-1">
                           <button
                             className="flex justify-between items-center w-full p-3 text-left text-navy-800 text-sm"
@@ -83,7 +114,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
                               {subcat.items.map((item) => (
                                 <li key={item.id}>
                                   <Link
-                                    href={`/${category.id}/${subcat.id}/${item.id}`}
+                                    href={`/${category.slug}/${subcat.slug}/${item.slug}`}
                                     onClick={onClose}
                                     className="block p-2 text-navy-700 hover:text-navy-900 text-sm"
                                   >

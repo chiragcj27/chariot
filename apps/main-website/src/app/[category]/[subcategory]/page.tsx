@@ -1,33 +1,41 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
-import { menuData } from '@/data/menuData';
 import { mainCategories } from '@/data/categories';
 import Image from 'next/image';
 import Link from 'next/link';
+import { menuService } from '@/services/menu.service';
+import type { Category, SubCategory } from '@/services/menu.service';
 
 interface SubcategoryPageProps {
-  params: {
+  params: Promise<{
     category: string;
     subcategory: string;
-  };
+  }>;
 }
 
 export default async function SubcategoryPage({ params }: SubcategoryPageProps) {
-  const { category: categoryId, subcategory: subcategoryId } = await params;
-  const category = mainCategories.find(cat => cat.id === categoryId);
-  const categoryData = menuData[categoryId];
+  const resolvedParams = await params;
+  const { category: categorySlug, subcategory: subcategorySlug } = resolvedParams;
   
-  if (!category || !categoryData) {
+  const menuStructure = await menuService.getMenuStructure();
+  const categoryData = menuStructure.categories.find(
+    (cat: Category) => cat.slug.toLowerCase() === categorySlug.toLowerCase()
+  );
+  
+  if (!categoryData) {
     notFound();
   }
 
   const subcategory = categoryData.subcategories.find(
-    subcat => subcat.id === subcategoryId
+    (subcat: SubCategory) => subcat.slug.toLowerCase() === subcategorySlug.toLowerCase()
   );
 
   if (!subcategory) {
     notFound();
   }
+
+  // Find the category name from mainCategories for display purposes
+  const category = mainCategories.find(cat => cat.id === categoryData.slug) || categoryData;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -39,7 +47,7 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
           </li>
           <li>/</li>
           <li>
-            <Link href={`/${categoryId}`} className="hover:text-navy-900">
+            <Link href={`/${categorySlug}`} className="hover:text-navy-900">
               {category.name}
             </Link>
           </li>
@@ -50,25 +58,25 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
 
       <h1 className="text-3xl font-serif text-navy-900 mb-8">{subcategory.name}</h1>
 
-      {/* L3 Items Grid */}
+      {/* Items Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
         {subcategory.items.map((item) => (
           <Link 
             key={item.id}
-            href={`/${categoryId}/${subcategoryId}/${item.id}`}
+            href={`/${categorySlug}/${subcategorySlug}/${item.slug}`}
             className="group"
           >
             <div className="bg-navy-50 rounded-lg p-6 hover:bg-navy-100 transition-colors">
               <h2 className="text-xl font-medium text-navy-900 mb-4">{item.name}</h2>
               <div className="aspect-square relative overflow-hidden rounded-lg mb-4">
                 <Image 
-                  src={categoryData.featured[0].image} // Using featured image as placeholder
+                  src={item.image?.url || '/placeholder.jpg'}
                   alt={item.name}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-              <p className="text-navy-700">View Products →</p>
+              <p className="text-navy-700">View Details →</p>
             </div>
           </Link>
         ))}
@@ -79,12 +87,12 @@ export default async function SubcategoryPage({ params }: SubcategoryPageProps) 
         <h2 className="text-2xl font-serif text-navy-900 mb-6">Related Categories</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categoryData.subcategories
-            .filter(subcat => subcat.id !== subcategoryId)
+            .filter(subcat => subcat.slug !== subcategorySlug)
             .slice(0, 3)
             .map((relatedSubcat) => (
               <Link 
                 key={relatedSubcat.id}
-                href={`/${categoryId}/${relatedSubcat.id}`}
+                href={`/${categorySlug}/${relatedSubcat.slug}`}
                 className="group"
               >
                 <div className="bg-navy-50 rounded-lg p-6 hover:bg-navy-100 transition-colors">

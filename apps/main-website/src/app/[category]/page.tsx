@@ -1,9 +1,10 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
-import { menuData } from '@/data/menuData';
 import { mainCategories } from '@/data/categories';
 import Image from 'next/image';
 import Link from 'next/link';
+import { menuService } from '@/services/menu.service';
+import type { Category } from '@/services/menu.service';
 
 interface CategoryPageProps {
   params: {
@@ -12,10 +13,19 @@ interface CategoryPageProps {
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
-  const category = mainCategories.find(cat => cat.id === params.category);
-  const categoryData = menuData[params.category];
+  const { category: categorySlug } = params;
+  const category = mainCategories.find(cat => cat.id === categorySlug);
+  
+  if (!category) {
+    notFound();
+  }
 
-  if (!category || !categoryData) {
+  const menuStructure = await menuService.getMenuStructure();
+  const categoryData = menuStructure.categories.find(
+    (cat: Category) => cat.slug === categorySlug
+  );
+
+  if (!categoryData) {
     notFound();
   }
 
@@ -28,7 +38,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         {categoryData.subcategories.map((subcat) => (
           <Link 
             key={subcat.id}
-            href={`/${params.category}/${subcat.id}`}
+            href={`/${categorySlug}/${subcat.slug}`}
             className="group"
           >
             <div className="bg-navy-50 rounded-lg p-6 hover:bg-navy-100 transition-colors">
@@ -54,11 +64,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       <div className="mt-12">
         <h2 className="text-2xl font-serif text-navy-900 mb-6">Featured Items</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categoryData.featured.map((item) => (
+          {categoryData.featuredItems?.map((item) => (
             <div key={item.id} className="group">
               <div className="aspect-square relative overflow-hidden rounded-lg mb-3">
                 <Image 
-                  src={item.image} 
+                  src={item.image?.url || '/placeholder.jpg'} 
                   alt={item.name}
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-500"

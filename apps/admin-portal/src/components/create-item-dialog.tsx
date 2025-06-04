@@ -125,6 +125,14 @@ export function CreateItemDialog({
 
       const { uploadUrl, url } = await getUrlResponse.json();
 
+      console.log('Debug S3 Upload:', {
+        uploadUrl,
+        url,
+        fileType: file.type,
+        fileSize: file.size,
+        fileName: file.name
+      });
+
       // Upload the file directly to S3 using the pre-signed URL
       const uploadResponse = await fetch(uploadUrl, {
         method: "PUT",

@@ -1,8 +1,13 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import { Diamond, Search, ShoppingBag, User } from 'lucide-react';
 import { InteractiveNav } from './InteractiveNav';
+import { MobileMenu } from './MobileMenu';
 
 export const Header: React.FC = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
       {/* Top announcement bar */}
@@ -17,6 +22,7 @@ export const Header: React.FC = () => {
             {/* Mobile menu button */}
             <button 
               className="lg:hidden flex items-center"
+              onClick={() => setIsMobileMenuOpen(true)}
               aria-label="Open menu"
             >
               <div className="space-y-1.5 p-1.5">
@@ -53,6 +59,9 @@ export const Header: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu */}
+      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
     </header>
   );
 };

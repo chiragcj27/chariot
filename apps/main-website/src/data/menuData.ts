@@ -14,10 +14,10 @@ export const menuData: Record<string, {
       image: string;
     }>;
   }> = {
-    'marketing': {
+    'marketing-sales': {
       subcategories: [
         {
-          id: 'print',
+          id: 'print-marketing',
           name: 'Print Marketing',
           items: [
             { id: 'catalogs', name: 'Catalogs' },
