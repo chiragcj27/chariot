@@ -97,11 +97,38 @@ const itemImageSchema = new Schema<IItemImage>({
     },
 });
 
+// Product Image Schema
+interface IProductImage extends IImage {
+    productId: Types.ObjectId;
+    isMain: boolean;
+    isThumbnail?: boolean;
+}
+const productImageSchema = new Schema<IProductImage>({
+    productId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true,
+    },
+    isMain: {
+        type: Boolean,
+        default: false,
+    },
+    isThumbnail: {
+        type: Boolean,
+        default: false,
+    },
+});
+
+
+
+
+
 // Create base Image model
 export const Image = model<IImage>("Image", imageSchema);
 
 // Create discriminator models
 export const PromotionalImage = Image.discriminator<IPromotionalImage>("promotional", promotionalImageSchema);
 export const ItemImage = Image.discriminator<IItemImage>("item", itemImageSchema);
+export const ProductImage = Image.discriminator<IProductImage>("product", productImageSchema);
 
 export default Image;
