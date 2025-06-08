@@ -14,7 +14,7 @@ export interface IImage extends Document {
     metadata?: Record<string, any>;
     createdAt: Date;
     updatedAt: Date;
-    imageType: string;
+    imageType: string
 }
 
 // Base image schema
