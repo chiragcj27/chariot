@@ -3,8 +3,8 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import menuRoutes from './routes/menu.routes';
-import imageRoutes from './routes/image.routes';
 import path from 'path';
+import assetRoutes from './routes/asset.routes';
 
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -19,7 +19,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/menu', menuRoutes);
-app.use('/api/images', imageRoutes);
+app.use('/api/assets', assetRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
   .then(() => {

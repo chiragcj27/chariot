@@ -15,11 +15,16 @@ const s3Client = new S3Client({
 });
 
 export const s3Service = {
-  async getUploadUrl(fileName: string, fileType: string) {
+  async getUploadUrl(fileName: string, fileType: string, folder: string) {
     try {
-      const key = `${uuidv4()}-${fileName}`;
+      const bucket = process.env.AWS_S3_BUCKET || "";
+      const region = process.env.AWS_REGION || "";
+
+
+      const key = `${folder}/${uuidv4()}-${fileName}`;
+
       const command = new PutObjectCommand({
-        Bucket: process.env.AWS_S3_BUCKET || "",
+        Bucket: bucket,
         Key: key,
         ContentType: fileType,
       });
@@ -29,10 +34,10 @@ export const s3Service = {
       return {
         uploadUrl,
         key,
-        url: `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${encodeURIComponent(key)}`,
+        url: `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(key)}`,
       };
     } catch (error) {
-      console.error('Error in getUploadUrl:', error);
+      console.error("Error in getUploadUrl:", error);
       throw error;
     }
   },

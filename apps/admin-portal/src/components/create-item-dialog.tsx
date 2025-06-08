@@ -108,7 +108,7 @@ export function CreateItemDialog({
 
     try {
       // First, get the pre-signed URL from our API
-      const getUrlResponse = await fetch("http://localhost:3001/api/images/upload-url", {
+      const getUrlResponse = await fetch("http://localhost:3001/api/assets/upload-url", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -116,6 +116,7 @@ export function CreateItemDialog({
         body: JSON.stringify({
           fileName: file.name,
           fileType: file.type,
+          folder: "items",
         }),
       });
 
