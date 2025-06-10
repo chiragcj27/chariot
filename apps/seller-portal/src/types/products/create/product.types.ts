@@ -1,12 +1,33 @@
 import { z } from 'zod';
 
-export const productTypes = ["PHYSICAL", "DIGITAL", "SERVICE"] as const;
-export const productStatuses = ["DRAFT", "ACTIVE", "INACTIVE", "OUT_OF_STOCK"] as const;
-export const currencies = ["USD", "EUR", "GBP", "INR"] as const;
-export const digitalKinds = ["video", "audio", "image", "pdf", "document", "software", "template"] as const;
-export const timeUnits = ["hours", "days", "weeks", "months"] as const;
-export const fileTypes = ["mp4", "mp3", "jpg", "png", "pdf", "docx", "zip", "psd", "ai"] as const;
+// API Response Types
+export interface CategoryItem {
+  _id: string;
+  title: string;
+  price: number;
+  description: string;
+  image: {
+    _id: string;
+    url: string;
+    imageType: string;
+  };
+}
 
+export interface SubCategory {
+  _id: string;
+  title: string;
+  items: CategoryItem[];
+}
+
+export interface Category {
+  _id: string;
+  title: string;
+  subCategories: SubCategory[];
+}
+
+export type CategoriesResponse = Category[];
+
+// Form validation schemas
 export const baseProductSchema = z.object({
   name: z.string().min(1, "Product name is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -19,8 +40,7 @@ export const baseProductSchema = z.object({
     currency: z.string().min(1, "Currency is required")
   }),
   discount: z.object({
-    amount: z.number().min(0, "Discount must be positive"),
-    currency: z.string().min(1, "Currency is required")
+    percentage: z.number().min(0).max(100, "Discount percentage must be between 0 and 100"),
   }),
   theme: z.string().optional(),
   season: z.string().optional(),
@@ -29,7 +49,6 @@ export const baseProductSchema = z.object({
   featured: z.boolean().default(false),
   status: z.enum(["DRAFT", "ACTIVE", "INACTIVE", "OUT_OF_STOCK"]),
   slug: z.string().min(1, "Slug is required"),
-  images: z.array(z.instanceof(File)).optional(),
   seo: z.object({
     metaTitle: z.string().optional(),
     metaDescription: z.string().optional(),
@@ -40,9 +59,13 @@ export const baseProductSchema = z.object({
 export const digitalProductSchema = baseProductSchema.extend({
   kind: z.string().min(1, "Digital product kind is required"),
   assetDetails: z.object({
+    file: z.string().min(1, "File is required"),
     fileType: z.string().min(1, "File type is required"),
-    previewFile: z.string().min(1, "Preview file is required")
-  })
+    fileSize: z.number().min(0, "File size must be positive"),
+    fileUrl: z.string().url("Valid file URL is required")
+  }),
+  downloadLink: z.string().url("Valid download link is required"),
+  downloadLinkExpiry: z.date()
 });
 
 export const serviceProductSchema = baseProductSchema.extend({
@@ -61,113 +84,29 @@ export const serviceProductSchema = baseProductSchema.extend({
   consultationRequired: z.boolean().default(false)
 });
 
-export const productSchema = z.discriminatedUnion("type", [
-  baseProductSchema.extend({ type: z.literal("PHYSICAL") }),
-  digitalProductSchema.extend({ type: z.literal("DIGITAL") }),
-  serviceProductSchema.extend({ type: z.literal("SERVICE") })
-]);
-
-export type DigitalProductFormData = {
-  type: "DIGITAL";
-  name: string;
-  description: string;
-  categoryId: string;
-  subCategoryId: string;
-  itemId: string;
-  status: "DRAFT" | "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK";
-  price: { amount: number; currency: string };
-  discount: { amount: number; currency: string };
-  theme?: string;
-  season?: string;
-  occasion?: string;
-  tags: string[];
-  featured: boolean;
-  slug: string;
-  images?: File[];
-  seo?: {
-    metaTitle?: string;
-    metaDescription?: string;
-    metaKeywords?: string[];
-  };
-  kind: string;
-  assetDetails: {
+export type ProductFormData = z.infer<typeof baseProductSchema> & {
+  // Digital product fields
+  kind?: string;
+  assetDetails?: {
+    file: string;
     fileType: string;
-    previewFile: string;
+    fileSize: number;
+    fileUrl: string;
   };
-};
-
-export type ServiceProductFormData = {
-  type: "SERVICE";
-  name: string;
-  description: string;
-  categoryId: string;
-  subCategoryId: string;
-  itemId: string;
-  status: "DRAFT" | "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK";
-  price: { amount: number; currency: string };
-  discount: { amount: number; currency: string };
-  theme?: string;
-  season?: string;
-  occasion?: string;
-  tags: string[];
-  featured: boolean;
-  slug: string;
-  images?: File[];
-  seo?: {
-    metaTitle?: string;
-    metaDescription?: string;
-    metaKeywords?: string[];
-  };
-  deliveryTime: {
+  downloadLink?: string;
+  downloadLinkExpiry?: Date;
+  // Service product fields
+  deliveryTime?: {
     min: number;
     max: number;
     unit: string;
   };
-  revisions: {
+  revisions?: {
     allowed: number;
     cost: number;
     unit: string;
   };
-  deliverables: string[];
-  requirements: string[];
-  consultationRequired: boolean;
+  deliverables?: string[];
+  requirements?: string[];
+  consultationRequired?: boolean;
 };
-
-export type PhysicalProductFormData = {
-  type: "PHYSICAL";
-  name: string;
-  description: string;
-  categoryId: string;
-  subCategoryId: string;
-  itemId: string;
-  status: "DRAFT" | "ACTIVE" | "INACTIVE" | "OUT_OF_STOCK";
-  price: { amount: number; currency: string };
-  discount: { amount: number; currency: string };
-  theme?: string;
-  season?: string;
-  occasion?: string;
-  tags: string[];
-  featured: boolean;
-  slug: string;
-  images?: File[];
-  seo?: {
-    metaTitle?: string;
-    metaDescription?: string;
-    metaKeywords?: string[];
-  };
-};
-
-export type ProductFormData = ServiceProductFormData | DigitalProductFormData | PhysicalProductFormData;
-
-export interface MenuStructure {
-  _id: string;
-  title: string;
-  subCategories: {
-    _id: string;
-    title: string;
-    items: {
-      _id: string;
-      title: string;
-    }[];
-  }[];
-} 

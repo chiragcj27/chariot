@@ -1,213 +1,220 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useForm, SubmitHandler, Resolver, FieldErrors } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
-import { CategorySelection } from '@/components/products/create/CategorySelection';
-import { ProductDetails } from '@/components/products/create/ProductDetails';
-import { DigitalProductDetails } from '@/components/products/create/DigitalProductDetails';
-import { ServiceProductDetails } from '@/components/products/create/ServiceProductDetails';
-import { PricingSection } from '@/components/products/create/PricingSection';
-import { AdditionalInformation } from '@/components/products/create/AdditionalInformation';
-import { SEOSection } from '@/components/products/create/SEOSection';
-import { ImageUpload } from '@/components/products/create/ImageUpload';
-import { FormButtons } from '@/components/products/create/FormButtons';
-import { productSchema, ProductFormData, ServiceProductFormData, DigitalProductFormData, MenuStructure } from '@/types/products/create/product.types';
-import { generateSlug } from '@/utils/products/create/form.utils';
+import { Button } from '@/components/ui/button';
+import { Resolver } from 'react-hook-form';
+
+// Import all modular components
+import { CategorySelector } from '@/components/product-form/CategorySelector';
+import { BasicProductDetails } from '@/components/product-form/BasicProductDetails';
+import { DigitalProductFields } from '@/components/product-form/DigitalProductFields';
+import { ServiceProductFields } from '@/components/product-form/ServiceProductFields';
+import { PricingSection } from '@/components/product-form/PricingSection';
+import { AdditionalInformation } from '@/components/product-form/AdditionalInformation';
+import { SEOSection } from '@/components/product-form/SEOSection';
+import { ImageUpload } from '@/components/product-form/ImageUpload';
+
+// Import types and constants
+import { ProductFormData, baseProductSchema, SubCategory, CategoryItem } from '@/types/products/create/product.types';
+import { 
+  productTypes, 
+  productStatuses, 
+  currencies, 
+  digitalKinds, 
+  timeUnits, 
+  fileTypes 
+} from '@/components/product-form/constants';
+
+// Import custom hook
+import { useCategories } from '@/hooks/useCategories';
 
 export default function CreateProductPage() {
-  const router = useRouter();
+  // API data
+  const { categories, isLoading: categoriesLoading, error: categoriesError } = useCategories();
+  
+  // Category state
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>("");
+  const [selectedItem, setSelectedItem] = useState<string>("");
+  const [availableSubCategories, setAvailableSubCategories] = useState<SubCategory[]>([]);
+  const [availableItems, setAvailableItems] = useState<CategoryItem[]>([]);
   const [formStep, setFormStep] = useState(0);
-  const [menuStructure, setMenuStructure] = useState<MenuStructure[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Form setup
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormData>({
-    resolver: zodResolver(productSchema) as Resolver<ProductFormData>,
+    resolver: zodResolver(baseProductSchema) as Resolver<ProductFormData>,
     defaultValues: {
       type: "PHYSICAL",
-      name: "",
-      description: "",
-      categoryId: "",
-      subCategoryId: "",
-      itemId: "",
       status: "DRAFT",
-      price: { amount: 0, currency: "USD" },
-      discount: { amount: 0, currency: "USD" },
-      tags: [],
       featured: false,
-      slug: "",
-      seo: { metaKeywords: [] }
-    } as ProductFormData
+      tags: [],
+      price: { amount: 0, currency: "INR" },
+      discount: { percentage: 0 },
+      seo: { metaKeywords: [] },
+      deliverables: [],
+      requirements: [],
+      consultationRequired: false,
+      assetDetails: {
+        file: "",
+        fileType: "",
+        fileSize: 0,
+        fileUrl: ""
+      },
+      deliveryTime: {
+        min: 1,
+        max: 7,
+        unit: "days"
+      },
+      revisions: {
+        allowed: 3,
+        cost: 0,
+        unit: "INR"
+      }
+    }
   });
 
   const watchedFields = watch();
+  const selectedProductType = watch("type");
 
-  // Fetch menu structure
+  // Category selection effects
   useEffect(() => {
-    const fetchMenuStructure = async () => {
-      try {
-        const response = await fetch('http://localhost:3001/api/menu/structure');
-        const data = await response.json();
-        setMenuStructure(data);
-      } catch (error) {
-        console.error('Failed to fetch menu structure:', error);
-      } finally {
-        setIsLoading(false);
+    if (selectedCategory && categories.length > 0) {
+      const category = categories.find(cat => cat._id === selectedCategory);
+      if (category) {
+        setAvailableSubCategories(category.subCategories);
+        setSelectedSubCategory("");
+        setSelectedItem("");
+        setAvailableItems([]);
+        setFormStep(1);
       }
-    };
-
-    fetchMenuStructure();
-  }, []);
+    }
+  }, [selectedCategory, categories]);
 
   useEffect(() => {
-    if (selectedCategory) {
-      setSelectedSubCategory("");
-    }
-  }, [selectedCategory]);
-
-  useEffect(() => {
-    if (selectedSubCategory) {
-      setValue("itemId", "");
-    }
-  }, [selectedSubCategory]);
-
-  const onSubmit: SubmitHandler<ProductFormData> = async (data: ProductFormData) => {
-    setIsSubmitting(true);
-    const validationResult = productSchema.safeParse(data);
-    if (!validationResult.success) {
-      console.error("Validation errors:", validationResult.error);
-      setIsSubmitting(false);
-      return;
-    }
-    console.log("Product data:", data);
-    try {
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create product');
+    if (selectedSubCategory && availableSubCategories.length > 0) {
+      const subCategory = availableSubCategories.find(sub => sub._id === selectedSubCategory);
+      if (subCategory) {
+        setAvailableItems(subCategory.items);
+        setSelectedItem("");
+        if (subCategory.items.length > 0) {
+          setFormStep(2);
+        } else {
+          setFormStep(3);
+        }
       }
-
-      router.push('/dashboard/products');
-    } catch (error) {
-      console.error('Error creating product:', error);
-    } finally {
-      setIsSubmitting(false);
     }
+  }, [selectedSubCategory, availableSubCategories]);
+
+  useEffect(() => {
+    if (selectedItem) {
+      setFormStep(3);
+    }
+  }, [selectedItem]);
+
+  // Helper functions
+  const generateSlug = (name: string) => {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   };
 
   const handleNameChange = (name: string) => {
-    setValue("name", name);
     setValue("slug", generateSlug(name));
   };
 
-  const handlePrevious = () => {
-    setFormStep((prev) => Math.max(0, prev - 1));
+  const handleCategoryChange = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setValue("categoryId", categoryId);
   };
 
-  const handleNext = () => {
-    if (formStep === 0) {
-      if (!selectedCategory || !selectedSubCategory || !watchedFields.itemId) {
-        return;
-      }
-    }
-    setFormStep((prev) => Math.min(3, prev + 1));
+  const handleSubCategoryChange = (subCategoryId: string) => {
+    setSelectedSubCategory(subCategoryId);
+    setValue("subCategoryId", subCategoryId);
   };
 
-  const totalSteps = 4;
-
-  const renderStep = () => {
-    switch (formStep) {
-      case 0:
-        return (
-          <CategorySelection
-            menuStructure={menuStructure}
-            selectedCategory={selectedCategory}
-            selectedSubCategory={selectedSubCategory}
-            formStep={formStep}
-            onCategoryChange={(value) => {
-              setSelectedCategory(value);
-              setValue("categoryId", value);
-              setValue("subCategoryId", "");
-              setValue("itemId", "");
-            }}
-            onSubCategoryChange={(value) => {
-              setSelectedSubCategory(value);
-              setValue("subCategoryId", value);
-              setValue("itemId", "");
-            }}
-            onItemChange={(value) => setValue("itemId", value)}
-            control={control}
-            errors={errors}
-          />
-        );
-      case 1:
-        return (
-          <>
-            <ProductDetails
-              control={control}
-              setValue={setValue}
-              errors={errors}
-              onNameChange={handleNameChange}
-            />
-            <PricingSection
-              control={control}
-              errors={errors}
-            />
-          </>
-        );
-      case 2:
-        return (
-          <>
-            <DigitalProductDetails
-              control={control}
-              errors={errors as FieldErrors<DigitalProductFormData>}
-              watchedFields={watchedFields as Partial<DigitalProductFormData>}
-              setValue={setValue}
-            />
-            <ServiceProductDetails
-              control={control}
-              errors={errors as FieldErrors<ServiceProductFormData>}
-              setValue={setValue}
-            />
-            <ImageUpload
-              control={control}
-              errors={errors}
-              setValue={setValue}
-            />
-          </>
-        );
-      case 3:
-        return (
-          <>
-            <AdditionalInformation
-              control={control}
-              errors={errors}
-            />
-            <SEOSection
-              control={control}
-              errors={errors}
-            />
-          </>
-        );
-      default:
-        return null;
+  const handleItemChange = (itemId: string) => {
+    setSelectedItem(itemId);
+    setValue("itemId", itemId);
+    
+    // Auto-populate price from selected item
+    const selectedItemData = availableItems.find(item => item._id === itemId);
+    if (selectedItemData) {
+      setValue("price.amount", selectedItemData.price);
     }
   };
 
-  if (isLoading) {
+  // Tag management functions
+  const addTag = (tag: string) => {
+    if (tag && !watchedFields.tags.includes(tag)) {
+      setValue("tags", [...watchedFields.tags, tag]);
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setValue("tags", watchedFields.tags.filter(tag => tag !== tagToRemove));
+  };
+
+  // SEO keyword management
+  const addKeyword = (keyword: string) => {
+    if (keyword && !watchedFields.seo?.metaKeywords?.includes(keyword)) {
+      const currentKeywords = watchedFields.seo?.metaKeywords || [];
+      setValue("seo.metaKeywords", [...currentKeywords, keyword]);
+    }
+  };
+
+  const removeKeyword = (keywordToRemove: string) => {
+    const currentKeywords = watchedFields.seo?.metaKeywords || [];
+    setValue("seo.metaKeywords", currentKeywords.filter(keyword => keyword !== keywordToRemove));
+  };
+
+  // Service product management functions
+  const addDeliverable = (deliverable: string) => {
+    if (deliverable && !watchedFields.deliverables?.includes(deliverable)) {
+      const currentDeliverables = watchedFields.deliverables || [];
+      setValue("deliverables", [...currentDeliverables, deliverable]);
+    }
+  };
+
+  const removeDeliverable = (deliverableToRemove: string) => {
+    const currentDeliverables = watchedFields.deliverables || [];
+    setValue("deliverables", currentDeliverables.filter(deliverable => deliverable !== deliverableToRemove));
+  };
+
+  const addRequirement = (requirement: string) => {
+    if (requirement && !watchedFields.requirements?.includes(requirement)) {
+      const currentRequirements = watchedFields.requirements || [];
+      setValue("requirements", [...currentRequirements, requirement]);
+    }
+  };
+
+  const removeRequirement = (requirementToRemove: string) => {
+    const currentRequirements = watchedFields.requirements || [];
+    setValue("requirements", currentRequirements.filter(requirement => requirement !== requirementToRemove));
+  };
+
+  // Form submission
+  const onSubmit = (data: ProductFormData) => {
+    console.log("Product data:", data);
+    // Handle form submission here
+  };
+
+  // Error state
+  if (categoriesError) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <h2 className="text-xl font-semibold text-red-800 mb-2">Error Loading Categories</h2>
+            <p className="text-red-600 mb-4">{categoriesError}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-50"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -221,15 +228,96 @@ export default function CreateProductPage() {
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {renderStep()}
-          <FormButtons
-            currentStep={formStep}
-            totalSteps={totalSteps}
-            isSubmitting={isSubmitting}
-            onPrevious={handlePrevious}
-            onNext={handleNext}
-            onSubmit={handleSubmit(onSubmit)}
+          {/* Category Selection */}
+          <CategorySelector
+            control={control}
+            errors={errors}
+            categories={categories}
+            selectedCategory={selectedCategory}
+            selectedSubCategory={selectedSubCategory}
+            selectedItem={selectedItem}
+            availableSubCategories={availableSubCategories}
+            availableItems={availableItems}
+            formStep={formStep}
+            isLoading={categoriesLoading}
+            onCategoryChange={handleCategoryChange}
+            onSubCategoryChange={handleSubCategoryChange}
+            onItemChange={handleItemChange}
           />
+
+          {/* Product Details - Shows after category selection */}
+          <div className={`transition-all duration-500 transform ${formStep >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+            <div className="space-y-6">
+              {/* Basic Product Details */}
+              <BasicProductDetails
+                control={control}
+                errors={errors}
+                onNameChange={handleNameChange}
+                productTypes={productTypes}
+                productStatuses={productStatuses}
+              />
+
+              {/* Digital Product Specific Fields */}
+              {selectedProductType === "DIGITAL" && (
+                <DigitalProductFields
+                  control={control}
+                  digitalKinds={digitalKinds}
+                  fileTypes={fileTypes}
+                />
+              )}
+
+              {/* Service Product Specific Fields */}
+              {selectedProductType === "SERVICE" && (
+                <ServiceProductFields
+                  control={control}
+                  timeUnits={timeUnits}
+                  currencies={currencies}
+                  deliverables={watchedFields.deliverables || []}
+                  requirements={watchedFields.requirements || []}
+                  onAddDeliverable={addDeliverable}
+                  onRemoveDeliverable={removeDeliverable}
+                  onAddRequirement={addRequirement}
+                  onRemoveRequirement={removeRequirement}
+                />
+              )}
+
+              {/* Pricing Section */}
+              <PricingSection
+                control={control}
+                currencies={currencies}
+              />
+
+              {/* Additional Information */}
+              <AdditionalInformation
+                control={control}
+                errors={errors}
+                tags={watchedFields.tags}
+                onAddTag={addTag}
+                onRemoveTag={removeTag}
+              />
+
+              {/* SEO Section */}
+              <SEOSection
+                control={control}
+                metaKeywords={watchedFields.seo?.metaKeywords || []}
+                onAddKeyword={addKeyword}
+                onRemoveKeyword={removeKeyword}
+              />
+
+              {/* Image Upload */}
+              <ImageUpload />
+
+              {/* Submit Buttons */}
+              <div className="flex justify-end gap-4">
+                <Button type="button" variant="outline" size="lg">
+                  Save as Draft
+                </Button>
+                <Button type="submit" size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  Create Product
+                </Button>
+              </div>
+            </div>
+          </div>
         </form>
       </div>
     </div>
