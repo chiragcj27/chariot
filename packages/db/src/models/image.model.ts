@@ -1,4 +1,4 @@
-import { model, Schema, Document, Types } from "mongoose";
+import mongoose, { model, Schema, Document, Types } from "mongoose";
 
 // Base image interface
 export interface IImage extends Document {
@@ -119,16 +119,12 @@ const productImageSchema = new Schema<IProductImage>({
     },
 });
 
-
-
-
-
 // Create base Image model
-export const Image = model<IImage>("Image", imageSchema);
+export const Image = mongoose.models.Image || model<IImage>("Image", imageSchema);
 
 // Create discriminator models
-export const PromotionalImage = Image.discriminator<IPromotionalImage>("promotional", promotionalImageSchema);
-export const ItemImage = Image.discriminator<IItemImage>("item", itemImageSchema);
-export const ProductImage = Image.discriminator<IProductImage>("product", productImageSchema);
+export const PromotionalImage = mongoose.models.promotional || Image.discriminator<IPromotionalImage>("promotional", promotionalImageSchema);
+export const ItemImage = mongoose.models.item || Image.discriminator<IItemImage>("item", itemImageSchema);
+export const ProductImage = mongoose.models.product || Image.discriminator<IProductImage>("product", productImageSchema);
 
 export default Image;

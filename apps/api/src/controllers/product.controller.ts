@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { Product, DigitalProduct, ServiceProduct } from "@chariot/db";
+import { Product, PhysicalProduct, DigitalProduct, ServiceProduct } from "@chariot/db/src/models/product.model";
+import { Image, ProductImage } from "@chariot/db/src/models/image.model";
 import mongoose from "mongoose";
 
 export const productController = {
@@ -7,7 +8,23 @@ export const productController = {
   createProduct: async (req: Request, res: Response) => {
     try {
       const productData = req.body;
-      const product = await Product.create(productData);
+      let product;
+
+      // Use the appropriate model based on product type
+      switch (productData.type) {
+        case "physical":
+          product = await PhysicalProduct.create(productData);
+          break;
+        case "digital":
+          product = await DigitalProduct.create(productData);
+          break;
+        case "service":
+          product = await ServiceProduct.create(productData);
+          break;
+        default:
+          throw new Error(`Invalid product type: ${productData.type}`);
+      }
+
       res.status(201).json({
         message: "Product created successfully",
         product,
@@ -22,47 +39,85 @@ export const productController = {
     }
   },
 
-  // Get all products with pagination and filters
+  storeProductImage: async (req: Request, res: Response) => {
+    try {
+      const data = req.body;
+      // Validate required fields
+      if (!data.filename || !data.originalname || !data.url || !data.size || !data.mimetype || !data.productId) {
+        return res.status(400).json({
+          message: "Missing required fields",
+          required: ['filename', 'originalname', 'url', 'size', 'mimetype', 'productId']
+        });
+      }
+
+      // Validate status if provided
+      if (data.status && !['pending', 'uploaded', 'failed'].includes(data.status)) {
+        return res.status(400).json({
+          message: "Invalid status value",
+          validStatuses: ['pending', 'uploaded', 'failed']
+        });
+      }
+
+      const image = new ProductImage({
+        ...data,
+        imageType: "product",
+        productId: new mongoose.Types.ObjectId(data.productId),
+        isMain: data.isMain || false,
+        isThumbnail: data.isThumbnail || false,
+        filename: data.filename,
+        originalname: data.originalname,
+        url: data.url,
+        size: data.size,
+        mimetype: data.mimetype,
+        status: data.status || 'pending'
+      });
+      await image.save();
+
+      const product = await Product.findById(data.productId);
+      if (!product) {
+        return res.status(404).json({
+          message: "Product not found",
+        });
+      }
+      product.images.push(image._id);
+      await product.save();
+
+      res.status(201).json({
+        message: "Product image created successfully",
+        image,
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      res.status(500).json({
+        message: "Error creating product image",
+        error: errorMessage
+      });
+    }
+  },
+
   getAllProducts: async (req: Request, res: Response) => {
     try {
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-      const status = req.query.status as string;
-      const type = req.query.type as string;
-      const categoryId = req.query.categoryId as string;
-      const sellerId = req.query.sellerId as string;
-      const itemId = req.query.itemId as string;
-
-      const query: any = {};
-      if (status) query.status = status;
-      if (type) query.type = type;
-      if (categoryId) query.categoryId = new mongoose.Types.ObjectId(categoryId);
-      if (sellerId) query.sellerId = new mongoose.Types.ObjectId(sellerId);
-      if (itemId) query.itemId = new mongoose.Types.ObjectId(itemId);
-
-      const products = await Product.find(query)
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .populate("categoryId")
-        .populate("subCategoryId")
-        .populate("itemId")
-        .populate("sellerId")
-        .populate("images");
-
-      const total = await Product.countDocuments(query);
-
+      const products = await Product.find()
+        .populate({
+          path: 'categoryId',
+          model: 'Menu'
+        })
+        .populate({
+          path: 'subCategoryId',
+          model: 'SubCategory'
+        })
+        .populate({
+          path: 'itemId',
+          model: 'Item'
+        })
+        .populate('images');
+      
       res.status(200).json({
         message: "Products retrieved successfully",
         products,
-        pagination: {
-          total,
-          page,
-          pages: Math.ceil(total / limit),
-        },
       });
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       res.status(500).json({
         message: "Error retrieving products",
         error: errorMessage,
@@ -70,236 +125,170 @@ export const productController = {
     }
   },
 
-  // Get a single product by ID
-  getProductById: async (req: Request, res: Response) => {
+  getProductsByCategory: async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
-      const product = await Product.findById(id)
-        .populate("categoryId")
-        .populate("subCategoryId")
-        .populate("itemId")
-        .populate("sellerId")
-        .populate("images");
-
-      if (!product) {
-        return res.status(404).json({
-          message: "Product not found",
-        });
-      }
-
+      const { categoryId } = req.params;
+      
+      const products = await Product.find({ categoryId })
+        .populate({
+          path: 'categoryId',
+          model: 'Menu'
+        })
+        .populate({
+          path: 'subCategoryId',
+          model: 'SubCategory'
+        })
+        .populate({
+          path: 'itemId',
+          model: 'Item'
+        })
+        .populate('images');
+      
       res.status(200).json({
-        message: "Product retrieved successfully",
-        product,
-      });
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
-      res.status(500).json({
-        message: "Error retrieving product",
-        error: errorMessage,
-      });
-    }
-  },
-
-  // Update a product
-  updateProduct: async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params;
-      const updateData = req.body;
-
-      const product = await Product.findByIdAndUpdate(
-        id,
-        { ...updateData, updatedAt: new Date() },
-        { new: true, runValidators: true }
-      )
-        .populate("categoryId")
-        .populate("subCategoryId")
-        .populate("itemId")
-        .populate("sellerId")
-        .populate("images");
-
-      if (!product) {
-        return res.status(404).json({
-          message: "Product not found",
-        });
-      }
-
-      res.status(200).json({
-        message: "Product updated successfully",
-        product,
-      });
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
-      res.status(500).json({
-        message: "Error updating product",
-        error: errorMessage,
-      });
-    }
-  },
-
-  // Delete a product
-  deleteProduct: async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params;
-      const product = await Product.findByIdAndDelete(id);
-
-      if (!product) {
-        return res.status(404).json({
-          message: "Product not found",
-        });
-      }
-
-      res.status(200).json({
-        message: "Product deleted successfully",
-      });
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
-      res.status(500).json({
-        message: "Error deleting product",
-        error: errorMessage,
-      });
-    }
-  },
-
-  // Get products by seller
-  getProductsBySeller: async (req: Request, res: Response) => {
-    try {
-      const { sellerId } = req.params;
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-
-      const products = await Product.find({ sellerId: new mongoose.Types.ObjectId(sellerId) })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .populate("categoryId")
-        .populate("subCategoryId")
-        .populate("itemId")
-        .populate("images");
-
-      const total = await Product.countDocuments({ sellerId: new mongoose.Types.ObjectId(sellerId) });
-
-      res.status(200).json({
-        message: "Seller products retrieved successfully",
-        products,
-        pagination: {
-          total,
-          page,
-          pages: Math.ceil(total / limit),
-        },
-      });
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
-      res.status(500).json({
-        message: "Error retrieving seller products",
-        error: errorMessage,
-      });
-    }
-  },
-
-  // Get featured products
-  getFeaturedProducts: async (req: Request, res: Response) => {
-    try {
-      const limit = parseInt(req.query.limit as string) || 10;
-      const products = await Product.find({ featured: true, status: "active" })
-        .limit(limit)
-        .populate("categoryId")
-        .populate("subCategoryId")
-        .populate("itemId")
-        .populate("sellerId")
-        .populate("images");
-
-      res.status(200).json({
-        message: "Featured products retrieved successfully",
+        message: "Products retrieved successfully",
         products,
       });
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       res.status(500).json({
-        message: "Error retrieving featured products",
+        message: "Error retrieving products",
         error: errorMessage,
       });
     }
   },
 
-  // Search products
-  searchProducts: async (req: Request, res: Response) => {
+  getProductsBySubCategory: async (req: Request, res: Response) => {
     try {
-      const { query } = req.query;
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-
-      const searchQuery = {
-        $or: [
-          { name: { $regex: query, $options: "i" } },
-          { description: { $regex: query, $options: "i" } },
-          { tags: { $in: [new RegExp(query as string, "i")] } },
-        ],
-        status: "active",
-      };
-
-      const products = await Product.find(searchQuery)
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .populate("categoryId")
-        .populate("subCategoryId")
-        .populate("itemId")
-        .populate("sellerId")
-        .populate("images");
-
-      const total = await Product.countDocuments(searchQuery);
-
+      const { subCategoryId } = req.params;
+      
+      const products = await Product.find({ subCategoryId })
+        .populate({
+          path: 'categoryId',
+          model: 'Menu'
+        })
+        .populate({
+          path: 'subCategoryId',
+          model: 'SubCategory'
+        })
+        .populate({
+          path: 'itemId',
+          model: 'Item'
+        })
+        .populate('images');
+      
       res.status(200).json({
-        message: "Products search completed successfully",
+        message: "Products retrieved successfully",
         products,
-        pagination: {
-          total,
-          page,
-          pages: Math.ceil(total / limit),
-        },
       });
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       res.status(500).json({
-        message: "Error searching products",
+        message: "Error retrieving products",
         error: errorMessage,
       });
     }
   },
 
-  // Update product status
-  updateProductStatus: async (req: Request, res: Response) => {
+  getProductsByItem: async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
-      const { status } = req.body;
-
-      const product = await Product.findByIdAndUpdate(
-        id,
-        { status, updatedAt: new Date() },
-        { new: true, runValidators: true }
-      );
-
-      if (!product) {
-        return res.status(404).json({
-          message: "Product not found",
-        });
-      }
-
+      const { itemId } = req.params;
+      
+      const products = await Product.find({ itemId })
+        .populate({
+          path: 'categoryId',
+          model: 'Menu'
+        })
+        .populate({
+          path: 'subCategoryId',
+          model: 'SubCategory'
+        })
+        .populate({
+          path: 'itemId',
+          model: 'Item'
+        })
+        .populate('images');
+      
       res.status(200).json({
-        message: "Product status updated successfully",
-        product,
+        message: "Products retrieved successfully",
+        products,
       });
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       res.status(500).json({
-        message: "Error updating product status",
+        message: "Error retrieving products",
         error: errorMessage,
       });
     }
   },
-};
+
+  getProductsByCategoryAndSubCategory: async (req: Request, res: Response) => {
+    try {
+      const { categoryId, subCategoryId } = req.params;
+      
+      const products = await Product.find({ 
+        categoryId,
+        subCategoryId 
+      })
+        .populate({
+          path: 'categoryId',
+          model: 'Menu'
+        })
+        .populate({
+          path: 'subCategoryId',
+          model: 'SubCategory'
+        })
+        .populate({
+          path: 'itemId',
+          model: 'Item'
+        })
+        .populate('images');
+      
+      res.status(200).json({
+        message: "Products retrieved successfully",
+        products,
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      res.status(500).json({
+        message: "Error retrieving products",
+        error: errorMessage,
+      });
+    }
+  },
+
+  getProductsByAllLevels: async (req: Request, res: Response) => {
+    try {
+      const { categoryId, subCategoryId, itemId } = req.params;
+      
+      const products = await Product.find({ 
+        categoryId,
+        subCategoryId,
+        itemId
+      })
+        .populate({
+          path: 'categoryId',
+          model: 'Menu'
+        })
+        .populate({
+          path: 'subCategoryId',
+          model: 'SubCategory'
+        })
+        .populate({
+          path: 'itemId',
+          model: 'Item'
+        })
+        .populate('images');
+      
+      res.status(200).json({
+        message: "Products retrieved successfully",
+        products,
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      res.status(500).json({
+        message: "Error retrieving products",
+        error: errorMessage,
+      });
+    }
+  }
+}

@@ -41,7 +41,7 @@ export const baseProductSchema = z.object({
   }),
   discount: z.object({
     percentage: z.number().min(0).max(100, "Discount percentage must be between 0 and 100"),
-  }),
+  }).optional(),
   theme: z.string().optional(),
   season: z.string().optional(),
   occasion: z.string().optional(),

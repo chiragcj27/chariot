@@ -6,29 +6,27 @@ const router: Router = Router();
 // Create a new product
 router.post("/", productController.createProduct);
 
-// Get all products with pagination and filters
+// Save product image
+router.post("/images", productController.storeProductImage);
+
+// Get all products
 router.get("/", productController.getAllProducts);
 
-// Get a single product by ID
-router.get("/:id", productController.getProductById);
+// Get products by category
+router.get("/category/:categoryId", productController.getProductsByCategory);
 
-// Update a product
-router.put("/:id", productController.updateProduct);
+// Get products by subcategory
+router.get("/subcategory/:subCategoryId", productController.getProductsBySubCategory);
 
-// Delete a product
-router.delete("/:id", productController.deleteProduct);
+// Get products by item
+router.get("/item/:itemId", productController.getProductsByItem);
 
-// Get products by seller
-router.get("/seller/:sellerId", productController.getProductsBySeller);
+// Get products by category and subcategory
+router.get("/category/:categoryId/subcategory/:subCategoryId", productController.getProductsByCategoryAndSubCategory);
 
-// Get featured products
-router.get("/featured", productController.getFeaturedProducts);
-
-// Search products
-router.get("/search", productController.searchProducts);
-
-// Update product status
-router.patch("/:id/status", productController.updateProductStatus);
+// Get products by all levels (category, subcategory, and item)
+router.get("/category/:categoryId/subcategory/:subCategoryId/item/:itemId", productController.getProductsByAllLevels);
 
 export default router;
+
 

@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
-import { Image, ItemImage, PromotionalImage } from '../models/image.model';
+import { Image, ItemImage, PromotionalImage, ProductImage } from '../models/image.model';
 import { Menu, SubCategory, Item } from '../models/menu.model';
+import { Product, PhysicalProduct, DigitalProduct, ServiceProduct } from '../models/product.model';
 
 dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
 
@@ -13,15 +14,10 @@ const connectDB = async (): Promise<void> => {
       throw new Error('MONGO_URI is not defined in the environment variables');
     }
 
-    // Ensure models are registered
-    if (!mongoose.models.Image) {
-      console.log('Registering Image model...');
-      require('../models/image.model');
-    }
-    if (!mongoose.models.Item) {
-      console.log('Registering Item model...');
-      require('../models/menu.model');
-    }
+    // Register all models
+    require('../models/image.model');
+    require('../models/menu.model');
+    require('../models/product.model');
 
     await mongoose.connect(mongoURI);
     console.log('MongoDB connected successfully');

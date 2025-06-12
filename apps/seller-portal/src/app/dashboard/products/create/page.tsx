@@ -26,9 +26,11 @@ import {
   timeUnits, 
   fileTypes 
 } from '@/components/product-form/constants';
+import { ImageFile } from '@/types/image';
 
 // Import custom hook
 import { useCategories } from '@/hooks/useCategories';
+import { useProductForm } from '@/hooks/useProductForm';
 
 export default function CreateProductPage() {
   // API data
@@ -41,6 +43,7 @@ export default function CreateProductPage() {
   const [availableSubCategories, setAvailableSubCategories] = useState<SubCategory[]>([]);
   const [availableItems, setAvailableItems] = useState<CategoryItem[]>([]);
   const [formStep, setFormStep] = useState(0);
+  const [selectedImages, setSelectedImages] = useState<ImageFile[]>([]);
 
   // Form setup
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormData>({
@@ -192,10 +195,24 @@ export default function CreateProductPage() {
     setValue("requirements", currentRequirements.filter(requirement => requirement !== requirementToRemove));
   };
 
+  const handleImagesSelected = (images: ImageFile[]) => {
+    setSelectedImages(images);
+  };
+
   // Form submission
-  const onSubmit = (data: ProductFormData) => {
-    console.log("Product data:", data);
-    // Handle form submission here
+  const { createProduct, isSubmitting, error: productError } = useProductForm();
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const onSubmit = async (data: ProductFormData) => {
+    try {
+      setSubmitError(null);
+      const result = await createProduct(data, selectedImages);
+      console.log('Product created successfully:', result);
+      // TODO: Add success notification and redirect
+    } catch (error) {
+      console.error('Error creating product:', error);
+      setSubmitError(error instanceof Error ? error.message : 'Failed to create product');
+    }
   };
 
   // Error state
@@ -226,6 +243,13 @@ export default function CreateProductPage() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Product</h1>
           <p className="text-gray-600">Add a new product to your selling portal with detailed information and categorization.</p>
         </div>
+
+        {(submitError || productError) && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-red-800 mb-2">Error Creating Product</h3>
+            <p className="text-red-600">{submitError || productError}</p>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Category Selection */}
@@ -305,15 +329,28 @@ export default function CreateProductPage() {
               />
 
               {/* Image Upload */}
-              <ImageUpload />
+              <ImageUpload 
+                onImagesSelected={handleImagesSelected} 
+                selectedImages={selectedImages} 
+              />
 
               {/* Submit Buttons */}
               <div className="flex justify-end gap-4">
-                <Button type="button" variant="outline" size="lg">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="lg"
+                  disabled={isSubmitting}
+                >
                   Save as Draft
                 </Button>
-                <Button type="submit" size="lg" className="bg-blue-600 hover:bg-blue-700">
-                  Create Product
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Creating Product...' : 'Create Product'}
                 </Button>
               </div>
             </div>
