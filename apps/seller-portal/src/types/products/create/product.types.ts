@@ -59,13 +59,11 @@ export const baseProductSchema = z.object({
 export const digitalProductSchema = baseProductSchema.extend({
   kind: z.string().min(1, "Digital product kind is required"),
   assetDetails: z.object({
-    file: z.string().min(1, "File is required"),
+    file: z.instanceof(File).nullable(),
     fileType: z.string().min(1, "File type is required"),
     fileSize: z.number().min(0, "File size must be positive"),
     fileUrl: z.string().url("Valid file URL is required")
-  }),
-  downloadLink: z.string().url("Valid download link is required"),
-  downloadLinkExpiry: z.date()
+  })
 });
 
 export const serviceProductSchema = baseProductSchema.extend({
@@ -88,13 +86,11 @@ export type ProductFormData = z.infer<typeof baseProductSchema> & {
   // Digital product fields
   kind?: string;
   assetDetails?: {
-    file: string;
+    file: File | null;
     fileType: string;
     fileSize: number;
     fileUrl: string;
   };
-  downloadLink?: string;
-  downloadLinkExpiry?: Date;
   // Service product fields
   deliveryTime?: {
     min: number;

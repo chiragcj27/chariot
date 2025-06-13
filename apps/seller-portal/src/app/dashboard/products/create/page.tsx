@@ -17,7 +17,7 @@ import { SEOSection } from '@/components/product-form/SEOSection';
 import { ImageUpload } from '@/components/product-form/ImageUpload';
 
 // Import types and constants
-import { ProductFormData, baseProductSchema, SubCategory, CategoryItem } from '@/types/products/create/product.types';
+import { ProductFormData, baseProductSchema, serviceProductSchema, digitalProductSchema, SubCategory, CategoryItem } from '@/types/products/create/product.types';
 import { 
   productTypes, 
   productStatuses, 
@@ -44,10 +44,17 @@ export default function CreateProductPage() {
   const [availableItems, setAvailableItems] = useState<CategoryItem[]>([]);
   const [formStep, setFormStep] = useState(0);
   const [selectedImages, setSelectedImages] = useState<ImageFile[]>([]);
+  const [productType, setProductType] = useState<"PHYSICAL" | "DIGITAL" | "SERVICE">("PHYSICAL");
 
   // Form setup
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormData>({
-    resolver: zodResolver(baseProductSchema) as Resolver<ProductFormData>,
+    resolver: zodResolver(
+      productType === "SERVICE" 
+        ? serviceProductSchema 
+        : productType === "DIGITAL" 
+          ? digitalProductSchema 
+          : baseProductSchema
+    ) as Resolver<ProductFormData>,
     defaultValues: {
       type: "PHYSICAL",
       status: "DRAFT",
@@ -60,7 +67,7 @@ export default function CreateProductPage() {
       requirements: [],
       consultationRequired: false,
       assetDetails: {
-        file: "",
+        file: null,
         fileType: "",
         fileSize: 0,
         fileUrl: ""
@@ -80,6 +87,20 @@ export default function CreateProductPage() {
 
   const watchedFields = watch();
   const selectedProductType = watch("type");
+
+  // Update product type when it changes
+  useEffect(() => {
+    setProductType(selectedProductType);
+    // Reset assetDetails when switching to digital product type
+    if (selectedProductType === "DIGITAL") {
+      setValue("assetDetails", {
+        file: null,
+        fileType: "",
+        fileSize: 0,
+        fileUrl: ""
+      });
+    }
+  }, [selectedProductType]);
 
   // Category selection effects
   useEffect(() => {
@@ -287,6 +308,7 @@ export default function CreateProductPage() {
                   control={control}
                   digitalKinds={digitalKinds}
                   fileTypes={fileTypes}
+                  setValue={setValue}
                 />
               )}
 

@@ -11,6 +11,64 @@ export const useProductForm = () => {
     setError(null);
     
     try {
+      let assetDetails = {
+        file: "",
+        fileType: formData.assetDetails?.fileType || "",
+        fileSize: 0,
+        fileUrl: ""
+      };
+
+      // If this is a digital product, upload the file to S3 first
+      if (formData.type.toLowerCase() === "digital" && formData.assetDetails?.file instanceof File) {
+        console.log('Starting digital product file upload');
+        
+        // Get signed URL for the digital product file
+        const signedUrlResponse = await fetch('http://localhost:3001/api/assets/upload-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fileName: formData.assetDetails.file.name,
+            fileType: formData.assetDetails.file.type,
+            folder: 'digital-products',
+          }),
+        });
+
+        if (!signedUrlResponse.ok) {
+          const errorData = await signedUrlResponse.json();
+          console.error('Failed to get upload URL for digital product:', errorData);
+          throw new Error(errorData.message || 'Failed to get upload URL for digital product');
+        }
+
+        const { uploadUrl, url: fileUrl } = await signedUrlResponse.json();
+        console.log('Received upload URL for digital product');
+
+        // Upload the file to S3
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': formData.assetDetails.file.type,
+          },
+          body: formData.assetDetails.file,
+        });
+
+        if (!uploadResponse.ok) {
+          console.error('Failed to upload digital product file to S3');
+          throw new Error('Failed to upload digital product file to S3');
+        }
+
+        console.log('Digital product file uploaded successfully');
+        
+        // Set the asset details with the uploaded file information
+        assetDetails = {
+          file: formData.assetDetails.file.name,
+          fileType: formData.assetDetails.file.type,
+          fileSize: formData.assetDetails.file.size,
+          fileUrl: fileUrl
+        };
+      }
+
       // Transform the form data to match backend expectations
       const transformedData = {
         name: formData.name,
@@ -50,11 +108,9 @@ export const useProductForm = () => {
           }
         }),
         // Add required fields for digital products
-        ...(formData.type.toLowerCase() === "digital" && formData.kind && {
+        ...(formData.type.toLowerCase() === "digital" && {
           kind: formData.kind,
-          assetDetails: formData.assetDetails,
-          downloadLink: formData.downloadLink,
-          downloadLinkExpiry: formData.downloadLinkExpiry
+          assetDetails: assetDetails,
         }),
         // Add required fields for service products
         ...(formData.type.toLowerCase() === "service" && {

@@ -16,12 +16,14 @@ interface DigitalProductFieldsProps {
   control: Control<ProductFormData>;
   digitalKinds: string[];
   fileTypes: string[];
+  setValue: (name: "assetDetails.fileSize" | "assetDetails.fileUrl", value: number | string) => void;
 }
 
 export function DigitalProductFields({
   control,
   digitalKinds,
-  fileTypes
+  fileTypes,
+  setValue
 }: DigitalProductFieldsProps) {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -53,6 +55,12 @@ export function DigitalProductFields({
       // Create preview URL for the file
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
+
+      // Set file size
+      setValue("assetDetails.fileSize", file.size);
+      
+      // Set a temporary fileUrl (will be updated after upload)
+      setValue("assetDetails.fileUrl", url);
     }
   };
 

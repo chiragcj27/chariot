@@ -236,8 +236,6 @@ interface IDigitalProduct extends IProduct {
     fileSize: number;
     fileUrl: string;
   };
-  downloadLink: string;
-  downloadLinkExpiry: Date;
 }
 
 const digitalProductSchema = new mongoose.Schema<IDigitalProduct>({
@@ -263,14 +261,7 @@ const digitalProductSchema = new mongoose.Schema<IDigitalProduct>({
       required: true,
     },
   },
-  downloadLink: {
-    type: String,
-    required: true,
-  },
-  downloadLinkExpiry: {
-    type: Date,
-    required: true,
-  },
+
 });
 
 // Check if model exists before creating discriminator
