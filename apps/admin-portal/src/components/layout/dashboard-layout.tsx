@@ -11,6 +11,7 @@ import {
   Cog6ToothIcon,
   Bars3Icon,
   XMarkIcon,
+  AdjustmentsHorizontalIcon
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
@@ -20,6 +21,7 @@ const navigation = [
   { name: 'Marketing', href: '/marketing', icon: MegaphoneIcon },
   { name: 'Customers', href: '/customers', icon: UsersIcon },
   { name: 'Menu Settings', href: '/menu', icon: Cog6ToothIcon },
+  { name: 'Landing Page Configuration', href: '/landing', icon: AdjustmentsHorizontalIcon },
 ];
 
 export default function DashboardLayout({

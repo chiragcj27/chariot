@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
 import dotenv from "dotenv";
@@ -57,6 +57,20 @@ export const s3Service = {
       };
     } catch (error) {
       console.error('Error in getFileMetadata:', error);
+      throw error;
+    }
+  },
+
+  async deleteAsset(key: string) {
+    try {
+      const bucket = process.env.AWS_S3_BUCKET || "";
+      const command = new DeleteObjectCommand({
+        Bucket: bucket,
+        Key: key,
+      });
+      await s3Client.send(command);
+    } catch (error) {
+      console.error('Error in deleteAsset:', error);
       throw error;
     }
   }

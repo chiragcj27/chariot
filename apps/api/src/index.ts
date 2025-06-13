@@ -6,6 +6,7 @@ import menuRoutes from './routes/menu.routes';
 import path from 'path';
 import assetRoutes from './routes/asset.routes';
 import productRoutes from './routes/product.routes';
+import landingRoutes from './routes/landing.routes';
 
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -22,6 +23,7 @@ app.use(express.json());
 app.use('/api/menu', menuRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/landing', landingRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGODB_URI)
   .then(() => {

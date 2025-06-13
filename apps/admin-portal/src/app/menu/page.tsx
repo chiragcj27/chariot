@@ -1,5 +1,5 @@
 import { Suspense } from "react"
-import { MegaMenuManager } from "@/components/mega-menu-manager"
+import { MegaMenuManager } from "@/components/menu/mega-menu-manager"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import DashboardLayout from "@/components/layout/dashboard-layout"

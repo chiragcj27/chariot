@@ -24,6 +24,22 @@ export const assetController = {
     }
   },
 
-  
+  async deleteAsset(req: Request, res: Response) {
+    try {
+      const { key } = req.body;
+      const deleteResponse = await s3Service.deleteAsset(key);
+      res.status(200).json({
+        message: "Asset deleted successfully",
+        deleteResponse
+      });
+    } catch (error) {
+      console.error('Error in deleteAsset:', error);
+      res.status(500).json({
+        message: "Error deleting asset",
+        error: error instanceof Error ? error.message : "Unknown error",
+        details: error instanceof Error ? error.stack : undefined
+      });
+    }
+  }
 
 }; 

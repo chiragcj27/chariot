@@ -119,6 +119,40 @@ const productImageSchema = new Schema<IProductImage>({
     },
 });
 
+interface IBannerImage extends IImage {
+    redirectUrl: string;
+    isMain: boolean;
+    deviceType: 'desktop' | 'mobile' | 'both';
+    rotationOrder: number;
+    isActive: boolean;
+}
+
+const bannerImageSchema = new Schema<IBannerImage>({
+    redirectUrl: {
+        type: String,
+        required: true,
+    },
+    isMain: {
+        type: Boolean,
+        default: false,
+    },
+    deviceType: {
+        type: String,
+        enum: ['desktop', 'mobile', 'both'],
+        default: 'both',
+        required: true,
+    },
+    rotationOrder: {
+        type: Number,
+        required: true,
+        default: 0,
+    },
+    isActive: {
+        type: Boolean,
+        default: true,
+    }
+});
+
 // Create base Image model
 export const Image = mongoose.models.Image || model<IImage>("Image", imageSchema);
 
@@ -126,5 +160,6 @@ export const Image = mongoose.models.Image || model<IImage>("Image", imageSchema
 export const PromotionalImage = mongoose.models.promotional || Image.discriminator<IPromotionalImage>("promotional", promotionalImageSchema);
 export const ItemImage = mongoose.models.item || Image.discriminator<IItemImage>("item", itemImageSchema);
 export const ProductImage = mongoose.models.product || Image.discriminator<IProductImage>("product", productImageSchema);
+export const BannerImage = mongoose.models.banner || Image.discriminator<IBannerImage>("banner", bannerImageSchema);
 
 export default Image;

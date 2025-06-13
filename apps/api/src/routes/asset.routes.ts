@@ -5,6 +5,6 @@ const router : Router = Router();
 
 // Get S3 upload URL
 router.post("/upload-url", assetController.getUploadUrl);
-
+router.delete("/delete", assetController.deleteAsset);
 
 export default router; 
