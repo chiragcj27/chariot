@@ -53,7 +53,9 @@ export const InteractiveNav: React.FC = () => {
             after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 
             after:bg-navy-900 after:transform after:scale-x-0 after:transition-transform
             ${activeCategoryId === category.id ? 'after:scale-x-100' : 'hover:after:scale-x-100'}`}
-          onClick={() => toggleMenu(category.id)}
+          onClick={() => {
+            window.location.href = `/${category.slug}`;
+          }}
           onMouseEnter={() => toggleMenu(category.id)}
         >
           {category.name}
@@ -135,8 +137,8 @@ export const InteractiveNav: React.FC = () => {
                           <div className="absolute inset-0 bg-navy-900/0 group-hover:bg-navy-900/20 transition-colors duration-300" />
                         </div>
                         <h5 className="text-sm font-medium text-navy-900 group-hover:text-navy-700 transition-colors">{item.name}</h5>
-                        {item.price && (
-                          <p className="text-xs text-navy-700 group-hover:text-gold transition-colors">{item.price}</p>
+                        {item.description && (
+                          <p className="text-xs text-navy-700 group-hover:text-gold transition-colors">{item.description}</p>
                         )}
                       </Link>
                     ))}

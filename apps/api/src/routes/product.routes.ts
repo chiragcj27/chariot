@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { productController } from "../controllers/product.controller";
+import { landingController } from "../controllers/landing.controller";
 
 const router: Router = Router();
 
@@ -12,20 +13,26 @@ router.post("/images", productController.storeProductImage);
 // Get all products
 router.get("/", productController.getAllProducts);
 
-// Get products by category
-router.get("/category/:categoryId", productController.getProductsByCategory);
+// Get featured products
+router.get("/featured", landingController.getFeaturedProducts);
 
-// Get products by subcategory
-router.get("/subcategory/:subCategoryId", productController.getProductsBySubCategory);
+// Get products by category slug
+router.get("/category/:categorySlug", productController.getProductsByCategory);
 
-// Get products by item
-router.get("/item/:itemId", productController.getProductsByItem);
+// Get products by subcategory slug
+router.get("/subcategory/:subCategorySlug", productController.getProductsBySubCategory);
 
-// Get products by category and subcategory
-router.get("/category/:categoryId/subcategory/:subCategoryId", productController.getProductsByCategoryAndSubCategory);
+// Get products by item slug
+router.get("/item/:itemSlug", productController.getProductsByItem);
 
-// Get products by all levels (category, subcategory, and item)
-router.get("/category/:categoryId/subcategory/:subCategoryId/item/:itemId", productController.getProductsByAllLevels);
+// Get products by category and subcategory slugs
+router.get("/category/:categorySlug/subcategory/:subCategorySlug", productController.getProductsByCategoryAndSubCategory);
+
+// Get products by all levels (category, subcategory, and item slugs)
+router.get("/category/:categorySlug/subcategory/:subCategorySlug/item/:itemSlug", productController.getProductsByAllLevels);
+
+// Get product by slug
+router.get("/slug/:slug", productController.getProductBySlug);
 
 export default router;
 

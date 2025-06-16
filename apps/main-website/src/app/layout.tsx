@@ -25,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-cream text-navy-900`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} min-h-screen`}>
         <Header />
         <main className="pt-[120px]">
           {children}

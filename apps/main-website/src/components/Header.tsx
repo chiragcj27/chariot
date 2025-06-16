@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Diamond, Search, ShoppingBag, User } from 'lucide-react';
+import Link from 'next/link';
 import { InteractiveNav } from './InteractiveNav';
 import { MobileMenu } from './MobileMenu';
 
@@ -33,10 +34,10 @@ export const Header: React.FC = () => {
             </button>
 
             {/* Logo */}
-            <div className="flex-shrink-0 flex items-center">
+            <Link href="/" className="flex-shrink-0 flex items-center">
               <Diamond className="h-8 w-8 text-navy-900" />
               <span className="ml-2 text-2xl font-serif tracking-wider text-navy-900">CHARIOT</span>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
             <InteractiveNav />

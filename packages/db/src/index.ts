@@ -2,7 +2,7 @@
 import connectDB from './config/database';
 import { Image, ItemImage, PromotionalImage, IImage, ProductImage } from './models/image.model';
 import { Item, Menu, SubCategory, IItem } from './models/menu.model';
-import { IProduct, Product, PhysicalProduct, DigitalProduct, ServiceProduct } from './models/product.model';
+import { IProduct, Product, PhysicalProduct, DigitalProduct, ServiceProduct, ProductType, ProductStatus } from './models/product.model';
 import { PromotionalStrip } from './models/promotionalStrip.model';
 import { IUser, ISeller, User, Seller} from './models/user.model';
 
@@ -30,7 +30,10 @@ export type {
   ISeller,
   IUser,
   IProduct,
+  ProductStatus,
 };
+
+export { ProductType };
 
 export const hello = (): string => {
     return 'Hello from db package!';

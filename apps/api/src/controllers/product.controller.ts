@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Product, PhysicalProduct, DigitalProduct, ServiceProduct } from "@chariot/db/src/models/product.model";
 import { Image, ProductImage } from "@chariot/db/src/models/image.model";
 import mongoose from "mongoose";
+import { Menu, SubCategory, Item } from "@chariot/db";
 
 export const productController = {
   // Create a new product
@@ -97,24 +98,37 @@ export const productController = {
 
   getAllProducts: async (req: Request, res: Response) => {
     try {
-      const products = await Product.find()
-        .populate({
-          path: 'categoryId',
-          model: 'Menu'
-        })
-        .populate({
-          path: 'subCategoryId',
-          model: 'SubCategory'
-        })
-        .populate({
-          path: 'itemId',
-          model: 'Item'
-        })
-        .populate('images');
+      const { page = 1, limit = 12, populate = 'images' } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
+
+      const [products, total] = await Promise.all([
+        Product.find()
+          .populate({
+            path: 'categoryId',
+            model: 'Menu'
+          })
+          .populate({
+            path: 'subCategoryId',
+            model: 'SubCategory'
+          })
+          .populate({
+            path: 'itemId',
+            model: 'Item'
+          })
+          .populate('images')
+          .skip(skip)
+          .limit(Number(limit))
+          .sort({ createdAt: -1 }),
+        Product.countDocuments()
+      ]);
       
       res.status(200).json({
         message: "Products retrieved successfully",
         products,
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        hasMore: skip + products.length < total
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
@@ -127,26 +141,43 @@ export const productController = {
 
   getProductsByCategory: async (req: Request, res: Response) => {
     try {
-      const { categoryId } = req.params;
+      const { categorySlug } = req.params;
+      const { page = 1, limit = 12 } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
       
-      const products = await Product.find({ categoryId })
-        .populate({
-          path: 'categoryId',
-          model: 'Menu'
-        })
-        .populate({
-          path: 'subCategoryId',
-          model: 'SubCategory'
-        })
-        .populate({
-          path: 'itemId',
-          model: 'Item'
-        })
-        .populate('images');
+      const category = await Menu.findOne({ slug: categorySlug });
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      const [products, total] = await Promise.all([
+        Product.find({ categoryId: category._id })
+          .populate({
+            path: 'categoryId',
+            model: 'Menu'
+          })
+          .populate({
+            path: 'subCategoryId',
+            model: 'SubCategory'
+          })
+          .populate({
+            path: 'itemId',
+            model: 'Item'
+          })
+          .populate('images')
+          .skip(skip)
+          .limit(Number(limit))
+          .sort({ createdAt: -1 }),
+        Product.countDocuments({ categoryId: category._id })
+      ]);
       
       res.status(200).json({
         message: "Products retrieved successfully",
         products,
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        hasMore: skip + products.length < total
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
@@ -159,26 +190,43 @@ export const productController = {
 
   getProductsBySubCategory: async (req: Request, res: Response) => {
     try {
-      const { subCategoryId } = req.params;
+      const { subCategorySlug } = req.params;
+      const { page = 1, limit = 12 } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
       
-      const products = await Product.find({ subCategoryId })
-        .populate({
-          path: 'categoryId',
-          model: 'Menu'
-        })
-        .populate({
-          path: 'subCategoryId',
-          model: 'SubCategory'
-        })
-        .populate({
-          path: 'itemId',
-          model: 'Item'
-        })
-        .populate('images');
+      const subCategory = await SubCategory.findOne({ slug: subCategorySlug });
+      if (!subCategory) {
+        return res.status(404).json({ message: "Subcategory not found" });
+      }
+
+      const [products, total] = await Promise.all([
+        Product.find({ subCategoryId: subCategory._id })
+          .populate({
+            path: 'categoryId',
+            model: 'Menu'
+          })
+          .populate({
+            path: 'subCategoryId',
+            model: 'SubCategory'
+          })
+          .populate({
+            path: 'itemId',
+            model: 'Item'
+          })
+          .populate('images')
+          .skip(skip)
+          .limit(Number(limit))
+          .sort({ createdAt: -1 }),
+        Product.countDocuments({ subCategoryId: subCategory._id })
+      ]);
       
       res.status(200).json({
         message: "Products retrieved successfully",
         products,
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        hasMore: skip + products.length < total
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
@@ -191,26 +239,43 @@ export const productController = {
 
   getProductsByItem: async (req: Request, res: Response) => {
     try {
-      const { itemId } = req.params;
+      const { itemSlug } = req.params;
+      const { page = 1, limit = 12 } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
       
-      const products = await Product.find({ itemId })
-        .populate({
-          path: 'categoryId',
-          model: 'Menu'
-        })
-        .populate({
-          path: 'subCategoryId',
-          model: 'SubCategory'
-        })
-        .populate({
-          path: 'itemId',
-          model: 'Item'
-        })
-        .populate('images');
-      
+      const item = await Item.findOne({ slug: itemSlug });
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+
+      const [products, total] = await Promise.all([
+        Product.find({ itemId: item._id })
+          .populate({
+            path: 'categoryId',
+            model: 'Menu'
+          })
+          .populate({
+            path: 'subCategoryId',
+            model: 'SubCategory'
+          })
+          .populate({
+            path: 'itemId',
+            model: 'Item'
+          })
+          .populate('images')
+          .skip(skip)
+          .limit(Number(limit))
+          .sort({ createdAt: -1 }),
+        Product.countDocuments({ itemId: item._id })
+      ]);
+      console.log("products", products);
       res.status(200).json({
         message: "Products retrieved successfully",
         products,
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        hasMore: skip + products.length < total
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
@@ -223,29 +288,56 @@ export const productController = {
 
   getProductsByCategoryAndSubCategory: async (req: Request, res: Response) => {
     try {
-      const { categoryId, subCategoryId } = req.params;
+      const { categorySlug, subCategorySlug } = req.params;
+      const { page = 1, limit = 12 } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
       
-      const products = await Product.find({ 
-        categoryId,
-        subCategoryId 
-      })
-        .populate({
-          path: 'categoryId',
-          model: 'Menu'
+      const [category, subCategory] = await Promise.all([
+        Menu.findOne({ slug: categorySlug }),
+        SubCategory.findOne({ slug: subCategorySlug })
+      ]);
+
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      if (!subCategory) {
+        return res.status(404).json({ message: "Subcategory not found" });
+      }
+
+      const [products, total] = await Promise.all([
+        Product.find({ 
+          categoryId: category._id,
+          subCategoryId: subCategory._id 
         })
-        .populate({
-          path: 'subCategoryId',
-          model: 'SubCategory'
+          .populate({
+            path: 'categoryId',
+            model: 'Menu'
+          })
+          .populate({
+            path: 'subCategoryId',
+            model: 'SubCategory'
+          })
+          .populate({
+            path: 'itemId',
+            model: 'Item'
+          })
+          .populate('images')
+          .skip(skip)
+          .limit(Number(limit))
+          .sort({ createdAt: -1 }),
+        Product.countDocuments({ 
+          categoryId: category._id,
+          subCategoryId: subCategory._id 
         })
-        .populate({
-          path: 'itemId',
-          model: 'Item'
-        })
-        .populate('images');
+      ]);
       
       res.status(200).json({
         message: "Products retrieved successfully",
         products,
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        hasMore: skip + products.length < total
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
@@ -258,30 +350,62 @@ export const productController = {
 
   getProductsByAllLevels: async (req: Request, res: Response) => {
     try {
-      const { categoryId, subCategoryId, itemId } = req.params;
+      const { categorySlug, subCategorySlug, itemSlug } = req.params;
+      const { page = 1, limit = 12 } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
       
-      const products = await Product.find({ 
-        categoryId,
-        subCategoryId,
-        itemId
-      })
-        .populate({
-          path: 'categoryId',
-          model: 'Menu'
+      const [category, subCategory, item] = await Promise.all([
+        Menu.findOne({ slug: categorySlug }),
+        SubCategory.findOne({ slug: subCategorySlug }),
+        Item.findOne({ slug: itemSlug })
+      ]);
+
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+      if (!subCategory) {
+        return res.status(404).json({ message: "Subcategory not found" });
+      }
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+
+      const [products, total] = await Promise.all([
+        Product.find({ 
+          categoryId: category._id,
+          subCategoryId: subCategory._id,
+          itemId: item._id
         })
-        .populate({
-          path: 'subCategoryId',
-          model: 'SubCategory'
+          .populate({
+            path: 'categoryId',
+            model: 'Menu'
+          })
+          .populate({
+            path: 'subCategoryId',
+            model: 'SubCategory'
+          })
+          .populate({
+            path: 'itemId',
+            model: 'Item'
+          })
+          .populate('images')
+          .skip(skip)
+          .limit(Number(limit))
+          .sort({ createdAt: -1 }),
+        Product.countDocuments({ 
+          categoryId: category._id,
+          subCategoryId: subCategory._id,
+          itemId: item._id
         })
-        .populate({
-          path: 'itemId',
-          model: 'Item'
-        })
-        .populate('images');
+      ]);
       
       res.status(200).json({
         message: "Products retrieved successfully",
         products,
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        hasMore: skip + products.length < total
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
@@ -290,5 +414,34 @@ export const productController = {
         error: errorMessage,
       });
     }
+  },
+
+  getProductBySlug: async (req: Request, res: Response) => {
+    try {
+      const { slug } = req.params;
+      const product = await Product.findOne({ slug }).populate({
+        path: 'categoryId',
+        model: 'Menu'
+      }).populate({
+        path: 'subCategoryId',
+        model: 'SubCategory'
+      }).populate({
+        path: 'itemId',
+        model: 'Item'
+      }).populate('images');
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+      res.status(200).json({
+        message: "Product retrieved successfully",
+        product: product,
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      res.status(500).json({
+        message: "Error retrieving product",
+        error: errorMessage,
+      });
+    }
   }
-}
+};

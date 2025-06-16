@@ -58,7 +58,6 @@ export const useProductForm = () => {
           throw new Error('Failed to upload digital product file to S3');
         }
 
-        console.log('Digital product file uploaded successfully');
         
         // Set the asset details with the uploaded file information
         assetDetails = {
@@ -122,8 +121,6 @@ export const useProductForm = () => {
         })
       };
       
-      console.log('Creating product with data:', JSON.stringify(transformedData, null, 2));
-      
       // 1. Create the product first
       const productResponse = await fetch('http://localhost:3001/api/products', {
         method: 'POST',
@@ -141,11 +138,10 @@ export const useProductForm = () => {
       }
 
       const { product } = responseData;
-      console.log('Product created successfully:', product);
-
+      
       // 2. Only upload images if there are any selected
       if (selectedImages.length > 0) {
-        console.log('Starting image upload process for', selectedImages.length, 'images');
+        
         
         // Get signed URLs for all images
         const signedUrlPromises = selectedImages.map(async (image) => {
@@ -170,16 +166,14 @@ export const useProductForm = () => {
           }
 
           const data = await response.json();
-          console.log('Received upload data:', data);
           return data;
         });
 
         const signedUrls = await Promise.all(signedUrlPromises);
-        console.log('Received signed URLs for all images:', signedUrls);
 
         // Upload each image to S3
         const uploadPromises = selectedImages.map(async (image, index) => {
-          const { uploadUrl, url: fileUrl } = signedUrls[index];
+          const { uploadUrl, url: fileUrl, key } = signedUrls[index];
           console.log('Uploading image to S3:', image.file.name, 'with URL:', uploadUrl);
 
           // Upload to S3
@@ -207,7 +201,7 @@ export const useProductForm = () => {
             body: JSON.stringify({
               productId: product._id,
               isMain: image.isMain,
-              filename: image.file.name,
+              filename: key,
               originalname: image.file.name,
               mimetype: image.file.type,
               size: image.file.size,

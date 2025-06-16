@@ -30,6 +30,8 @@ const config = {
         },
         'cream': '#faf6f3',
         'gold': '#D4AF37',
+        'pearl': '#ebebdf',
+		'sunrise': '#c8e2f4',
       },
       fontFamily: {
         'serif': ['Playfair Display', 'serif'],

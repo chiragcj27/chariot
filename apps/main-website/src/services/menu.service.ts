@@ -7,7 +7,7 @@ export interface MenuItem {
   image?: {
     url: string;
   };
-  price?: string;
+  description?: string;
 }
 
 export interface SubCategory {
@@ -36,7 +36,7 @@ interface ApiMenuItem {
   name?: string;
   slug?: string;
   image?: { url: string };
-  price?: string;
+  description?: string;
 }
 
 interface ApiSubCategory {
@@ -96,7 +96,7 @@ export const menuService = {
               name: item.title || item.name || '',
               slug: item.slug?.toLowerCase().replace(/\s+/g, '-') || '',
               image: item.image ? { url: item.image.url } : undefined,
-              price: item.price
+              description: item.description
             }))
           })),
           featuredItems: (category.featuredItems || []).map((item: ApiMenuItem) => ({
@@ -104,7 +104,7 @@ export const menuService = {
             name: item.title || item.name || '',
             slug: item.slug?.toLowerCase().replace(/\s+/g, '-') || '',
             image: item.image ? { url: item.image.url } : undefined,
-            price: item.price
+            description: item.description
           }))
         }))
       };
