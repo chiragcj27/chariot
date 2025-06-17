@@ -7,14 +7,15 @@ import { BoxReveal } from '@/components/magicui/box-reveal';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { AuroraBackground } from '@/components/ui/aurora-background';
 
-interface CategoryPageProps {
-  params: {
+type Props = {
+  params: Promise<{
     category: string;
-  };
+  }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function CategoryPage({ params }: CategoryPageProps) {
-  const { category: categorySlug } = params;
+export default async function CategoryPage({ params }: Props) {
+  const { category: categorySlug } = await params;
   const menuStructure = await menuService.getMenuStructure();
   const categoryData = menuStructure.categories.find(
     (cat: Category) => cat.slug === categorySlug
