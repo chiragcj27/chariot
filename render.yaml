@@ -3,9 +3,11 @@ services:
     name: chariot-api
     env: node
     buildCommand: |
-      pnpm install
-      cd apps/api
-      pnpm build
+      pnpm install --frozen-lockfile
+      cd packages/db && pnpm build
+      cd packages/auth && pnpm build
+      cd packages/utils && pnpm build
+      cd ../../apps/api && pnpm build
     startCommand: cd apps/api && pnpm start
     envVars:
       - key: NODE_ENV
