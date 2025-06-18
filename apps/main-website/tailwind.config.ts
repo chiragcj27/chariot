@@ -35,7 +35,8 @@ const config = {
       },
       fontFamily: {
         'serif': ['Playfair Display', 'serif'],
-        'sans': ['Montserrat', 'sans-serif'],
+        'sans': ['Montserrat', 'sans-serif', 'var(--font-geist-sans)'],
+        'mono': ['var(--font-geist-mono)'],
       },
       animation: {
         'fadeIn': 'fadeIn 0.3s ease-in-out',
