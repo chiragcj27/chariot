@@ -1,12 +1,16 @@
 'use client';
 import React from 'react';
 import { MainContent } from '../components/MainContent';
+import HorseLoader from '../components/HorseLoader';
 
 function App() {
   return (
-    <main>
-      <MainContent />
-    </main>
+    <>
+      <HorseLoader />
+      <main>
+        <MainContent />
+      </main>
+    </>
   );
 }
 

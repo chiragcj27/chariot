@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-
+import { API_URL } from '@/config';
 interface Banner {
   _id: string;
   url: string;
@@ -23,7 +23,7 @@ export const MainContent: React.FC = () => {
     const fetchHeroImages = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('http://localhost:3001/api/landing/banners?deviceType=both');
+        const response = await fetch(`${API_URL}/api/landing/banners?deviceType=both`);
         const data = await response.json();
 
         // Check if data is an array directly
