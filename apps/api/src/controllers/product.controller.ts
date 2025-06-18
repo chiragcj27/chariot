@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
-import { Product, PhysicalProduct, DigitalProduct, ServiceProduct } from "@chariot/db/src/models/product.model";
-import { Image, ProductImage } from "@chariot/db/src/models/image.model";
+import { Product, PhysicalProduct, DigitalProduct, ServiceProduct, Image, ProductImage, Menu, SubCategory, Item } from "@chariot/db";
 import mongoose from "mongoose";
-import { Menu, SubCategory, Item } from "@chariot/db";
 
 export const productController = {
   // Create a new product
