@@ -8,13 +8,13 @@ import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { AuroraBackground } from '@/components/ui/aurora-background';
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     category: string;
-  };
+  }>;
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
-  const { category: categorySlug } = params;
+  const { category: categorySlug } = await params;
   const menuStructure = await menuService.getMenuStructure();
   const categoryData = menuStructure.categories.find(
     (cat: Category) => cat.slug === categorySlug
