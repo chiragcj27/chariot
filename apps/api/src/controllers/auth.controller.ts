@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { User } from '@chariot/db/src';
-import { comparePassword, generateTokens, refreshTokens } from '@chariot/auth/src/auth';
+import { User } from '@chariot/db';
+import { comparePassword, generateTokens, refreshTokens } from '@chariot/auth';
 
 export async function login(req: Request, res: Response) {
   const { email, password } = req.body;

@@ -1,2 +1,2 @@
-export { verifyAccessToken, verifyRefreshToken } from './auth'; 
+export { verifyAccessToken, verifyRefreshToken, generateTokens, refreshTokens, comparePassword, hashPassword } from './auth'; 
 

@@ -1,6 +1,6 @@
 import NextAuth, { NextAuthOptions, DefaultSession } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { User } from "@chariot/db/src";
+import { User } from '@chariot/db';
 import { comparePassword, generateTokens, TokenPayload } from "./auth";
 import { JWT } from "next-auth/jwt";
 

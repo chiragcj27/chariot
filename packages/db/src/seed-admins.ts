@@ -1,5 +1,10 @@
 import { connectDB, Admin } from './index';
-import { hashPassword } from '@chariot/auth/src/auth';
+import bcrypt from 'bcrypt';
+
+async function hashPassword(password: string): Promise<string> {
+  const saltRounds = 10;
+  return await bcrypt.hash(password, saltRounds);
+}
 
 async function seedAdmins() {
   await connectDB();

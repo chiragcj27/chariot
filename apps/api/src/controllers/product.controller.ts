@@ -83,7 +83,7 @@ export const productController = {
           message: "Product not found",
         });
       }
-      product.images.push(image._id);
+      product.images.push(image._id as mongoose.Types.ObjectId);
       await product.save();
 
       res.status(201).json({

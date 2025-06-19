@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt, { JwtPayload } from 'jsonwebtoken';
-import { User } from '@chariot/db/src';
+import { User } from '@chariot/db';
 import dotenv from 'dotenv';
 import path from 'path';
 

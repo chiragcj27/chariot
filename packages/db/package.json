@@ -13,7 +13,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@chariot/auth": "workspace:*",
     "dotenv": "^16.5.0",
     "mongoose": "^8.2.0"
   },

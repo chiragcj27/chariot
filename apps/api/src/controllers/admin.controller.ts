@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PromotionalStrip } from "@chariot/db/src";
+import { PromotionalStrip } from '@chariot/db';
 
 interface PromotionalStripBody {
     stripContent: string;

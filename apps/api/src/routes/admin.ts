@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import { requireAdmin } from '../middleware/adminAuth';
+import { isAdmin } from '../middleware/adminAuth';
 import { adminController } from '../controllers/admin.controller';
 
 const router : Router = Router();
 
 // Create a promotional strip
-router.post('/admin/add-promotional-strip', requireAdmin, adminController.addPromotionalStrip);
+router.post('/admin/add-promotional-strip', isAdmin, adminController.addPromotionalStrip);
 
 // Get promotional strip
-router.get('/admin/get-promotional-strip', requireAdmin, adminController.getPromotionalStrip);
+router.get('/admin/get-promotional-strip', isAdmin, adminController.getPromotionalStrip);
 
 export default router; 
