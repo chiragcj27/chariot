@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '@chariot/auth';
 
-export const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
+export const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get the authorization header
     const authHeader = req.headers.authorization;

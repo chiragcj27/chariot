@@ -6,7 +6,12 @@ export const productController = {
   // Create a new product
   createProduct: async (req: Request, res: Response) => {
     try {
-      const productData = req.body;
+      const productData = {
+        ...req.body,
+        status: 'PENDING',
+        isAdminApproved: false,
+        isAdminRejected: false
+      };
       let product;
 
       // Use the appropriate model based on product type
@@ -96,37 +101,24 @@ export const productController = {
 
   getAllProducts: async (req: Request, res: Response) => {
     try {
-      const { page = 1, limit = 12, populate = 'images' } = req.query;
-      const skip = (Number(page) - 1) * Number(limit);
+      const products = await Product.find({
+        status: 'ACTIVE',
+        isAdminApproved: true
+      }).populate(
+        {
+          path: 'categoryId',
+          model: 'Menu'
+        }).populate({
+          path: 'subCategoryId',
+          model: 'SubCategory'
+        }).populate({
+          path: 'itemId',
+          model: 'Item'
+        }).populate('images');
 
-      const [products, total] = await Promise.all([
-        Product.find()
-          .populate({
-            path: 'categoryId',
-            model: 'Menu'
-          })
-          .populate({
-            path: 'subCategoryId',
-            model: 'SubCategory'
-          })
-          .populate({
-            path: 'itemId',
-            model: 'Item'
-          })
-          .populate('images')
-          .skip(skip)
-          .limit(Number(limit))
-          .sort({ createdAt: -1 }),
-        Product.countDocuments()
-      ]);
-      
       res.status(200).json({
         message: "Products retrieved successfully",
         products,
-        total,
-        page: Number(page),
-        limit: Number(limit),
-        hasMore: skip + products.length < total
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
