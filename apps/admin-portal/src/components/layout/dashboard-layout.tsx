@@ -125,8 +125,13 @@ export default function DashboardLayout({
           </button>
           <div className="flex flex-1 justify-end px-4">
             <button
-              onClick={() => {
-                console.log('sign out');
+              onClick={async () => {
+                try {
+                  await fetch('/api/auth/logout', { method: 'POST' });
+                  window.location.href = '/signin';
+                } catch (error) {
+                  console.error('Logout failed:', error);
+                }
               }}
               className="text-sm font-medium text-gray-500 hover:text-gray-700"
             >
