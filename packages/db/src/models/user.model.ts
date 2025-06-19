@@ -1,4 +1,5 @@
 import { Schema, Types, model } from 'mongoose';
+import mongoose from 'mongoose';
 
 export type UserRole = 'admin' | 'buyer' | 'seller';
 
@@ -48,19 +49,18 @@ const userSchema = new Schema<IUser>({
     timestamps: true,
 });
 
+if (mongoose.models.User) {
+  delete mongoose.models.User;
+}
 export const User = model<IUser>('User', userSchema);
 
 export interface ISeller extends IUser {
   storeDetails: {
     name: string;
     description: string;
-    logo: Types.ObjectId;
-    banner: Types.ObjectId;
     address: string;
     phone: string;
     email: string;
-    website?: string;
-    socialMedia?: Record<string, string>;
   }
   products: Types.ObjectId[];
   orders: Types.ObjectId[];
@@ -78,16 +78,6 @@ const sellerSchema = new Schema<ISeller>({
       type: String,
       required: true,
     },
-    logo: {
-      type: Schema.Types.ObjectId,
-      ref: "Image",
-      required: true,
-    },
-    banner: {
-      type: Schema.Types.ObjectId,
-      ref: "Image",
-      required: true,
-    },
     address: {
       type: String,
       required: true,
@@ -99,13 +89,6 @@ const sellerSchema = new Schema<ISeller>({
     email: {
       type: String,
       required: true,
-    },
-    website: {
-      type: String,
-    },
-    socialMedia: {
-      type: Map,
-      of: String,
     },
   },
   products: {
@@ -128,6 +111,25 @@ const sellerSchema = new Schema<ISeller>({
   timestamps: true,           
 });
 
+if (mongoose.models.Seller) {
+  delete mongoose.models.Seller;
+}
 export const Seller = User.discriminator<ISeller>('Seller', sellerSchema);
 
+export interface IAdmin extends IUser {
+  isSuperAdmin: boolean;
+}
 
+const adminSchema = new Schema<IAdmin>({
+  isSuperAdmin: {
+    type: Boolean,
+    default: false,
+  },
+}, {
+  timestamps: true,
+});
+
+if (mongoose.models.Admin) {
+  delete mongoose.models.Admin;
+}
+export const Admin = User.discriminator<IAdmin>('Admin', adminSchema);

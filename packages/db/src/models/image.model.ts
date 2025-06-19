@@ -153,13 +153,29 @@ const bannerImageSchema = new Schema<IBannerImage>({
     }
 });
 
-// Create base Image model
-export const Image = mongoose.models.Image || model<IImage>("Image", imageSchema);
+if (mongoose.models.Image) {
+    delete mongoose.models.Image;
+}
+export const Image = model<IImage>("Image", imageSchema);
 
-// Create discriminator models
-export const PromotionalImage = mongoose.models.promotional || Image.discriminator<IPromotionalImage>("promotional", promotionalImageSchema);
-export const ItemImage = mongoose.models.item || Image.discriminator<IItemImage>("item", itemImageSchema);
-export const ProductImage = mongoose.models.product || Image.discriminator<IProductImage>("product", productImageSchema);
-export const BannerImage = mongoose.models.banner || Image.discriminator<IBannerImage>("banner", bannerImageSchema);
+if (mongoose.models.promotional) {
+    delete mongoose.models.promotional;
+}
+export const PromotionalImage = Image.discriminator<IPromotionalImage>("promotional", promotionalImageSchema);
+
+if (mongoose.models.item) {
+    delete mongoose.models.item;
+}
+export const ItemImage = Image.discriminator<IItemImage>("item", itemImageSchema);
+
+if (mongoose.models.product) {
+    delete mongoose.models.product;
+}
+export const ProductImage = Image.discriminator<IProductImage>("product", productImageSchema);
+
+if (mongoose.models.banner) {
+    delete mongoose.models.banner;
+}
+export const BannerImage = Image.discriminator<IBannerImage>("banner", bannerImageSchema);
 
 export default Image;

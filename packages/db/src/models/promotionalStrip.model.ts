@@ -1,4 +1,5 @@
 import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
 interface IPromotionalStrip {
     stripContent: string;
@@ -10,4 +11,7 @@ const promotionalStripSchema = new Schema<IPromotionalStrip>({
     stripLink: {type: String, required: true},
 });
 
+if (mongoose.models.PromotionalStrip) {
+    delete mongoose.models.PromotionalStrip;
+}
 export const PromotionalStrip = model<IPromotionalStrip>('PromotionalStrip', promotionalStripSchema);

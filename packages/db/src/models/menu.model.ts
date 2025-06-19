@@ -125,6 +125,17 @@ const categorySchema = new mongoose.Schema<ICategory>({
     },
 });
 
+if (mongoose.models.Menu) {
+    delete mongoose.models.Menu;
+}
 export const Menu = model<ICategory>('Menu', categorySchema);
+
+if (mongoose.models.SubCategory) {
+    delete mongoose.models.SubCategory;
+}
 export const SubCategory = model<ISubCategory>('SubCategory', subCategorySchema);
+
+if (mongoose.models.Item) {
+    delete mongoose.models.Item;
+}
 export const Item = model<IItem>('Item', itemSchema);

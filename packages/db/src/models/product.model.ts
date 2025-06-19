@@ -52,6 +52,13 @@ export interface IProduct {
   };
 
   slug: string;
+
+  isAdminApproved: boolean;
+  isAdminRejected: boolean;
+  adminRejectionReason: string;
+  adminApprovedAt: Date;
+  adminRejectedAt: Date;
+  sellerId: Types.ObjectId;
 }
 
 const baseProductSchema = new mongoose.Schema<IProduct>(
@@ -153,6 +160,28 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
       type: String,
       required: true,
       unique: true,
+    },
+    isAdminApproved: {
+      type: Boolean,
+      default: false,
+    },
+    isAdminRejected: {
+      type: Boolean,
+      default: false,
+    },
+    adminRejectionReason: {
+      type: String,
+    },
+    adminApprovedAt: {
+      type: Date,
+    },
+    adminRejectedAt: {
+      type: Date,
+    },
+    sellerId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
   },
   {
