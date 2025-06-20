@@ -8,6 +8,7 @@ import {
   CurrencyDollarIcon,
   MegaphoneIcon,
   UsersIcon,
+  BuildingStorefrontIcon,
   Cog6ToothIcon,
   Bars3Icon,
   XMarkIcon,
@@ -20,6 +21,7 @@ const navigation = [
   { name: 'Pricing & Discounts', href: '/pricing', icon: CurrencyDollarIcon },
   { name: 'Marketing', href: '/marketing', icon: MegaphoneIcon },
   { name: 'Customers', href: '/customers', icon: UsersIcon },
+  { name: 'Sellers', href: '/sellers', icon: BuildingStorefrontIcon },
   { name: 'Menu Settings', href: '/menu', icon: Cog6ToothIcon },
   { name: 'Landing Page Configuration', href: '/landing', icon: AdjustmentsHorizontalIcon },
 ];

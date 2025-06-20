@@ -8,6 +8,8 @@ import assetRoutes from './routes/asset.routes';
 import productRoutes from './routes/product.routes';
 import landingRoutes from './routes/landing.routes';
 import authRoutes from './routes/auth.routes';
+import sellerRoutes from './routes/seller.routes';
+import sellerApprovalRoutes from './routes/admin/seller-approval.routes';
 
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -26,6 +28,8 @@ app.use('/api/assets', assetRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/landing', landingRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/sellers', sellerRoutes);
+app.use('/api/admin/sellers', sellerApprovalRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
   .then(() => {

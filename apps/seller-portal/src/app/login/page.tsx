@@ -18,7 +18,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/sellers/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,7 +29,15 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        // Handle approval status errors
+        if (data.approvalStatus === 'pending') {
+          toast.error('Your account is pending approval. Please wait for admin approval.');
+        } else if (data.approvalStatus === 'rejected') {
+          toast.error(`Your account was rejected: ${data.rejectionReason || 'Please contact support.'}`);
+        } else {
+          toast.error(data.message || 'Login failed');
+        }
+        return;
       }
 
       toast.success('Login successful');

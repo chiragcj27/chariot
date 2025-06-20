@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { User } from '@chariot/db';
+import { User, Seller } from '@chariot/db';
 import { comparePassword, generateTokens, refreshTokens } from '@chariot/auth';
 
 export async function login(req: Request, res: Response) {
@@ -16,6 +16,25 @@ export async function login(req: Request, res: Response) {
     if (!isValid) {
       return res.status(401).json({ message: 'Invalid credentials.' });
     }
+
+    // Check approval status for sellers
+    if (user.role === 'seller') {
+      if (user.approvalStatus === 'pending') {
+        return res.status(403).json({
+          message: 'Your account is pending approval. Please wait for admin approval.',
+          approvalStatus: 'pending',
+        });
+      }
+
+      if (user.approvalStatus === 'rejected') {
+        return res.status(403).json({
+          message: 'Your account has been rejected. Please contact support for more information.',
+          approvalStatus: 'rejected',
+          rejectionReason: user.rejectionReason,
+        });
+      }
+    }
+
     const tokens = await generateTokens(user);
     // Return user info and tokens (omit password)
     return res.json({
@@ -24,6 +43,7 @@ export async function login(req: Request, res: Response) {
         email: user.email,
         name: user.name,
         role: user.role,
+        approvalStatus: user.approvalStatus,
       },
       ...tokens,
     });

@@ -15,7 +15,8 @@ import {
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { JwtPayload } from 'jsonwebtoken';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 ChartJS.register(
   CategoryScale,
@@ -83,7 +84,35 @@ const categoryData = {
   ],
 };
 
+interface PendingSeller {
+  _id: string;
+  name: string;
+  email: string;
+  storeDetails: {
+    name: string;
+  };
+  createdAt: string;
+}
+
 export default function DashboardClient({ user }: { user: JwtPayload | null }) {
+  const [pendingSellers, setPendingSellers] = useState<PendingSeller[]>([]);
+
+  useEffect(() => {
+    const fetchPendingSellers = async () => {
+      try {
+        const response = await fetch('/api/admin/sellers/pending');
+        const data = await response.json();
+        if (response.ok) {
+          setPendingSellers(data.sellers || []);
+        }
+      } catch (error) {
+        console.error('Failed to fetch pending sellers:', error);
+      }
+    };
+
+    fetchPendingSellers();
+  }, []);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -155,6 +184,69 @@ export default function DashboardClient({ user }: { user: JwtPayload | null }) {
             </div>
           </Card>
         </div>
+
+        {/* Pending Sellers */}
+        {pendingSellers.length > 0 && (
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-medium text-gray-900">Pending Seller Approvals</h2>
+              <Link
+                href="/sellers"
+                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                View all sellers →
+              </Link>
+            </div>
+            <div className="mt-4">
+              <div className="flow-root">
+                <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                  <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <table className="min-w-full divide-y divide-gray-300">
+                      <thead>
+                        <tr>
+                          <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                            Seller
+                          </th>
+                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Store Name
+                          </th>
+                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Registered
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {pendingSellers.slice(0, 5).map((seller) => (
+                          <tr key={seller._id}>
+                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
+                              {seller.name}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                              {seller.storeDetails.name}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                              {new Date(seller.createdAt).toLocaleDateString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              {pendingSellers.length > 5 && (
+                <div className="mt-4 text-center">
+                  <Link
+                    href="/sellers"
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                  >
+                    View {pendingSellers.length - 5} more pending sellers
+                  </Link>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
 
         {/* Top Sellers */}
         <Card className="p-6">

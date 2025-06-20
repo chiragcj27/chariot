@@ -9,6 +9,12 @@ export interface IUser extends Document {
   role: UserRole;
   password: string;
   refreshToken: string;
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+  approvedAt?: Date;
+  approvedBy?: Types.ObjectId;
+  rejectionReason?: string;
+  rejectedAt?: Date;
+  rejectedBy?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +40,28 @@ const userSchema = new Schema<IUser>({
   },
   refreshToken: {
     type: String,
+  },
+  approvalStatus: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+  },
+  approvedAt: {
+    type: Date,
+  },
+  approvedBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  rejectionReason: {
+    type: String,
+  },
+  rejectedAt: {
+    type: Date,
+  },
+  rejectedBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
   },
   createdAt: {
     type: Date,
