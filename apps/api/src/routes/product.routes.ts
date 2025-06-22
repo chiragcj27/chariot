@@ -1,14 +1,15 @@
 import { Router } from "express";
 import { productController } from "../controllers/product.controller";
 import { landingController } from "../controllers/landing.controller";
+import { isSeller } from "../middleware/sellerAuth";
 
 const router: Router = Router();
 
 // Create a new product
-router.post("/", productController.createProduct);
+router.post("/", isSeller, productController.createProduct);
 
 // Save product image
-router.post("/images", productController.storeProductImage);
+router.post("/images", isSeller, productController.storeProductImage);
 
 // Get all products
 router.get("/", productController.getAllProducts);

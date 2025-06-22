@@ -142,7 +142,7 @@ const sellerSchema = new Schema<ISeller>({
 if (mongoose.models.Seller) {
   delete mongoose.models.Seller;
 }
-export const Seller = User.discriminator<ISeller>('Seller', sellerSchema);
+export const Seller = User.discriminator<ISeller>('seller', sellerSchema);
 
 export interface IAdmin extends IUser {
   isSuperAdmin: boolean;
@@ -160,4 +160,4 @@ const adminSchema = new Schema<IAdmin>({
 if (mongoose.models.Admin) {
   delete mongoose.models.Admin;
 }
-export const Admin = User.discriminator<IAdmin>('Admin', adminSchema);
+export const Admin = User.discriminator<IAdmin>('admin', adminSchema);

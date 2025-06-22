@@ -8,6 +8,7 @@ export const productController = {
     try {
       const productData = {
         ...req.body,
+        sellerId: req.user.userId,
         status: 'PENDING',
         isAdminApproved: false,
         isAdminRejected: false

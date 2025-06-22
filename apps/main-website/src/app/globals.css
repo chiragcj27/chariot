@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 :root {
-  --color-pearl: #ebebdf;
+  --color-pearl: #ebebe0;
   --color-gold: #e2d0b2;
   --color-seafoam: #aac3e3;
   --color-sunrise: #f66f30;
@@ -13,7 +13,7 @@
 
 @layer base {
   body {
-    @apply font-sans text-navy-900 bg-cream;
+    @apply font-sans text-navy-900 bg-pearl;
   }
   
   h1, h2, h3, h4, h5, h6 {

@@ -40,7 +40,7 @@ export default function HorseLoader() {
     <div
       className={`fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-700 ${
         fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
-      } bg-gradient-to-br from-[#82624f] via-[#fccd80] to-[#f99735] overflow-hidden`}
+      } bg-gradient-to-br from-sunrise via-gold to-sunrise overflow-hidden`}
     >
       {/* Grain texture overlay */}
       <Image
@@ -54,12 +54,12 @@ export default function HorseLoader() {
       {/* Decorative Circles */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {[
-          { size: 'w-64 h-64', color: 'bg-[#d4af37]/40', top: '10%', left: '-10%' },
-          { size: 'w-96 h-96', color: 'bg-[#82624f]/20', top: '40%', right: '-15%' },
-          { size: 'w-48 h-48', color: 'bg-[#fccd80]/20', bottom: '20%', left: '20%' },
-          { size: 'w-72 h-72', color: 'bg-[#f99735]/20', top: '60%', left: '10%' },
-          { size: 'w-32 h-32', color: 'bg-[#d4af37]/40', bottom: '30%', right: '25%' },
-          { size: 'w-56 h-56', color: 'bg-[#82624f]/20', top: '20%', left: '50%' },
+          { size: 'w-64 h-64', color: 'bg-gold/40', top: '10%', left: '-10%' },
+          { size: 'w-96 h-96', color: 'bg-gold/20', top: '40%', right: '-15%' },
+          { size: 'w-48 h-48', color: 'bg-gold/20', bottom: '20%', left: '20%' },
+          { size: 'w-72 h-72', color: 'bg-gold/20', top: '60%', left: '10%' },
+          { size: 'w-32 h-32', color: 'bg-gold/40', bottom: '30%', right: '25%' },
+          { size: 'w-56 h-56', color: 'bg-gold/20', top: '20%', left: '50%' },
         ].map((circle, i) => (
           <div
             key={i}

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { User, Seller } from '@chariot/db';
-import { comparePassword, generateTokens, refreshTokens } from '@chariot/auth';
+import { comparePassword, generateTokens, refreshTokens, verifyAccessToken } from '@chariot/auth';
 
 export async function login(req: Request, res: Response) {
   const { email, password } = req.body;
@@ -62,5 +62,31 @@ export async function refresh(req: Request, res: Response) {
     return res.json(tokens);
   } catch (err) {
     return res.status(401).json({ message: 'Invalid refresh token.' });
+  }
+}
+
+export async function verify(req: Request, res: Response) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+    const payload = verifyAccessToken(token);
+    
+    return res.json({
+      success: true,
+      payload: {
+        userId: payload.userId,
+        email: payload.email,
+        role: payload.role
+      }
+    });
+  } catch (error) {
+    return res.status(401).json({ 
+      success: false,
+      message: 'Invalid token' 
+    });
   }
 } 

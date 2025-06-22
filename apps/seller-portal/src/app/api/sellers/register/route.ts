@@ -11,5 +11,29 @@ export async function POST(req: NextRequest) {
   });
 
   const data = await res.json();
-  return NextResponse.json(data, { status: res.status });
+  if (!res.ok) {
+    return NextResponse.json(data, { status: res.status });
+  }
+
+  const response = NextResponse.json(data);
+  // Set tokens in httpOnly cookies if present
+  if (data.accessToken) {
+    response.cookies.set('accessToken', data.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60, // 1 hour
+    });
+  }
+  if (data.refreshToken) {
+    response.cookies.set('refreshToken', data.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+    });
+  }
+  return response;
 } 

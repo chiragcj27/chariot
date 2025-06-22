@@ -29,9 +29,10 @@ const config = {
           900: '#675231',
         },
         'cream': '#faf6f3',
-        'gold': '#D4AF37',
-        'pearl': '#ebebdf',
-		'sunrise': '#c8e2f4',
+        'gold': '#e2d0b2',
+        'pearl': '#ebebe0',
+        'seafoam': '#aac3e3',
+		    'sunrise': '#f66f30',
       },
       fontFamily: {
         'serif': ['Playfair Display', 'serif'],
