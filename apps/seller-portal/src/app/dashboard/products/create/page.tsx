@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Resolver } from 'react-hook-form';
+import ProductCreationGuard from '@/components/product-creation-guard';
 
 // Import all modular components
 import { CategorySelector } from '@/components/product-form/CategorySelector';
@@ -33,6 +34,9 @@ import { useCategories } from '@/hooks/useCategories';
 import { useProductForm } from '@/hooks/useProductForm';
 
 export default function CreateProductPage() {
+  // User state for blacklist check
+  const [userInfo, setUserInfo] = useState<any>(null);
+
   // API data
   const { categories, isLoading: categoriesLoading, error: categoriesError } = useCategories();
   
@@ -45,6 +49,15 @@ export default function CreateProductPage() {
   const [formStep, setFormStep] = useState(0);
   const [selectedImages, setSelectedImages] = useState<ImageFile[]>([]);
   const [productType, setProductType] = useState<"PHYSICAL" | "DIGITAL" | "SERVICE">("PHYSICAL");
+
+  // Check user blacklist status on component mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setUserInfo(user);
+    }
+  }, []);
 
   // Form setup
   const { control, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProductFormData>({
@@ -258,127 +271,132 @@ export default function CreateProductPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Product</h1>
-          <p className="text-gray-600">Add a new product to your selling portal with detailed information and categorization.</p>
-        </div>
-
-        {(submitError || productError) && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-red-800 mb-2">Error Creating Product</h3>
-            <p className="text-red-600">{submitError || productError}</p>
+    <ProductCreationGuard
+      isBlacklisted={userInfo?.isBlacklisted || false}
+      blacklistReason={userInfo?.blacklistInfo?.blacklistReason}
+    >
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Product</h1>
+            <p className="text-gray-600">Add a new product to your selling portal with detailed information and categorization.</p>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Category Selection */}
-          <CategorySelector
-            control={control}
-            errors={errors}
-            categories={categories}
-            selectedCategory={selectedCategory}
-            selectedSubCategory={selectedSubCategory}
-            selectedItem={selectedItem}
-            availableSubCategories={availableSubCategories}
-            availableItems={availableItems}
-            formStep={formStep}
-            isLoading={categoriesLoading}
-            onCategoryChange={handleCategoryChange}
-            onSubCategoryChange={handleSubCategoryChange}
-            onItemChange={handleItemChange}
-          />
+          {(submitError || productError) && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-red-800 mb-2">Error Creating Product</h3>
+              <p className="text-red-600">{submitError || productError}</p>
+            </div>
+          )}
 
-          {/* Product Details - Shows after category selection */}
-          <div className={`transition-all duration-500 transform ${formStep >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
-            <div className="space-y-6">
-              {/* Basic Product Details */}
-              <BasicProductDetails
-                control={control}
-                errors={errors}
-                onNameChange={handleNameChange}
-                productTypes={productTypes}
-                productStatuses={productStatuses}
-              />
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Category Selection */}
+            <CategorySelector
+              control={control}
+              errors={errors}
+              categories={categories}
+              selectedCategory={selectedCategory}
+              selectedSubCategory={selectedSubCategory}
+              selectedItem={selectedItem}
+              availableSubCategories={availableSubCategories}
+              availableItems={availableItems}
+              formStep={formStep}
+              isLoading={categoriesLoading}
+              onCategoryChange={handleCategoryChange}
+              onSubCategoryChange={handleSubCategoryChange}
+              onItemChange={handleItemChange}
+            />
 
-              {/* Digital Product Specific Fields */}
-              {selectedProductType === "DIGITAL" && (
-                <DigitalProductFields
+            {/* Product Details - Shows after category selection */}
+            <div className={`transition-all duration-500 transform ${formStep >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+              <div className="space-y-6">
+                {/* Basic Product Details */}
+                <BasicProductDetails
                   control={control}
-                  digitalKinds={digitalKinds}
-                  fileTypes={fileTypes}
-                  setValue={setValue}
+                  errors={errors}
+                  onNameChange={handleNameChange}
+                  productTypes={productTypes}
+                  productStatuses={productStatuses}
                 />
-              )}
 
-              {/* Service Product Specific Fields */}
-              {selectedProductType === "SERVICE" && (
-                <ServiceProductFields
+                {/* Digital Product Specific Fields */}
+                {selectedProductType === "DIGITAL" && (
+                  <DigitalProductFields
+                    control={control}
+                    digitalKinds={digitalKinds}
+                    fileTypes={fileTypes}
+                    setValue={setValue}
+                  />
+                )}
+
+                {/* Service Product Specific Fields */}
+                {selectedProductType === "SERVICE" && (
+                  <ServiceProductFields
+                    control={control}
+                    timeUnits={timeUnits}
+                    currencies={currencies}
+                    deliverables={watchedFields.deliverables || []}
+                    requirements={watchedFields.requirements || []}
+                    onAddDeliverable={addDeliverable}
+                    onRemoveDeliverable={removeDeliverable}
+                    onAddRequirement={addRequirement}
+                    onRemoveRequirement={removeRequirement}
+                  />
+                )}
+
+                {/* Pricing Section */}
+                <PricingSection
                   control={control}
-                  timeUnits={timeUnits}
                   currencies={currencies}
-                  deliverables={watchedFields.deliverables || []}
-                  requirements={watchedFields.requirements || []}
-                  onAddDeliverable={addDeliverable}
-                  onRemoveDeliverable={removeDeliverable}
-                  onAddRequirement={addRequirement}
-                  onRemoveRequirement={removeRequirement}
                 />
-              )}
 
-              {/* Pricing Section */}
-              <PricingSection
-                control={control}
-                currencies={currencies}
-              />
+                {/* Additional Information */}
+                <AdditionalInformation
+                  control={control}
+                  errors={errors}
+                  tags={watchedFields.tags}
+                  onAddTag={addTag}
+                  onRemoveTag={removeTag}
+                />
 
-              {/* Additional Information */}
-              <AdditionalInformation
-                control={control}
-                errors={errors}
-                tags={watchedFields.tags}
-                onAddTag={addTag}
-                onRemoveTag={removeTag}
-              />
+                {/* SEO Section */}
+                <SEOSection
+                  control={control}
+                  metaKeywords={watchedFields.seo?.metaKeywords || []}
+                  onAddKeyword={addKeyword}
+                  onRemoveKeyword={removeKeyword}
+                />
 
-              {/* SEO Section */}
-              <SEOSection
-                control={control}
-                metaKeywords={watchedFields.seo?.metaKeywords || []}
-                onAddKeyword={addKeyword}
-                onRemoveKeyword={removeKeyword}
-              />
+                {/* Image Upload */}
+                <ImageUpload 
+                  onImagesSelected={handleImagesSelected} 
+                  selectedImages={selectedImages} 
+                />
 
-              {/* Image Upload */}
-              <ImageUpload 
-                onImagesSelected={handleImagesSelected} 
-                selectedImages={selectedImages} 
-              />
-
-              {/* Submit Buttons */}
-              <div className="flex justify-end gap-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="lg"
-                  disabled={isSubmitting}
-                >
-                  Save as Draft
-                </Button>
-                <Button 
-                  type="submit" 
-                  size="lg" 
-                  className="bg-blue-600 hover:bg-blue-700"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Creating Product...' : 'Create Product'}
-                </Button>
+                {/* Submit Buttons */}
+                <div className="flex justify-end gap-4">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="lg"
+                    disabled={isSubmitting}
+                  >
+                    Save as Draft
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    size="lg" 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Creating Product...' : 'Create Product'}
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
-    </div>
+    </ProductCreationGuard>
   );
 }

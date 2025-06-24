@@ -82,7 +82,20 @@ if (mongoose.models.User) {
 }
 export const User = model<IUser>('User', userSchema);
 
-export interface ISeller extends IUser {
+export interface ISeller extends Document {
+  email: string;
+  name: string;
+  role: UserRole;
+  password: string;
+  refreshToken: string;
+  approvalStatus: 'pending' | 'approved' | 'rejected';
+  approvedAt?: Date;
+  approvedBy?: Types.ObjectId;
+  rejectionReason?: string;
+  rejectedAt?: Date;
+  rejectedBy?: Types.ObjectId;
+  createdAt: Date;
+  updatedAt: Date;
   storeDetails: {
     name: string;
     description: string;
@@ -94,6 +107,13 @@ export interface ISeller extends IUser {
   orders: Types.ObjectId[];
   sales: Types.ObjectId[];
   commissionRate: number;
+  isBlacklisted: boolean;
+  blacklistReason?: string;
+  blacklistedAt?: Date;
+  blacklistedBy?: Types.ObjectId;
+  blacklistExpiryDate?: Date;
+  reapplicationDate?: Date;
+  reapplicationReason?: string;
 }
 
 const sellerSchema = new Schema<ISeller>({
@@ -134,6 +154,29 @@ const sellerSchema = new Schema<ISeller>({
   commissionRate: {
     type: Number,
     required: true,
+  },
+  isBlacklisted: {
+    type: Boolean,
+    default: false,
+  },
+  blacklistReason: {
+    type: String,
+  },
+  blacklistedAt: {
+    type: Date,
+  },
+  blacklistedBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  blacklistExpiryDate: {
+    type: Date,
+  },
+  reapplicationDate: {
+    type: Date,
+  },
+  reapplicationReason: {
+    type: String,
   },
 }, {
   timestamps: true,           

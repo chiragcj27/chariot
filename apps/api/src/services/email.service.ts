@@ -104,4 +104,102 @@ export const emailService = {
       throw error;
     }
   },
+
+  async sendSellerBlacklistEmail(sellerEmail: string, sellerName: string, reason: string, expiryDate: Date) {
+    try {
+      const formattedExpiryDate = expiryDate.toLocaleDateString();
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: sellerEmail,
+        subject: 'Your Seller Account Has Been Blacklisted',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #dc2626;">Account Blacklist Notice</h2>
+            <p>Dear ${sellerName},</p>
+            <p>We regret to inform you that your seller account has been temporarily blacklisted due to a violation of our platform policies.</p>
+            <p><strong>Reason:</strong> ${reason}</p>
+            <p><strong>Blacklist Expiry Date:</strong> ${formattedExpiryDate}</p>
+            <p>During this period:</p>
+            <ul>
+              <li>All your products have been temporarily deactivated</li>
+              <li>You cannot upload new products</li>
+              <li>You cannot process new orders</li>
+            </ul>
+            <p>After the blacklist period expires, you may reapply for reactivation by contacting our support team.</p>
+            <p>If you believe this action was taken in error, please contact our support team immediately.</p>
+            <p>Best regards,<br>The Chariot Team</p>
+          </div>
+        `,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Seller blacklist email sent:', info.messageId);
+      return info;
+    } catch (error) {
+      console.error('Error sending seller blacklist email:', error);
+      throw error;
+    }
+  },
+
+  async sendSellerBlacklistRemovalEmail(sellerEmail: string, sellerName: string) {
+    try {
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: sellerEmail,
+        subject: 'Your Seller Account Has Been Reactivated',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #16a34a;">Account Reactivation Notice</h2>
+            <p>Dear ${sellerName},</p>
+            <p>Good news! Your seller account has been reactivated and removed from the blacklist.</p>
+            <p>You can now:</p>
+            <ul>
+              <li>Access your seller portal</li>
+              <li>Upload and manage products</li>
+              <li>Process orders</li>
+              <li>Continue selling on our platform</li>
+            </ul>
+            <p>Please visit <a href="${process.env.SELLER_PORTAL_URL || 'http://localhost:3002'}/login">Seller Portal</a> to resume your business.</p>
+            <p>We appreciate your cooperation and look forward to your continued success on our platform.</p>
+            <p>Best regards,<br>The Chariot Team</p>
+          </div>
+        `,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Seller blacklist removal email sent:', info.messageId);
+      return info;
+    } catch (error) {
+      console.error('Error sending seller blacklist removal email:', error);
+      throw error;
+    }
+  },
+
+  async sendSellerReapplicationNotification(adminEmail: string, sellerName: string, sellerEmail: string, reapplicationReason: string) {
+    try {
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: adminEmail,
+        subject: 'Seller Reapplication Request',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Seller Reapplication</h2>
+            <p>A blacklisted seller has submitted a reapplication request:</p>
+            <p><strong>Seller Name:</strong> ${sellerName}</p>
+            <p><strong>Seller Email:</strong> ${sellerEmail}</p>
+            <p><strong>Reapplication Reason:</strong> ${reapplicationReason}</p>
+            <p>Please review this request in the admin portal and take appropriate action.</p>
+            <p>Best regards,<br>The Chariot System</p>
+          </div>
+        `,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Seller reapplication notification email sent:', info.messageId);
+      return info;
+    } catch (error) {
+      console.error('Error sending seller reapplication notification email:', error);
+      throw error;
+    }
+  },
 }; 
