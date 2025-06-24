@@ -34,13 +34,29 @@ export default function LoginPage() {
           toast.error('Your account is pending approval. Please wait for admin approval.');
         } else if (data.approvalStatus === 'rejected') {
           toast.error(`Your account was rejected: ${data.rejectionReason || 'Please contact support.'}`);
+        } else if (data.blacklistInfo && !data.blacklistInfo.isExpired) {
+          toast.error('Your account has been blacklisted. Please contact support for more information.');
         } else {
           toast.error(data.message || 'Login failed');
         }
         return;
       }
 
-      toast.success('Login successful');
+      // Handle successful login with expired blacklist
+      if (data.blacklistInfo && data.blacklistInfo.isExpired) {
+        toast.success('Login successful. Your blacklist period has expired. You may submit a reapplication request.');
+      } else {
+        toast.success('Login successful');
+      }
+      
+      // Store user info in localStorage for dashboard access
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify({
+          ...data.user,
+          blacklistInfo: data.blacklistInfo
+        }));
+      }
+      
       router.push('/dashboard');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Login failed');

@@ -10,6 +10,7 @@ import landingRoutes from './routes/landing.routes';
 import authRoutes from './routes/auth.routes';
 import sellerRoutes from './routes/seller.routes';
 import sellerApprovalRoutes from './routes/admin/seller-approval.routes';
+import sellerBlacklistRoutes from './routes/admin/seller-blacklist.routes';
 
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -30,6 +31,7 @@ app.use('/api/landing', landingRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/sellers', sellerRoutes);
 app.use('/api/admin/sellers', sellerApprovalRoutes);
+app.use('/api/admin/blacklist', sellerBlacklistRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
   .then(() => {

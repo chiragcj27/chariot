@@ -35,6 +35,9 @@ export async function getAllSellers(req: Request, res: Response) {
     
     const sellers = await Seller.find(filter)
       .select('-password -refreshToken')
+      .populate('approvedBy', 'name email')
+      .populate('rejectedBy', 'name email')
+      .populate('blacklistedBy', 'name email')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit as string));
@@ -218,25 +221,39 @@ export async function getSellerDetails(req: Request, res: Response) {
 // Get seller statistics
 export async function getSellerStats(req: Request, res: Response) {
   try {
-    const totalSellers = await Seller.countDocuments();
-    const pendingSellers = await Seller.countDocuments({ approvalStatus: 'pending' });
-    const approvedSellers = await Seller.countDocuments({ approvalStatus: 'approved' });
-    const rejectedSellers = await Seller.countDocuments({ approvalStatus: 'rejected' });
+    const total = await Seller.countDocuments({ role: 'seller' });
+    const pending = await Seller.countDocuments({ 
+      role: 'seller', 
+      approvalStatus: 'pending' 
+    });
+    const approved = await Seller.countDocuments({ 
+      role: 'seller', 
+      approvalStatus: 'approved' 
+    });
+    const rejected = await Seller.countDocuments({ 
+      role: 'seller', 
+      approvalStatus: 'rejected' 
+    });
+    const blacklisted = await Seller.countDocuments({ 
+      role: 'seller', 
+      isBlacklisted: true 
+    });
 
     // Get recent registrations (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
     const recentRegistrations = await Seller.countDocuments({
+      role: 'seller',
       createdAt: { $gte: thirtyDaysAgo }
     });
 
     res.json({
       stats: {
-        total: totalSellers,
-        pending: pendingSellers,
-        approved: approvedSellers,
-        rejected: rejectedSellers,
+        total,
+        pending,
+        approved,
+        rejected,
+        blacklisted,
         recentRegistrations,
       },
     });

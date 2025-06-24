@@ -15,7 +15,20 @@ export declare const User: mongoose.Model<IUser, {}, {}, {}, mongoose.Document<u
 } & {
     __v: number;
 }, any>;
-export interface ISeller extends IUser {
+export interface ISeller extends Document {
+    email: string;
+    name: string;
+    role: UserRole;
+    password: string;
+    refreshToken: string;
+    approvalStatus: 'pending' | 'approved' | 'rejected';
+    approvedAt?: Date;
+    approvedBy?: Types.ObjectId;
+    rejectionReason?: string;
+    rejectedAt?: Date;
+    rejectedBy?: Types.ObjectId;
+    createdAt: Date;
+    updatedAt: Date;
     storeDetails: {
         name: string;
         description: string;
@@ -27,6 +40,13 @@ export interface ISeller extends IUser {
     orders: Types.ObjectId[];
     sales: Types.ObjectId[];
     commissionRate: number;
+    isBlacklisted: boolean;
+    blacklistReason?: string;
+    blacklistedAt?: Date;
+    blacklistedBy?: Types.ObjectId;
+    blacklistExpiryDate?: Date;
+    reapplicationDate?: Date;
+    reapplicationReason?: string;
 }
 export declare const Seller: mongoose.Model<ISeller, {}, {}, {}, mongoose.Document<unknown, {}, ISeller, {}> & ISeller & {
     _id: Types.ObjectId;

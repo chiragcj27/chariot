@@ -122,11 +122,49 @@ export async function loginSeller(req: Request, res: Response) {
       });
     }
 
+    // Check blacklist status
+    if (seller.isBlacklisted) {
+      const isExpired = seller.blacklistExpiryDate && new Date(seller.blacklistExpiryDate) < new Date();
+      
+      const blacklistInfo = {
+        isBlacklisted: true,
+        blacklistReason: seller.blacklistReason,
+        blacklistedAt: seller.blacklistedAt,
+        blacklistExpiryDate: seller.blacklistExpiryDate,
+        reapplicationDate: seller.reapplicationDate,
+        isExpired: isExpired,
+      };
+
+      if (!isExpired) {
+        // Blacklist is still active - block login
+        return res.status(403).json({
+          message: 'Your account has been blacklisted. Please contact support for more information.',
+          blacklistInfo,
+        });
+      }
+      
+      // Blacklist has expired - allow login but include expired blacklist info
+      // Continue with login process but include expired blacklist info
+    }
+
     // Generate tokens
     const tokens = await generateTokens(seller);
 
+    // Check if seller has expired blacklist for response
+    const hasExpiredBlacklist = seller.isBlacklisted && seller.blacklistExpiryDate && new Date(seller.blacklistExpiryDate) < new Date();
+    const blacklistInfo = hasExpiredBlacklist ? {
+      isBlacklisted: true,
+      blacklistReason: seller.blacklistReason,
+      blacklistedAt: seller.blacklistedAt,
+      blacklistExpiryDate: seller.blacklistExpiryDate,
+      reapplicationDate: seller.reapplicationDate,
+      isExpired: true,
+    } : null;
+
     res.json({
-      message: 'Login successful.',
+      message: hasExpiredBlacklist 
+        ? 'Login successful. Your blacklist period has expired. You may submit a reapplication request.'
+        : 'Login successful.',
       user: {
         id: seller._id,
         email: seller.email,
@@ -134,7 +172,9 @@ export async function loginSeller(req: Request, res: Response) {
         role: seller.role,
         approvalStatus: seller.approvalStatus,
         storeDetails: seller.storeDetails,
+        isBlacklisted: seller.isBlacklisted,
       },
+      blacklistInfo,
       ...tokens,
     });
   } catch (error) {
