@@ -1,5 +1,6 @@
 "use client"
 import React from "react";
+import Image from "next/image";
 
 const images = [
   { src: "https://placehold.co/250x350", alt: "Co-working in Yerevan, 2022", caption: "Co-working in Yerevan, 2022", w: 250, h: 350 },
@@ -28,7 +29,7 @@ export default function WhoWeAre() {
             {[...images, ...images, ...images].map((img, i) => (
               <div key={i} className="flex flex-col items-center" style={{ minWidth: img.w, height: img.h }}>
                 <div className="rounded-lg overflow-hidden shadow-lg bg-white" style={{ width: img.w, height: img.h }}>
-                  <img
+                  <Image
                     src={img.src}
                     alt={img.alt}
                     width={img.w}
