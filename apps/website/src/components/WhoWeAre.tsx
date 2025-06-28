@@ -17,7 +17,7 @@ export default function WhoWeAre() {
         </div>
       <div className="w-full md:w-3/4">
       <h2 className="text-4xl md:text-5xl font-bold mt-2 mb-4">
-        We're a <span className="italic">creative organization</span> spread<br />
+        We are a <span className="italic">creative organization</span> spread<br />
         from Bali to Barcelona. A few times a year we gather to hug each other
         </h2>
       </div>

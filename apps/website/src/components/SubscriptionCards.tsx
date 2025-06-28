@@ -73,7 +73,7 @@ export default function SubscriptionCards() {
                             </li>
                             <li className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-gold rounded-full mt-2 flex-shrink-0"></div>
-                                <span className="text-black/80 font-secondary">Unlock premium packs & seasonal kits (Diwali, Wedding, Valentine's...)</span>
+                                <span className="text-black/80 font-secondary">Unlock premium packs & seasonal kits (Diwali, Wedding, Valentine&apos;s...)</span>
                             </li>
                             <li className="flex items-start gap-3">
                                 <div className="w-2 h-2 bg-gold rounded-full mt-2 flex-shrink-0"></div>
@@ -197,7 +197,7 @@ export default function SubscriptionCards() {
                     
                     <div className="mt-8 p-4 bg-seafoam/5 rounded-xl text-center">
                         <p className="text-black/80 font-secondary">
-                            <strong>Unused credits roll over for 2 months</strong> - so you never lose what you've earned.
+                            <strong>Unused credits roll over for 2 months</strong> - so you never lose what you&apos;ve earned.
                         </p>
                     </div>
                 </div>

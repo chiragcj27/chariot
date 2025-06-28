@@ -1,7 +1,8 @@
 'use client'
 import React, { useState } from 'react';
 import Image from 'next/image';
-        import {
+import Link from 'next/link';
+import {
   NavigationMenu,
   NavigationMenuContent,
   NavigationMenuItem,
@@ -55,9 +56,9 @@ export default function NavBar() {
     <nav className="w-full border-b border-black/80 bg-seafoam">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
         {/* Logo */}
-        <a href="/" className="flex items-center">
+        <Link href="/" className="flex items-center">
           <Image src="/file.svg" alt="Chariot Logo" height={36} width={36} className="mr-4" />
-        </a>
+        </Link>
         
         {/* Desktop Navigation Menu */}
         <div className="hidden md:block">
@@ -73,9 +74,9 @@ export default function NavBar() {
                       {item.dropdown.map((option, optionIdx) => (
                         <li key={option.label}>
                           <NavigationMenuLink asChild>
-                            <a
+                            <Link
                               href={option.href}
-                              className="block px-4 py-3 text-sm hover:bg-sunrise/30 hover:text-black transition-all duration-200 cursor-pointer transform hover:translate-x-1 hover:shadow-sm relative overflow-hidden group bg-transparent border-none shadow-none hover:bg-sunrise/30 focus:bg-sunrise/30 focus:text-black focus-visible:ring-0 focus-visible:outline-none"
+                              className="block px-4 py-3 text-sm  hover:text-black transition-all duration-200 cursor-pointer transform hover:translate-x-1 hover:shadow-sm relative overflow-hidden group bg-transparent border-none shadow-none focus:bg-sunrise/30 focus:text-black focus-visible:ring-0 focus-visible:outline-none"
                               style={{
                                 animationDelay: `${optionIdx * 50}ms`,
                                 animation: 'slideInFromLeft 0.3s ease-out forwards'
@@ -83,7 +84,7 @@ export default function NavBar() {
                             >
                               <span className="relative z-10">{option.label}</span>
                               <div className="absolute inset-0 bg-gradient-to-r from-sunrise/20 to-transparent transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out"></div>
-                            </a>
+                            </Link>
                           </NavigationMenuLink>
                         </li>
                       ))}
@@ -125,7 +126,7 @@ export default function NavBar() {
                     <ul className="pl-4 border-l border-gray-200 animate-dropdown">
                       {item.dropdown.map((option, optionIdx) => (
                         <li key={option.label}>
-                          <a
+                          <Link
                             href={option.href}
                             className="block px-2 py-2 text-sm hover:bg-sunrise/30 hover:text-black transition-all duration-200 cursor-pointer transform hover:translate-x-1 hover:shadow-sm relative overflow-hidden group"
                             style={{
@@ -135,7 +136,7 @@ export default function NavBar() {
                           >
                             <span className="relative z-10">{option.label}</span>
                             <div className="absolute inset-0 bg-gradient-to-r from-sunrise/20 to-transparent transform -translate-x-full group-hover:translate-x-0 transition-transform duration-300 ease-out"></div>
-                          </a>
+                          </Link>
                         </li>
                       ))}
                     </ul>
