@@ -21,7 +21,6 @@ const VIBES = [
 export default function FilterDropDown() {
   const [industryOpen, setIndustryOpen] = useState(false);
   const [vibeOpen, setVibeOpen] = useState(false);
-  const [selectedIndustry, setSelectedIndustry] = useState('All');
   const [selectedVibe, setSelectedVibe] = useState('All');
   const [checkedIndustries, setCheckedIndustries] = useState<string[]>([]);
 
@@ -42,7 +41,7 @@ export default function FilterDropDown() {
           onClick={() => setIndustryOpen(open => !open)}
           type="button"
         >
-          <span>INDUSTRY : {selectedIndustry.toUpperCase()}</span>
+          <span>INDUSTRY : {(checkedIndustries.length === 0 ? 'All' : checkedIndustries.join(', ')).toUpperCase()}</span>
           <span className={`transition-transform ${industryOpen ? 'rotate-180' : ''}`}>▼</span>
         </button>
         {industryOpen && (
