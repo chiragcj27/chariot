@@ -20,15 +20,15 @@ const projects = [
 
 export default function ProjectCards() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 w-full max-w-6xl">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 w-full max-w-6xl mb-10">
       {projects.map((project) => (
         <div
           key={project.name}
           className="overflow-hidden flex flex-col"
         >
-          <div className="relative w-full aspect-square">
+          <div className="relative aspect-square h-[256px] w-[416px]">
             <Image
-              src={project.image}
+              src="https://placehold.co/256x416"
               alt={project.name}
               className="object-cover"
               fill
@@ -36,8 +36,8 @@ export default function ProjectCards() {
             />
           </div>
           <div className="px-3 pt-3">
-            <h3 className="text-[15px] font-semibold">{project.name}</h3>
-            <p className="text-gray-500 text-[13px]">{project.description}</p>
+            <h3 className="text-[20px] font-semibold">{project.name}</h3>
+            <p className="text-gray-500 text-[16px]">{project.description}</p>
           </div>
         </div>
       ))}

@@ -66,7 +66,7 @@ export default function NavBar() {
             <NavigationMenuList className="gap-10 w-full justify-start">
               {menuItems.map((item) => (
                 <NavigationMenuItem key={item.label} className="relative">
-                  <NavigationMenuTrigger className="font-semibold hover:text-gray-700 focus:outline-none transition-colors duration-200 bg-transparent border-none shadow-none hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:hover:bg-transparent data-[state=open]:focus:bg-transparent focus-visible:ring-0 focus-visible:outline-none">
+                  <NavigationMenuTrigger className="font-semibold text-[18px] hover:text-gray-700 focus:outline-none transition-colors duration-200 bg-transparent border-none shadow-none hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent data-[state=open]:hover:bg-transparent data-[state=open]:focus:bg-transparent focus-visible:ring-0 focus-visible:outline-none">
                     {item.label}
                   </NavigationMenuTrigger>
                   <NavigationMenuContent className="absolute left-0 top-full mt-2 z-50">

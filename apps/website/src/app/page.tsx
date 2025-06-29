@@ -8,13 +8,13 @@ export default function Home() {
   return (
     <div>
       {/* Hero Section */}
-      <div className="flex flex-col px-15 py-30">
+      <div className="flex flex-col px-30 py-30">
         <h1 className="text-7xl text-sunrise/80 font-bold">Timeless</h1>
         <h1 className="text-7xl text-sunrise/80 font-bold">Elegance </h1>
         <p className="py-8 text-2xl font-secondary">Discover our exquisite collection of handcrafted jewelry <br /> designed to captivate for generations</p>
       </div>
       {/* Projects Section */}
-      <div className="flex flex-col items-center justify-center">
+      <div className="flex flex-col px-30">
         <ProjectCards />
         <ProjectCards />
         <ProjectCards />
