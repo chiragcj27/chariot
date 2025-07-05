@@ -1,5 +1,10 @@
 import mongoose, { model, Schema, Types } from "mongoose";
 
+export enum KitType {
+  PREMIUM = "premium",
+  BASIC = "basic",
+}
+
 export enum ProductType {
   PHYSICAL = "physical",
   DIGITAL = "digital",
@@ -188,6 +193,12 @@ if (mongoose.models.digital) {
 if (mongoose.models.service) {
   delete mongoose.models.service;
 }
+if (mongoose.models.kit) {
+  delete mongoose.models.kit;
+}
+if (mongoose.models.kitProduct) {
+  delete mongoose.models.kitProduct;
+}
 
 // Check if model exists before creating
 export const Product = model<IProduct>("Product", baseProductSchema);
@@ -349,6 +360,7 @@ export const ServiceProduct = Product.discriminator<IServiceProduct>(
 
 interface IKitProduct extends IProduct {
   kitId: Types.ObjectId;
+  typeOfKit: KitType;
 }
 
 const kitProductSchema = new mongoose.Schema<IKitProduct>({
@@ -356,9 +368,14 @@ const kitProductSchema = new mongoose.Schema<IKitProduct>({
     type: Schema.Types.ObjectId,
     ref: "Kit",
   },
+  typeOfKit: {
+    type: String,
+    enum: Object.values(KitType),
+    required: true,
+  },
 });
 
 export const KitProduct = Product.discriminator<IKitProduct>(
-  "kit",
+  "kitProduct",
   kitProductSchema
 );

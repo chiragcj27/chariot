@@ -17,7 +17,6 @@ export interface IProduct {
     name: string;
     description: string;
     categoryId: Types.ObjectId;
-    subCategoryId: Types.ObjectId;
     itemId: Types.ObjectId;
     type: ProductType;
     price: {

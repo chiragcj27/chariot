@@ -59,7 +59,7 @@ const imageSchema = new Schema<IImage>({
     imageType: {
         type: String,
         required: true,
-        enum: ['profile', 'product', 'menu', 'featured', 'promotional', 'item'],
+        enum: ['profile', 'product', 'menu', 'featured', 'promotional', 'item', 'kit'],
     },
     createdAt: {
         type: Date,
@@ -153,6 +153,28 @@ const bannerImageSchema = new Schema<IBannerImage>({
     }
 });
 
+// Kit Image Schema
+interface IKitImage extends IImage {
+    kitId: Types.ObjectId;
+    isMain: boolean;
+    isCarousel: boolean;
+}
+const kitImageSchema = new Schema<IKitImage>({
+    kitId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Kit',
+        required: true,
+    },
+    isMain: {
+        type: Boolean,
+        default: false,
+    },
+    isCarousel: {
+        type: Boolean,
+        default: false,
+    },
+});
+
 if (mongoose.models.Image) {
     delete mongoose.models.Image;
 }
@@ -177,5 +199,10 @@ if (mongoose.models.banner) {
     delete mongoose.models.banner;
 }
 export const BannerImage = Image.discriminator<IBannerImage>("banner", bannerImageSchema);
+
+if (mongoose.models.kit) {
+    delete mongoose.models.kit;
+}
+export const KitImage = Image.discriminator<IKitImage>("kit", kitImageSchema);
 
 export default Image;

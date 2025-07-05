@@ -25,6 +25,7 @@ const navigation = [
   { name: 'Sellers', href: '/sellers', icon: BuildingStorefrontIcon },
   { name: 'Blacklisted Sellers', href: '/blacklist', icon: ExclamationTriangleIcon },
   { name: 'Menu Settings', href: '/menu', icon: Cog6ToothIcon },
+  { name: 'Kits', href: '/kit', icon: AdjustmentsHorizontalIcon },
   { name: 'Landing Page Configuration', href: '/landing', icon: AdjustmentsHorizontalIcon },
 ];
 

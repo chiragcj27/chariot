@@ -11,6 +11,7 @@ import authRoutes from './routes/auth.routes';
 import sellerRoutes from './routes/seller.routes';
 import sellerApprovalRoutes from './routes/admin/seller-approval.routes';
 import sellerBlacklistRoutes from './routes/admin/seller-blacklist.routes';
+import kitRoutes from './routes/kit.routes';
 
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -32,6 +33,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/sellers', sellerRoutes);
 app.use('/api/admin/sellers', sellerApprovalRoutes);
 app.use('/api/admin/blacklist', sellerBlacklistRoutes);
+app.use('/api/kits', kitRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
   .then(() => {

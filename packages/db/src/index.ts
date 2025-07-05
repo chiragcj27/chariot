@@ -1,28 +1,31 @@
 // Main entry point for the database package
 import connectDB from './config/database';
-import { Image, ItemImage, PromotionalImage, IImage, ProductImage } from './models/image.model';
-import { Item, Menu, SubCategory, IItem } from './models/menu.model';
-import { IProduct, Product, PhysicalProduct, DigitalProduct, ServiceProduct, ProductType, ProductStatus } from './models/product.model';
+import { Image, ItemImage, PromotionalImage, IImage, ProductImage, KitImage } from './models/image.model';
+import { Item, Menu, IItem } from './models/menu.model';
+import { IProduct, Product, PhysicalProduct, DigitalProduct, ServiceProduct, KitProduct, ProductType, ProductStatus } from './models/product.model';
 import { PromotionalStrip } from './models/promotionalStrip.model';
 import { IUser, ISeller, User, Seller, Admin} from './models/user.model';
+import { Kit, IKit } from './models/kits.model';
 
 export {
   connectDB,
   User,
   Menu,
   PromotionalStrip,
-  SubCategory,
   Item,
   Image,
   ItemImage,
   PromotionalImage,
   ProductImage,
+  KitImage,
   Seller,
   Product,
   PhysicalProduct,
   DigitalProduct,
   ServiceProduct,
+  KitProduct,
   Admin,
+  Kit,
 };
 
 export type {
@@ -31,6 +34,7 @@ export type {
   ISeller,
   IUser,
   IProduct,
+  IKit,
   ProductStatus,
 };
 

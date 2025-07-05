@@ -20,20 +20,24 @@ router.get("/featured", landingController.getFeaturedProducts);
 // Get products by category slug
 router.get("/category/:categorySlug", productController.getProductsByCategory);
 
-// Get products by subcategory slug
-router.get("/subcategory/:subCategorySlug", productController.getProductsBySubCategory);
-
 // Get products by item slug
 router.get("/item/:itemSlug", productController.getProductsByItem);
 
-// Get products by category and subcategory slugs
-router.get("/category/:categorySlug/subcategory/:subCategorySlug", productController.getProductsByCategoryAndSubCategory);
+// Get products by category and item slugs
+router.get("/category/:categorySlug/item/:itemSlug", productController.getProductsByCategoryAndItem);
 
-// Get products by all levels (category, subcategory, and item slugs)
-router.get("/category/:categorySlug/subcategory/:subCategorySlug/item/:itemSlug", productController.getProductsByAllLevels);
+// Get product by slug (requires category and item context)
+router.get("/category/:categorySlug/item/:itemSlug/product/:productSlug", productController.getProductBySlug);
 
-// Get product by slug
-router.get("/slug/:slug", productController.getProductBySlug);
+// Update product
+router.put("/:productId", isSeller, productController.updateProduct);
+
+// Delete product
+router.delete("/:productId", isSeller, productController.deleteProduct);
+
+// Admin approval/rejection routes
+router.put("/:productId/approve", productController.approveProduct);
+router.put("/:productId/reject", productController.rejectProduct);
 
 export default router;
 
