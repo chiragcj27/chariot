@@ -1,4 +1,4 @@
-import mongoose, { model, Model, Schema, Types } from "mongoose";
+import mongoose, { model, Schema, Types } from "mongoose";
 
 export enum ProductType {
   PHYSICAL = "physical",
@@ -20,7 +20,6 @@ export interface IProduct {
   name: string;
   description: string;
   categoryId: Types.ObjectId;
-  subCategoryId: Types.ObjectId;
   itemId: Types.ObjectId;
   type: ProductType;
 
@@ -66,7 +65,6 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
     name: {
       type: String,
       required: true,
-      trim: true,
     },
     description: {
       type: String,
@@ -74,12 +72,7 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
     },
     categoryId: {
       type: Schema.Types.ObjectId,
-      ref: "Category",
-      required: true,
-    },
-    subCategoryId: {
-      type: Schema.Types.ObjectId,
-      ref: "SubCategory",
+      ref: "Menu",
       required: true,
     },
     itemId: {
@@ -100,15 +93,15 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
       currency: {
         type: String,
         required: true,
+        default: "USD",
       },
     },
     discount: {
       percentage: {
         type: Number,
-        required: true,
         min: 0,
         max: 100,
-      }
+      },
     },
     theme: {
       type: String,
@@ -121,7 +114,7 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
     },
     tags: {
       type: [String],
-      required: true,
+      default: [],
     },
     featured: {
       type: Boolean,
@@ -130,20 +123,12 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
     status: {
       type: String,
       enum: Object.values(ProductStatus),
-      required: true,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now,
+      default: ProductStatus.DRAFT,
     },
     images: {
       type: [Schema.Types.ObjectId],
       ref: "Image",
-      required: false,
+      default: [],
     },
     seo: {
       metaTitle: {
@@ -360,4 +345,20 @@ const serviceProductSchema = new mongoose.Schema<IServiceProduct>({
 export const ServiceProduct = Product.discriminator<IServiceProduct>(
   "service",
   serviceProductSchema
+);
+
+interface IKitProduct extends IProduct {
+  kitId: Types.ObjectId;
+}
+
+const kitProductSchema = new mongoose.Schema<IKitProduct>({
+  kitId: {
+    type: Schema.Types.ObjectId,
+    ref: "Kit",
+  },
+});
+
+export const KitProduct = Product.discriminator<IKitProduct>(
+  "kit",
+  kitProductSchema
 );

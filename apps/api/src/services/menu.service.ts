@@ -2,13 +2,13 @@ import mongoose from "mongoose";
 import { Item, Image, ItemImage, IItem } from "@chariot/db";
 
 export const menuService = {
-  async createItemWithImage(itemData: Partial<IItem>, subCategoryId: mongoose.Types.ObjectId | string, session: mongoose.ClientSession) {
+  async createItemWithImage(itemData: Partial<IItem>, categoryId: mongoose.Types.ObjectId | string, session: mongoose.ClientSession) {
     try {
 
       const item = await Item.create([{
         title: itemData.title,
         slug: itemData.slug,
-        subCategoryId: subCategoryId,
+        categoryId: categoryId,
         description: itemData.description,
         image: new mongoose.Types.ObjectId() // temporary image ID
       }], { session });

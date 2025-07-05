@@ -12,21 +12,19 @@ router.post('/category', menuController.createCategory);
 // Delete category
 router.delete('/category/:categoryId', menuController.deleteCategory);
 
-// Delete subcategory
-router.delete('/subcategory/:subCategoryId', menuController.deleteSubCategory);
+// Update category
+router.put('/category/:categoryId', menuController.updateCategory);
+
+// Create item
+router.post('/items', menuController.createItem);
 
 // Delete item
 router.delete('/item/:itemId', menuController.deleteItem);
 
-// Create subcategory
-router.post('/subcategory', menuController.createSubCategory);
-
-// Create item(s)
-router.post('/items', menuController.createItem);
+// Update item
+router.put('/item/:itemId', menuController.updateItem);
 
 // Check title uniqueness
 router.get('/check-category-title/:title', menuController.checkCategoryTitleUnique);
-router.get('/check-subcategory-title/:title', menuController.checkSubCategoryTitleUnique);
-router.get('/check-item-title/:title', menuController.checkItemTitleUnique);
 
 export default router; 

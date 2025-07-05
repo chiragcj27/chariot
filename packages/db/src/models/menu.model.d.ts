@@ -16,15 +16,9 @@ export interface IItem {
         metadata?: Record<string, any>;
     };
     description: string;
-    subCategoryId: Types.ObjectId;
+    categoryId: Types.ObjectId;
 }
-interface ISubCategory {
-    id: string;
-    title: string;
-    slug: string;
-    description: string;
-    categoryId: string;
-}
+
 interface IFeaturedItem {
     id: string;
     title: string;
@@ -32,24 +26,23 @@ interface IFeaturedItem {
     image: string;
     slug: string;
 }
+
 interface ICategory {
     title: string;
     slug: string;
     featuredItems: IFeaturedItem[];
 }
-export declare const Menu: mongoose.Model<ICategory, {}, {}, {}, mongoose.Document<unknown, {}, ICategory, {}> & ICategory & {
+
+declare const Menu: mongoose.Model<ICategory, {}, {}, {}, mongoose.Document<unknown, {}, ICategory, {}> & ICategory & {
     _id: Types.ObjectId;
 } & {
     __v: number;
 }, any>;
-export declare const SubCategory: mongoose.Model<ISubCategory, {}, {}, {}, mongoose.Document<unknown, {}, ISubCategory, {}> & ISubCategory & {
+
+declare const Item: mongoose.Model<IItem, {}, {}, {}, mongoose.Document<unknown, {}, IItem, {}> & IItem & {
     _id: Types.ObjectId;
 } & {
     __v: number;
 }, any>;
-export declare const Item: mongoose.Model<IItem, {}, {}, {}, mongoose.Document<unknown, {}, IItem, {}> & IItem & {
-    _id: Types.ObjectId;
-} & {
-    __v: number;
-}, any>;
-export {};
+
+export { Menu, Item };

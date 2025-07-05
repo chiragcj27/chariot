@@ -12,20 +12,13 @@ export interface MenuStructure {
     slug: string;
     categoryId: string;
   }>;
-  subCategories?: Array<{
+  items?: Array<{
     _id: string;
     title: string;
     slug: string;
     description: string;
+    image: string;
     categoryId: string;
-    items?: Array<{
-      _id: string;
-      title: string;
-      slug: string;
-      description: string;
-      image: string;
-      subCategoryId: string;
-    }>;
   }>;
 }
 
@@ -63,32 +56,13 @@ export const menuApi = {
     return response.json();
   },
 
-  async createSubCategory(data: {
-    title: string;
-    slug: string;
-    description?: string;
-    categoryId: string;
-  }): Promise<{ message: string; subCategory: NonNullable<MenuStructure['subCategories']>[number] }> {
-    const response = await fetch(`${API_BASE_URL}/menu/subcategory`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to create subcategory');
-    }
-    return response.json();
-  },
-
   async createItem(data: {
     title: string;
     description?: string;
     price?: number;
     image?: string;
-    subCategoryId: string;
-  }): Promise<NonNullable<NonNullable<MenuStructure['subCategories']>[number]['items']>[number]> {
+    categoryId: string;
+  }): Promise<NonNullable<MenuStructure['items']>[number]> {
     const response = await fetch(`${API_BASE_URL}/menu/items`, {
       method: 'POST',
       headers: {
@@ -102,21 +76,66 @@ export const menuApi = {
     return response.json();
   },
 
-  async createFeaturedItem(data: {
-    title: string;
-    price: number;
-    image?: string;
-    categoryId: string;
-  }): Promise<NonNullable<MenuStructure['featuredItems']>[number]> {
-    const response = await fetch(`${API_BASE_URL}/menu/featured-item`, {
-      method: 'POST',
+  async deleteCategory(categoryId: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/menu/category/${categoryId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete category');
+    }
+    return response.json();
+  },
+
+  async deleteItem(itemId: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/menu/item/${itemId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete item');
+    }
+    return response.json();
+  },
+
+  async updateCategory(categoryId: string, data: {
+    title?: string;
+    slug?: string;
+    featuredItems?: Array<{
+      _id: string;
+      title: string;
+      price: number;
+      image: string;
+      slug: string;
+      categoryId: string;
+    }>;
+  }): Promise<{ message: string; category: MenuStructure }> {
+    const response = await fetch(`${API_BASE_URL}/menu/category/${categoryId}`, {
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
     });
     if (!response.ok) {
-      throw new Error('Failed to create featured item');
+      throw new Error('Failed to update category');
+    }
+    return response.json();
+  },
+
+  async updateItem(itemId: string, data: {
+    title?: string;
+    slug?: string;
+    description?: string;
+    image?: string;
+  }): Promise<{ message: string; item: NonNullable<MenuStructure['items']>[number] }> {
+    const response = await fetch(`${API_BASE_URL}/menu/item/${itemId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update item');
     }
     return response.json();
   },
@@ -125,24 +144,6 @@ export const menuApi = {
     const response = await fetch(`${API_BASE_URL}/menu/check-category-title/${encodeURIComponent(title)}`);
     if (!response.ok) {
       throw new Error('Failed to check category title uniqueness');
-    }
-    const data = await response.json();
-    return data.isUnique;
-  },
-
-  async checkSubCategoryTitleUnique(title: string): Promise<boolean> {
-    const response = await fetch(`${API_BASE_URL}/menu/check-subcategory-title/${encodeURIComponent(title)}`);
-    if (!response.ok) {
-      throw new Error('Failed to check subcategory title uniqueness');
-    }
-    const data = await response.json();
-    return data.isUnique;
-  },
-
-  async checkItemTitleUnique(title: string): Promise<boolean> {
-    const response = await fetch(`${API_BASE_URL}/menu/check-item-title/${encodeURIComponent(title)}`);
-    if (!response.ok) {
-      throw new Error('Failed to check item title uniqueness');
     }
     const data = await response.json();
     return data.isUnique;

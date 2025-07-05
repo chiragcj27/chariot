@@ -1,4 +1,4 @@
-import { Menu, SubCategory, Item, ItemImage } from "@chariot/db";
+import { Menu, Item, ItemImage } from "@chariot/db";
 import mongoose from "mongoose";
 import { Request, Response } from "express";
 import { menuService } from "../services/menu.service";
@@ -8,26 +8,12 @@ export const menuController = {
     try {
       const menuStructure = await Menu.aggregate([
         // Start with categories
-        {
-          $lookup: {
-            from: "subcategories",
-            let: { categoryId: { $toString: "$_id" } },
-            pipeline: [
-              {
-                $match: {
-                  $expr: { $eq: ["$categoryId", "$$categoryId"] },
-                },
-              },
-            ],
-            as: "subCategories",
-          },
-        },
-        // For each subcategory, lookup its items
+        // For each category, lookup its items
         {
           $lookup: {
             from: "items",
-            localField: "subCategories._id",
-            foreignField: "subCategoryId",
+            localField: "_id",
+            foreignField: "categoryId",
             as: "items",
           },
         },
@@ -54,60 +40,36 @@ export const menuController = {
         // Reshape the data to match the desired structure
         {
           $addFields: {
-            subCategories: {
+            items: {
               $map: {
-                input: "$subCategories",
-                as: "subCategory",
+                input: "$items",
+                as: "item",
                 in: {
                   $mergeObjects: [
-                    "$$subCategory",
+                    "$$item",
                     {
-                      items: {
-                        $map: {
-                          input: {
-                            $filter: {
-                              input: "$items",
-                              as: "item",
-                              cond: {
-                                $eq: [
-                                  "$$item.subCategoryId",
-                                  "$$subCategory._id",
-                                ],
-                              },
-                            },
-                          },
-                          as: "item",
-                          in: {
-                            $mergeObjects: [
-                              "$$item",
-                              {
-                                image: {
-                                  $let: {
-                                    vars: {
-                                      matchedImage: {
-                                        $arrayElemAt: [
-                                          {
-                                            $filter: {
-                                              input: "$itemImages",
-                                              as: "img",
-                                              cond: {
-                                                $eq: [
-                                                  { $toString: "$$img._id" },
-                                                  { $toString: "$$item.image" },
-                                                ],
-                                              },
-                                            },
-                                          },
-                                          0,
-                                        ],
-                                      },
+                      image: {
+                        $let: {
+                          vars: {
+                            matchedImage: {
+                              $arrayElemAt: [
+                                {
+                                  $filter: {
+                                    input: "$itemImages",
+                                    as: "img",
+                                    cond: {
+                                      $eq: [
+                                        { $toString: "$$img._id" },
+                                        { $toString: "$$item.image" },
+                                      ],
                                     },
-                                    in: "$$matchedImage",
                                   },
                                 },
-                              },
-                            ],
+                                0,
+                              ],
+                            },
                           },
+                          in: "$$matchedImage",
                         },
                       },
                     },
@@ -117,20 +79,30 @@ export const menuController = {
             },
           },
         },
-        // Remove the temporary fields
+        // Remove only the temporary itemImages field, keep items
         {
           $project: {
-            items: 0,
             itemImages: 0,
           },
         },
       ]);
 
-      res.status(200).json(menuStructure);
+      // Process the results to match the expected structure
+      const processedStructure = menuStructure.map((category) => ({
+        _id: category._id,
+        title: category.title,
+        slug: category.slug,
+        featuredItems: category.featuredItems || [],
+        items: category.items || [],
+      }));
+
+      res.status(200).json(processedStructure);
     } catch (error) {
-      res
-        .status(500)
-        .json({ message: "Error getting full menu structure", error });
+      console.error("Error fetching menu structure:", error);
+      res.status(500).json({
+        message: "Error fetching menu structure",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     }
   },
 
@@ -150,7 +122,6 @@ export const menuController = {
             title,
             slug,
             featuredItems: [],
-            subCategories: [],
           },
         ],
         { session }
@@ -166,7 +137,7 @@ export const menuController = {
         category: {
           ...category[0].toObject(),
           featuredItems: [],
-          subCategories: [],
+          items: [],
         },
       });
     } catch (error: unknown) {
@@ -181,65 +152,6 @@ export const menuController = {
     }
   },
 
-  async createSubCategory(req: Request, res: Response) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-
-    try {
-      const { categoryId, title, slug, description, items } = req.body;
-
-      // Validate required fields
-      if (!categoryId || !title || !slug) {
-        return res.status(400).json({
-          message: "Category ID, title, and slug are required",
-        });
-      }
-
-      // Check if category exists
-      const category = await Menu.findById(categoryId);
-      if (!category) {
-        return res.status(404).json({
-          message: "Parent category not found",
-        });
-      }
-
-      // Create subcategory
-      const subCategory = await SubCategory.create(
-        [
-          {
-            title,
-            slug,
-            description,
-            categoryId,
-            items: [],
-          },
-        ],
-        { session }
-      );
-
-      if (!subCategory || !subCategory[0]) {
-        throw new Error("Failed to create subcategory");
-      }
-
-      await session.commitTransaction();
-      res.status(201).json({
-        message: "Subcategory created successfully",
-        subCategory: subCategory[0],
-      });
-    } catch (error: unknown) {
-      await session.abortTransaction();
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
-      res.status(500).json({
-        message: "Error creating subcategory",
-        error: errorMessage,
-      });
-    } finally {
-      session.endSession();
-    }
-  },
-
-
   async createItem(req: Request, res: Response) {
     const session = await mongoose.startSession();
     session.startTransaction();
@@ -250,11 +162,11 @@ export const menuController = {
 
       // Validate that all items have required fields
       const invalidItems = items.filter(
-        (item) => !item.subCategoryId || !item.title || !item.slug
+        (item) => !item.categoryId || !item.title || !item.slug
       );
       if (invalidItems.length > 0) {
         return res.status(400).json({
-          message: "Subcategory ID, title, and slug are required for all items",
+          message: "Category ID, title, and slug are required for all items",
         });
       }
 
@@ -263,7 +175,7 @@ export const menuController = {
       for (const itemData of items) {
         const item = await menuService.createItemWithImage(
           itemData,
-          itemData.subCategoryId,
+          itemData.categoryId,
           session
         );
         if (!item) {
@@ -271,7 +183,11 @@ export const menuController = {
         }
         // Ensure the image data is populated
         const populatedItem = await Item.findById(item._id)
-          .populate({ path: "image", model: "Image" })
+          .populate({ 
+            path: "image", 
+            model: "Image",
+            match: { imageType: "item" }
+          })
           .session(session);
         if (!populatedItem) {
           throw new Error("Failed to populate item data");
@@ -297,57 +213,6 @@ export const menuController = {
     }
   },
 
-  async checkCategoryTitleUnique(req: Request, res: Response) {
-    try {
-      const { title } = req.params;
-      if (!title) {
-        return res.status(400).json({ message: "Title is required" });
-      }
-
-      const existingCategory = await Menu.findOne({ title });
-      res.status(200).json({ isUnique: !existingCategory });
-    } catch (error) {
-      res.status(500).json({
-        message: "Error checking category title uniqueness",
-        error,
-      });
-    }
-  },
-
-  async checkSubCategoryTitleUnique(req: Request, res: Response) {
-    try {
-      const { title } = req.params;
-      if (!title) {
-        return res.status(400).json({ message: "Title is required" });
-      }
-
-      const existingSubCategory = await SubCategory.findOne({ title });
-      res.status(200).json({ isUnique: !existingSubCategory });
-    } catch (error) {
-      res.status(500).json({
-        message: "Error checking subcategory title uniqueness",
-        error,
-      });
-    }
-  },
-
-  async checkItemTitleUnique(req: Request, res: Response) {
-    try {
-      const { title } = req.params;
-      if (!title) {
-        return res.status(400).json({ message: "Title is required" });
-      }
-
-      const existingItem = await Item.findOne({ title });
-      res.status(200).json({ isUnique: !existingItem });
-    } catch (error) {
-      res.status(500).json({
-        message: "Error checking item title uniqueness",
-        error,
-      });
-    }
-  },
-
   async deleteCategory(req: Request, res: Response) {
     try {
       const { categoryId } = req.params;
@@ -366,24 +231,6 @@ export const menuController = {
     }
   },
 
-  async deleteSubCategory(req: Request, res: Response) {
-    try {
-      const { subCategoryId } = req.params;
-      if (!subCategoryId) {
-        return res.status(400).json({ message: "SubCategory ID is required" });
-      }
-
-      const result = await SubCategory.findByIdAndDelete(subCategoryId);
-      if (!result) {
-        return res.status(404).json({ message: "SubCategory not found" });
-      }
-
-      res.status(200).json({ message: "SubCategory deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ message: "Error deleting subcategory", error });
-    }
-  },
-
   async deleteItem(req: Request, res: Response) {
     try {
       const { itemId } = req.params;
@@ -399,6 +246,86 @@ export const menuController = {
       res.status(200).json({ message: "Item deleted successfully" });
     } catch (error) {
       res.status(500).json({ message: "Error deleting item", error });
+    }
+  },
+
+  async checkCategoryTitleUnique(req: Request, res: Response) {
+    try {
+      const { title } = req.params;
+      if (!title) {
+        return res.status(400).json({ message: "Title is required" });
+      }
+
+      const existingCategory = await Menu.findOne({ title });
+      res.status(200).json({ isUnique: !existingCategory });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error checking category title uniqueness",
+        error,
+      });
+    }
+  },
+
+  async updateCategory(req: Request, res: Response) {
+    try {
+      const { categoryId } = req.params;
+      const { title, slug, featuredItems } = req.body;
+
+      if (!categoryId) {
+        return res.status(400).json({ message: "Category ID is required" });
+      }
+
+      const updateData: any = {};
+      if (title !== undefined) updateData.title = title;
+      if (slug !== undefined) updateData.slug = slug;
+      if (featuredItems !== undefined) updateData.featuredItems = featuredItems;
+
+      const result = await Menu.findByIdAndUpdate(categoryId, updateData, {
+        new: true,
+      });
+
+      if (!result) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      res.status(200).json({
+        message: "Category updated successfully",
+        category: result,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error updating category", error });
+    }
+  },
+
+  async updateItem(req: Request, res: Response) {
+    try {
+      const { itemId } = req.params;
+      const { title, slug, description, image } = req.body;
+
+      if (!itemId) {
+        return res.status(400).json({ message: "Item ID is required" });
+      }
+
+      const updateData: any = {};
+      if (title !== undefined) updateData.title = title;
+      if (slug !== undefined) updateData.slug = slug;
+      if (description !== undefined) updateData.description = description;
+      if (image !== undefined) updateData.image = image;
+
+      const result = await Item.findByIdAndUpdate(itemId, updateData, {
+        new: true,
+      }).populate({ path: "image", model: "Image" });
+
+      if (!result) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+
+      res.status(200).json({
+        message: "Item updated successfully",
+        item: result,
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error updating item", error });
     }
   },
 };

@@ -25,19 +25,28 @@ interface Item {
   title: string
   slug: string
   description: string
-  image: string
-  subCategoryId: string
+  image: {
+    url: string
+    filename: string
+    originalname: string
+    size: number
+    mimetype: string
+    bucket: string
+    imageType: string
+    status: string
+  }
+  categoryId: string
 }
 
 interface CreateItemDialogProps {
   children: React.ReactNode
-  subCategoryId: string
+  categoryId: string
   onItemCreated?: string
 }
 
 export function CreateItemDialog({
   children,
-  subCategoryId,
+  categoryId,
   onItemCreated = "item-created",
 }: CreateItemDialogProps) {
   const [open, setOpen] = useState(false)
@@ -173,7 +182,7 @@ export function CreateItemDialog({
         title: formData.title,
         slug: formData.slug,
         description: formData.description,
-        subCategoryId: subCategoryId,
+        categoryId: categoryId,
         image: finalImageUrl ? {
           filename: selectedFile?.name || "image.jpg",
           originalname: selectedFile?.name || "image.jpg",
@@ -252,7 +261,7 @@ export function CreateItemDialog({
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Item</DialogTitle>
-          <DialogDescription>Add a new item to this subcategory.</DialogDescription>
+          <DialogDescription>Add a new item to this category.</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">

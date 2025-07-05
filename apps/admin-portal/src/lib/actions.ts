@@ -15,26 +15,12 @@ export async function createCategory(data: {
   // return category
 }
 
-export async function createSubCategory(data: {
-  title: string
-  slug: string
-  description: string
-  categoryId: string
-}) {
-  // Implement subcategory creation logic
-  console.log("Creating subcategory:", data)
-
-  // Example implementation:
-  // const subCategory = await SubCategory.create(data)
-  // return subCategory
-}
-
 export async function createItem(data: {
   title: string
   slug: string
   description?: string
   image: string
-  subCategoryId: string
+  categoryId: string
 }) {
   // Implement item creation logic
   console.log("Creating item:", data)
@@ -51,10 +37,7 @@ export async function getMenuStructure() {
   // Example implementation:
   // const categories = await Category.find()
   //   .populate({
-  //     path: 'subCategories',
-  //     populate: {
-  //       path: 'items'
-  //     }
+  //     path: 'items'
   //   })
   // return categories
 }
@@ -73,23 +56,6 @@ export async function updateCategory(
 export async function deleteCategory(id: string) {
   // Implement category deletion logic
   console.log("Deleting category:", id)
-}
-
-export async function updateSubCategory(
-  id: string,
-  data: Partial<{
-    title: string
-    slug: string
-    description: string
-  }>,
-) {
-  // Implement subcategory update logic
-  console.log("Updating subcategory:", id, data)
-}
-
-export async function deleteSubCategory(id: string) {
-  // Implement subcategory deletion logic
-  console.log("Deleting subcategory:", id)
 }
 
 export async function updateItem(

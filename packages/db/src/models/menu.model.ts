@@ -18,15 +18,7 @@ export interface IItem {
         metadata?: Record<string, any>;
     };
     description: string;
-    subCategoryId: Types.ObjectId;
-}
-
-interface ISubCategory {
-    id: string;
-    title: string;
-    slug: string;
-    description: string;
-    categoryId: string;
+    categoryId: Types.ObjectId;
 }
 
 interface IFeaturedItem {
@@ -60,30 +52,10 @@ const itemSchema = new mongoose.Schema<IItem>({
     description: {
         type: String,
     },
-    subCategoryId: {
+    categoryId: {
         type: Schema.Types.ObjectId,
         required: true,
-        ref: 'SubCategory'
-    }
-});
-
-const subCategorySchema = new mongoose.Schema<ISubCategory>({
-    title: {
-        type: String,
-        required: true,
-    },
-    slug: {
-        type: String,
-        required: true,
-    },
-    description: {
-        type: String,
-        required: true,
-    },
-    categoryId: {
-        type: String,
-        required: true,
-        ref: 'Category'
+        ref: 'Menu'
     }
 });
 
@@ -129,11 +101,6 @@ if (mongoose.models.Menu) {
     delete mongoose.models.Menu;
 }
 export const Menu = model<ICategory>('Menu', categorySchema);
-
-if (mongoose.models.SubCategory) {
-    delete mongoose.models.SubCategory;
-}
-export const SubCategory = model<ISubCategory>('SubCategory', subCategorySchema);
 
 if (mongoose.models.Item) {
     delete mongoose.models.Item;
