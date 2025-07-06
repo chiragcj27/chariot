@@ -37,6 +37,26 @@ export const menuController = {
             as: "itemImages",
           },
         },
+        // Lookup onHover images for items
+        {
+          $lookup: {
+            from: "images",
+            let: { itemOnHoverImages: "$items.onHover" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $in: ["$_id", "$$itemOnHoverImages"] },
+                      { $eq: ["$imageType", "item"] },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: "itemOnHoverImages",
+          },
+        },
         // Reshape the data to match the desired structure
         {
           $addFields: {
@@ -72,6 +92,30 @@ export const menuController = {
                           in: "$$matchedImage",
                         },
                       },
+                      onHover: {
+                        $let: {
+                          vars: {
+                            matchedOnHoverImage: {
+                              $arrayElemAt: [
+                                {
+                                  $filter: {
+                                    input: "$itemOnHoverImages",
+                                    as: "img",
+                                    cond: {
+                                      $eq: [
+                                        { $toString: "$$img._id" },
+                                        { $toString: "$$item.onHover" },
+                                      ],
+                                    },
+                                  },
+                                },
+                                0,
+                              ],
+                            },
+                          },
+                          in: "$$matchedOnHoverImage",
+                        },
+                      },
                     },
                   ],
                 },
@@ -79,10 +123,11 @@ export const menuController = {
             },
           },
         },
-        // Remove only the temporary itemImages field, keep items
+        // Remove only the temporary image fields, keep items
         {
           $project: {
             itemImages: 0,
+            itemOnHoverImages: 0,
           },
         },
       ]);
@@ -183,11 +228,18 @@ export const menuController = {
         }
         // Ensure the image data is populated
         const populatedItem = await Item.findById(item._id)
-          .populate({ 
-            path: "image", 
-            model: "Image",
-            match: { imageType: "item" }
-          })
+          .populate([
+            { 
+              path: "image", 
+              model: "Image",
+              match: { imageType: "item" }
+            },
+            { 
+              path: "onHover", 
+              model: "Image",
+              match: { imageType: "item" }
+            }
+          ])
           .session(session);
         if (!populatedItem) {
           throw new Error("Failed to populate item data");
@@ -300,7 +352,7 @@ export const menuController = {
   async updateItem(req: Request, res: Response) {
     try {
       const { itemId } = req.params;
-      const { title, slug, description, image } = req.body;
+      const { title, slug, description, image, onHover } = req.body;
 
       if (!itemId) {
         return res.status(400).json({ message: "Item ID is required" });
@@ -311,10 +363,14 @@ export const menuController = {
       if (slug !== undefined) updateData.slug = slug;
       if (description !== undefined) updateData.description = description;
       if (image !== undefined) updateData.image = image;
+      if (onHover !== undefined) updateData.onHover = onHover;
 
       const result = await Item.findByIdAndUpdate(itemId, updateData, {
         new: true,
-      }).populate({ path: "image", model: "Image" });
+      }).populate([
+        { path: "image", model: "Image" },
+        { path: "onHover", model: "Image" }
+      ]);
 
       if (!result) {
         return res.status(404).json({ message: "Item not found" });

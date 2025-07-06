@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { Item, Image, ItemImage, IItem } from "@chariot/db";
 
 export const menuService = {
-  async createItemWithImage(itemData: Partial<IItem>, categoryId: mongoose.Types.ObjectId | string, session: mongoose.ClientSession) {
+  async createItemWithImage(itemData: any, categoryId: mongoose.Types.ObjectId | string, session: mongoose.ClientSession) {
     try {
 
       const item = await Item.create([{
@@ -16,7 +16,6 @@ export const menuService = {
       if (!item[0]) {
         throw new Error('Failed to create item');
       }
-
 
       // Create the item image with the required itemId
       const imageData = {
@@ -37,9 +36,41 @@ export const menuService = {
         throw new Error('Failed to create item image');
       }
 
+      // Handle onHover image if provided
+      let onHoverImageId = undefined;
+      if (itemData.onHover) {
+        const onHoverImageData = {
+          filename: itemData.onHover.filename,
+          originalname: itemData.onHover.originalname,
+          url: itemData.onHover.url,
+          size: itemData.onHover.size,
+          mimetype: itemData.onHover.mimetype,
+          bucket: itemData.onHover.bucket || "chariot-images",
+          imageType: "item",
+          status: "uploaded",
+          itemId: item[0]._id // Required field for ItemImage
+        };
+
+        const onHoverItemImage = await ItemImage.create([onHoverImageData], { session });
+
+        if (!onHoverItemImage[0]) {
+          throw new Error('Failed to create onHover item image');
+        }
+
+        onHoverImageId = onHoverItemImage[0]._id;
+      }
+
+      const updateData: any = {
+        image: itemImage[0]._id
+      };
+      
+      if (onHoverImageId) {
+        updateData.onHover = onHoverImageId;
+      }
+
       const updatedItem = await Item.findByIdAndUpdate(
         item[0]._id,
-        { image: itemImage[0]._id },
+        updateData,
         { session, new: true }
       );
       

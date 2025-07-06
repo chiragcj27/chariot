@@ -28,6 +28,16 @@ interface Item {
     imageType: string
     status: string
   }
+  onHover?: {
+    url: string
+    filename: string
+    originalname: string
+    size: number
+    mimetype: string
+    bucket: string
+    imageType: string
+    status: string
+  }
   categoryId: string
 }
 
@@ -225,19 +235,31 @@ export function MegaMenuManager() {
                           key={item._id}
                           className="group flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200"
                         >
-                          <div className="flex items-center space-x-3">
-                            <div className="relative w-10 h-10 rounded-lg overflow-hidden border">
+                                                  <div className="flex items-center space-x-3">
+                          <div className="relative w-10 h-10 rounded-lg overflow-hidden border group">
+                            <Image
+                              src={item.image?.url || "/placeholder.svg"}
+                              alt={item.title}
+                              fill
+                              sizes="(max-width: 40px) 100vw, 40px"
+                              className="object-cover transition-opacity duration-200 group-hover:opacity-0"
+                              onError={(e) => {
+                                e.currentTarget.src = "/placeholder.svg"
+                              }}
+                            />
+                            {item.onHover && (
                               <Image
-                                src={item.image?.url || "/placeholder.svg"}
-                                alt={item.title}
+                                src={item.onHover.url}
+                                alt={`${item.title} on hover`}
                                 fill
                                 sizes="(max-width: 40px) 100vw, 40px"
-                                className="object-cover"
+                                className="object-cover opacity-0 transition-opacity duration-200 group-hover:opacity-100"
                                 onError={(e) => {
-                                  e.currentTarget.src = "/placeholder.svg"
+                                  e.currentTarget.src = item.image?.url || "/placeholder.svg"
                                 }}
                               />
-                            </div>
+                            )}
+                          </div>
                             <div>
                               <h6 className="text-sm font-medium">{item.title}</h6>
                               {item.description && (

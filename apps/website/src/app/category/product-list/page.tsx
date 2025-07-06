@@ -1,16 +1,19 @@
 import Footer from "@/components/Footer";
 import FilterDropDown from "@/components/FilterDropDown";
+import ProductCard from "@/components/ProductCard";
 
 const mockProducts = [
   {
     title: "Unearth",
     subtitle: "7.1 Fluid Engine ✶ $297",
     image: "https://placehold.co/400x350?text=Unearth",
+    onHoverImage: "https://placehold.co/400x350?text=Unearth+Hover",
   },
   {
     title: "Shelley",
     subtitle: "7.1 Fluid Engine ✶ $297",
     image: "https://placehold.co/400x350?text=Shelley",
+    onHoverImage: "https://placehold.co/400x350?text=Shelley+Hover",
   },
   {
     title: "Verano",
@@ -21,6 +24,7 @@ const mockProducts = [
     title: "Noire",
     subtitle: "7.1 Fluid Engine ✶ $297",
     image: "https://placehold.co/400x350?text=Noire",
+    onHoverImage: "https://placehold.co/400x350?text=Noire+Hover",
   },
   {
     title: "Ann Grand",
@@ -31,6 +35,7 @@ const mockProducts = [
     title: "Michi",
     subtitle: "7.1 Fluid Engine ✶ $297",
     image: "https://placehold.co/400x350?text=Michi",
+    onHoverImage: "https://placehold.co/400x350?text=Michi+Hover",
   },
 ];
 
@@ -52,17 +57,13 @@ export default function ProductListPage() {
           <main className="flex-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-16">
               {mockProducts.map((product, idx) => (
-                <div key={idx} className="flex flex-col items-center">
-                  <img
-                    src={product.image}
-                    alt={product.title}
-                    className="w-full h-[350px] object-cover rounded shadow-md mb-6"
-                  />
-                  <div className="w-full text-center">
-                    <span className="block text-2xl font-secondary font-semibold mb-2">{product.title}</span>
-                    <span className="block text-lg font-primary text-black/70">{product.subtitle}</span>
-                  </div>
-                </div>
+                <ProductCard
+                  key={idx}
+                  title={product.title}
+                  subtitle={product.subtitle}
+                  image={product.image}
+                  onHoverImage={product.onHoverImage}
+                />
               ))}
             </div>
           </main>

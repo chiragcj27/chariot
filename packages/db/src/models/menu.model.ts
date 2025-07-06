@@ -5,18 +5,8 @@ export interface IItem {
     id: string;
     title: string;
     slug: string;
-    image: {
-        filename: string;
-        originalname: string;
-        url: string;
-        size: number;
-        mimetype: string;
-        width?: number;
-        height?: number;
-        bucket?: string;
-        status: 'pending' | 'uploaded' | 'failed';
-        metadata?: Record<string, any>;
-    };
+    image: Types.ObjectId;
+    onHover?: Types.ObjectId;
     description: string;
     categoryId: Types.ObjectId;
 }
@@ -47,6 +37,11 @@ const itemSchema = new mongoose.Schema<IItem>({
     image: {
         type: Schema.Types.ObjectId,
         required: true,
+        ref: 'Image'
+    },
+    onHover: {
+        type: Schema.Types.ObjectId,
+        required: false,
         ref: 'Image'
     },
     description: {

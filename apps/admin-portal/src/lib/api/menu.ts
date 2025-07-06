@@ -18,6 +18,7 @@ export interface MenuStructure {
     slug: string;
     description: string;
     image: string;
+    onHover?: string;
     categoryId: string;
   }>;
 }
@@ -126,6 +127,7 @@ export const menuApi = {
     slug?: string;
     description?: string;
     image?: string;
+    onHover?: string;
   }): Promise<{ message: string; item: NonNullable<MenuStructure['items']>[number] }> {
     const response = await fetch(`${API_BASE_URL}/menu/item/${itemId}`, {
       method: 'PUT',

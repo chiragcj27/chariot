@@ -52,14 +52,19 @@ export function CreateItemDialog({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadingOnHoverImage, setUploadingOnHoverImage] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [onHoverImagePreview, setOnHoverImagePreview] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedOnHoverFile, setSelectedOnHoverFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const onHoverFileInputRef = useRef<HTMLInputElement>(null)
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
     description: "",
     imageUrl: "",
+    onHoverImageUrl: "",
   })
 
   const generateSlug = (title: string) => {
@@ -109,6 +114,41 @@ export function CreateItemDialog({
     setFormData({ ...formData, imageUrl: "" })
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
+    }
+  }
+
+  const handleOnHoverFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        alert("Please select an image file")
+        return
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert("File size must be less than 5MB")
+        return
+      }
+
+      setSelectedOnHoverFile(file)
+
+      // Create preview
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setOnHoverImagePreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleRemoveOnHoverImage = () => {
+    setSelectedOnHoverFile(null)
+    setOnHoverImagePreview(null)
+    setFormData({ ...formData, onHoverImageUrl: "" })
+    if (onHoverFileInputRef.current) {
+      onHoverFileInputRef.current.value = ""
     }
   }
 
@@ -171,10 +211,16 @@ export function CreateItemDialog({
 
     try {
       let finalImageUrl = formData.imageUrl
+      let finalOnHoverImageUrl = formData.onHoverImageUrl
 
       // Upload image if file is selected
       if (selectedFile) {
         finalImageUrl = await uploadImage(selectedFile)
+      }
+
+      // Upload onHover image if file is selected
+      if (selectedOnHoverFile) {
+        finalOnHoverImageUrl = await uploadImage(selectedOnHoverFile)
       }
 
       // Prepare the item data according to the API expectations
@@ -189,6 +235,16 @@ export function CreateItemDialog({
           url: finalImageUrl,
           size: selectedFile?.size || 0,
           mimetype: selectedFile?.type || "image/jpeg",
+          bucket: "chariot-images",
+          imageType: "item",
+          status: "uploaded"
+        } : undefined,
+        onHover: finalOnHoverImageUrl ? {
+          filename: selectedOnHoverFile?.name || "onhover.jpg",
+          originalname: selectedOnHoverFile?.name || "onhover.jpg",
+          url: finalOnHoverImageUrl,
+          size: selectedOnHoverFile?.size || 0,
+          mimetype: selectedOnHoverFile?.type || "image/jpeg",
           bucket: "chariot-images",
           imageType: "item",
           status: "uploaded"
@@ -223,11 +279,16 @@ export function CreateItemDialog({
       window.dispatchEvent(event)
 
       // Reset form
-      setFormData({ title: "", slug: "", description: "", imageUrl: "" })
+      setFormData({ title: "", slug: "", description: "", imageUrl: "", onHoverImageUrl: "" })
       setSelectedFile(null)
+      setSelectedOnHoverFile(null)
       setImagePreview(null)
+      setOnHoverImagePreview(null)
       if (fileInputRef.current) {
         fileInputRef.current.value = ""
+      }
+      if (onHoverFileInputRef.current) {
+        onHoverFileInputRef.current.value = ""
       }
       setOpen(false)
     } catch (error) {
@@ -239,11 +300,16 @@ export function CreateItemDialog({
   }
 
   const resetForm = () => {
-    setFormData({ title: "", slug: "", description: "", imageUrl: "" })
+    setFormData({ title: "", slug: "", description: "", imageUrl: "", onHoverImageUrl: "" })
     setSelectedFile(null)
+    setSelectedOnHoverFile(null)
     setImagePreview(null)
+    setOnHoverImagePreview(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ""
+    }
+    if (onHoverFileInputRef.current) {
+      onHoverFileInputRef.current.value = ""
     }
   }
 
@@ -387,14 +453,104 @@ export function CreateItemDialog({
                 </TabsContent>
               </Tabs>
             </div>
+
+            <div className="grid gap-2">
+              <Label>On Hover Image (Optional)</Label>
+              <Tabs defaultValue="upload" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="upload">Upload File</TabsTrigger>
+                  <TabsTrigger value="url">Image URL</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="upload" className="space-y-3">
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
+                    {onHoverImagePreview ? (
+                      <div className="space-y-3">
+                        <div className="relative inline-block">
+                          <Image
+                            src={onHoverImagePreview || "/placeholder.svg"}
+                            alt="On Hover Preview"
+                            width={128}
+                            height={128}
+                            className="w-32 h-32 object-cover rounded-lg border"
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder.svg"
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                            onClick={handleRemoveOnHoverImage}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          <p className="font-medium">{selectedOnHoverFile?.name}</p>
+                          <p>{selectedOnHoverFile && (selectedOnHoverFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                        <div className="mt-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => onHoverFileInputRef.current?.click()}
+                            className="mx-auto"
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Choose On Hover Image
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">PNG, JPG, GIF up to 5MB</p>
+                      </div>
+                    )}
+                    <input
+                      ref={onHoverFileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleOnHoverFileSelect}
+                      className="hidden"
+                    />
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="url" className="space-y-3">
+                  <Input
+                    value={formData.onHoverImageUrl}
+                    onChange={(e) => setFormData({ ...formData, onHoverImageUrl: e.target.value })}
+                    placeholder="https://example.com/onhover-image.jpg"
+                  />
+                  {formData.onHoverImageUrl && (
+                    <div className="relative inline-block">
+                      <Image
+                        src={formData.onHoverImageUrl || "/placeholder.svg"}
+                        alt="On Hover URL Preview"
+                        width={128}
+                        height={128}
+                        className="w-32 h-32 object-cover rounded-lg border"
+                        onError={(e) => {
+                          e.currentTarget.src = "/placeholder.svg"
+                        }}
+                      />
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">Enter a direct link to an image file</p>
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || uploadingImage}>
-              {uploadingImage ? "Uploading..." : loading ? "Creating..." : "Create Item"}
+            <Button type="submit" disabled={loading || uploadingImage || uploadingOnHoverImage}>
+              {uploadingImage || uploadingOnHoverImage ? "Uploading..." : loading ? "Creating..." : "Create Item"}
             </Button>
           </DialogFooter>
         </form>
