@@ -9,6 +9,7 @@ export interface IKit {
     title: string;
     slug: string;
     description: string;
+    thumbnail?: Types.ObjectId;
     mainImage?: Types.ObjectId;
     carouselImages: Types.ObjectId[];
     testimonials?: string[];
@@ -18,6 +19,7 @@ export const KitSchema = new Schema<IKit>({
     title: { type: String, required: true },
     slug: { type: String, required: true },
     description: { type: String, required: true },
+    thumbnail: { type: Schema.Types.ObjectId, ref: "Image" },
     mainImage: { type: Schema.Types.ObjectId, ref: "Image" },
     carouselImages: [{ type: Schema.Types.ObjectId, ref: "Image"}],
     testimonials: [{ type: String }],

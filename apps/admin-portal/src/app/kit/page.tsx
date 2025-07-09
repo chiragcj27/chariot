@@ -23,6 +23,7 @@ interface KitImage {
   filename?: string;
   isMain: boolean;
   isCarousel: boolean;
+  isThumbnail: boolean;
   file?: File;
   previewUrl?: string;
 }
@@ -32,6 +33,11 @@ interface Kit {
   title: string;
   slug: string;
   description: string;
+  thumbnail?: {
+    _id: string;
+    url: string;
+    originalname: string;
+  };
   mainImage?: {
     _id: string;
     url: string;
@@ -115,7 +121,8 @@ export default function KitPage() {
             size: img.file?.size || 0,
             mimetype: img.file?.type || 'image/jpeg',
             isMain: img.isMain,
-            isCarousel: img.isCarousel
+            isCarousel: img.isCarousel,
+            isThumbnail: img.isThumbnail
           }));
 
           const imageResponse = await fetch('/api/admin/kits/images', {
@@ -166,6 +173,36 @@ export default function KitPage() {
       });
 
       if (response.ok) {
+        // Save images to database if there are any
+        if (formData.images.length > 0) {
+          const imagesToSave = formData.images.map(img => ({
+            filename: img.filename || img.url.split('/').pop() || img.originalname,
+            originalname: img.originalname,
+            url: img.url,
+            size: img.file?.size || 0,
+            mimetype: img.file?.type || 'image/jpeg',
+            isMain: img.isMain,
+            isCarousel: img.isCarousel,
+            isThumbnail: img.isThumbnail
+          }));
+
+          const imageResponse = await fetch('/api/admin/kits/images', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              kitId: editingKit._id,
+              images: imagesToSave,
+            }),
+          });
+
+          if (!imageResponse.ok) {
+            console.error('Failed to save kit images');
+            toast.error('Kit updated but failed to save images');
+          }
+        }
+
         toast.success('Kit updated successfully');
         setIsEditDialogOpen(false);
         setEditingKit(null);
@@ -218,12 +255,21 @@ export default function KitPage() {
       description: kit.description,
       testimonials: kit.testimonials?.length ? kit.testimonials : [''],
       images: [
+        ...(kit.thumbnail ? [{
+          _id: kit.thumbnail._id,
+          url: kit.thumbnail.url,
+          originalname: kit.thumbnail.originalname,
+          isMain: false,
+          isCarousel: false,
+          isThumbnail: true,
+        }] : []),
         ...(kit.mainImage ? [{
           _id: kit.mainImage._id,
           url: kit.mainImage.url,
           originalname: kit.mainImage.originalname,
           isMain: true,
           isCarousel: false,
+          isThumbnail: false,
         }] : []),
         ...(kit.carouselImages?.map(img => ({
           _id: img._id,
@@ -231,6 +277,7 @@ export default function KitPage() {
           originalname: img.originalname,
           isMain: false,
           isCarousel: true,
+          isThumbnail: false,
         })) || []),
       ],
     });
@@ -404,7 +451,13 @@ export default function KitPage() {
             {kits.map((kit) => (
               <Card key={kit._id} className="overflow-hidden">
                 <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                  {kit.mainImage ? (
+                  {kit.thumbnail ? (
+                    <img
+                      src={kit.thumbnail.url}
+                      alt={kit.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : kit.mainImage ? (
                     <img
                       src={kit.mainImage.url}
                       alt={kit.title}
@@ -428,9 +481,16 @@ export default function KitPage() {
                     <Badge variant="secondary">
                       {kit.carouselImages?.length || 0} images
                     </Badge>
-                    <Badge variant="outline">
-                      {kit.testimonials?.length || 0} testimonials
-                    </Badge>
+                    <div className="flex gap-2">
+                      {kit.thumbnail && (
+                        <Badge variant="secondary" className="bg-green-100 text-green-800">
+                          Thumbnail
+                        </Badge>
+                      )}
+                      <Badge variant="outline">
+                        {kit.testimonials?.length || 0} testimonials
+                      </Badge>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button

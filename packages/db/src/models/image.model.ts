@@ -158,6 +158,7 @@ interface IKitImage extends IImage {
     kitId: Types.ObjectId;
     isMain: boolean;
     isCarousel: boolean;
+    isThumbnail: boolean;
 }
 const kitImageSchema = new Schema<IKitImage>({
     kitId: {
@@ -170,6 +171,10 @@ const kitImageSchema = new Schema<IKitImage>({
         default: false,
     },
     isCarousel: {
+        type: Boolean,
+        default: false,
+    },
+    isThumbnail: {
         type: Boolean,
         default: false,
     },

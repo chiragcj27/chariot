@@ -71,10 +71,11 @@ export const kitController = {
 
             const savedImages = [];
             let mainImageId = null;
+            let thumbnailImageId = null;
             const carouselImageIds = [];
 
             for (const imageData of images) {
-                const { filename, originalname, url, size, mimetype, isMain, isCarousel } = imageData;
+                const { filename, originalname, url, size, mimetype, isMain, isCarousel, isThumbnail } = imageData;
 
                 const kitImage = await KitImage.create({
                     kitId: kit._id,
@@ -86,13 +87,16 @@ export const kitController = {
                     status: 'uploaded',
                     imageType: 'kit',
                     isMain,
-                    isCarousel
+                    isCarousel,
+                    isThumbnail
                 });
 
                 savedImages.push(kitImage);
 
                 if (isMain) {
                     mainImageId = kitImage._id;
+                } else if (isThumbnail) {
+                    thumbnailImageId = kitImage._id;
                 } else if (isCarousel) {
                     carouselImageIds.push(kitImage._id);
                 }
@@ -103,6 +107,9 @@ export const kitController = {
             if (mainImageId) {
                 updateData.mainImage = mainImageId;
             }
+            if (thumbnailImageId) {
+                updateData.thumbnail = thumbnailImageId;
+            }
             if (carouselImageIds.length > 0) {
                 updateData.carouselImages = carouselImageIds;
             }
@@ -111,7 +118,7 @@ export const kitController = {
                 kitId,
                 updateData,
                 { new: true }
-            ).populate('mainImage').populate('carouselImages');
+            ).populate('mainImage').populate('thumbnail').populate('carouselImages');
 
             res.status(200).json({
                 message: "Kit images saved successfully",
@@ -131,6 +138,7 @@ export const kitController = {
         try {
             const kits = await Kit.find()
                 .populate('mainImage')
+                .populate('thumbnail')
                 .populate('carouselImages')
                 .sort({ createdAt: -1 });
 
@@ -150,6 +158,7 @@ export const kitController = {
 
             const kit = await Kit.findOne({ slug })
                 .populate('mainImage')
+                .populate('thumbnail')
                 .populate('carouselImages');
 
             if (!kit) {
@@ -191,7 +200,7 @@ export const kitController = {
                 kitId!,
                 updateData,
                 { new: true }
-            ).populate('mainImage').populate('carouselImages');
+            ).populate('mainImage').populate('thumbnail').populate('carouselImages');
 
             if (!kit) {
                 return res.status(404).json({
@@ -231,6 +240,9 @@ export const kitController = {
 
             // Delete associated images from S3 and database
             const imagesToDelete = [];
+            if (kit.thumbnail) {
+                imagesToDelete.push(kit.thumbnail);
+            }
             if (kit.mainImage) {
                 imagesToDelete.push(kit.mainImage);
             }

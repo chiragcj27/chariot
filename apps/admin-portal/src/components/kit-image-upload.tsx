@@ -13,6 +13,7 @@ interface KitImage {
   filename?: string;
   isMain: boolean;
   isCarousel: boolean;
+  isThumbnail: boolean;
   file?: File;
   previewUrl?: string;
 }
@@ -24,7 +25,9 @@ interface KitImageUploadProps {
 }
 
 export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUploadProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const mainImageInputRef = useRef<HTMLInputElement>(null);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const carouselInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
   const createPreviewUrl = (file: File): string => {
@@ -72,7 +75,7 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
     }
   };
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>, imageType: 'main' | 'thumbnail' | 'carousel') => {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
 
@@ -87,8 +90,9 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
           url,
           originalname: file.name,
           filename: key,
-          isMain: images.length === 0, // First image is main by default
-          isCarousel: images.length > 0, // Subsequent images are carousel
+          isMain: imageType === 'main',
+          isCarousel: imageType === 'carousel',
+          isThumbnail: imageType === 'thumbnail',
           file,
           previewUrl: createPreviewUrl(file),
         };
@@ -96,9 +100,16 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
         newImages.push(newImage);
       }
 
-      const updatedImages = [...images, ...newImages];
+      // Remove existing images of the same type
+      const filteredImages = images.filter(img => {
+        if (imageType === 'main') return !img.isMain;
+        if (imageType === 'thumbnail') return !img.isThumbnail;
+        return true; // Keep carousel images when adding more
+      });
+
+      const updatedImages = [...filteredImages, ...newImages];
       onImagesChange(updatedImages);
-      toast.success(`${files.length} image(s) uploaded successfully`);
+      toast.success(`${files.length} ${imageType} image(s) uploaded successfully`);
     } catch (error) {
       console.error('Error uploading images:', error);
       toast.error('Failed to upload images');
@@ -117,25 +128,8 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
     }
     
     const removed = newImages.filter((_, i) => i !== index);
-    
-    // If we removed the main image and there are other images, make the first one main
-    if (removedImage.isMain && removed.length > 0) {
-      removed[0].isMain = true;
-      removed[0].isCarousel = false;
-    }
-    
     onImagesChange(removed);
     toast.success('Image removed');
-  };
-
-  const handleSetMainImage = (index: number) => {
-    const updated = images.map((img, i) => ({
-      ...img,
-      isMain: i === index,
-      isCarousel: i !== index,
-    }));
-    onImagesChange(updated);
-    toast.success('Main image updated');
   };
 
   const handleDragEnd = (result: DropResult) => {
@@ -148,11 +142,11 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
     onImagesChange(items);
   };
 
-  const handleButtonClick = () => {
-    fileInputRef.current?.click();
+  const handleButtonClick = (inputRef: React.RefObject<HTMLInputElement | null>) => {
+    inputRef.current?.click();
   };
 
-  const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>, imageType: 'main' | 'thumbnail' | 'carousel') => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -170,8 +164,9 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
           url,
           originalname: file.name,
           filename: key,
-          isMain: images.length === 0,
-          isCarousel: images.length > 0,
+          isMain: imageType === 'main',
+          isCarousel: imageType === 'carousel',
+          isThumbnail: imageType === 'thumbnail',
           file,
           previewUrl: createPreviewUrl(file),
         };
@@ -179,9 +174,16 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
         newImages.push(newImage);
       }
 
-      const updatedImages = [...images, ...newImages];
+      // Remove existing images of the same type
+      const filteredImages = images.filter(img => {
+        if (imageType === 'main') return !img.isMain;
+        if (imageType === 'thumbnail') return !img.isThumbnail;
+        return true; // Keep carousel images when adding more
+      });
+
+      const updatedImages = [...filteredImages, ...newImages];
       onImagesChange(updatedImages);
-      toast.success(`${files.length} image(s) uploaded successfully`);
+      toast.success(`${files.length} ${imageType} image(s) uploaded successfully`);
     } catch (error) {
       console.error('Error uploading images:', error);
       toast.error('Failed to upload images');
@@ -196,6 +198,7 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
   }, []);
 
   const mainImage = images.find(img => img.isMain);
+  const thumbnailImage = images.find(img => img.isThumbnail);
   const carouselImages = images.filter(img => img.isCarousel);
 
   return (
@@ -205,7 +208,7 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Star className="h-5 w-5 text-yellow-500" />
-            Main Image
+            Main Image (Optional)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -234,10 +237,94 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
               </div>
             </div>
           ) : (
-            <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+            <div 
+              className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors"
+              onDrop={(e) => handleDrop(e, 'main')}
+              onDragOver={handleDragOver}
+            >
               <div className="text-center">
+                <input
+                  type="file"
+                  ref={mainImageInputRef}
+                  onChange={(e) => handleFileSelect(e, 'main')}
+                  accept="image/*"
+                  className="hidden"
+                />
                 <ImageIcon className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-500">No main image selected</p>
+                <p className="text-gray-500 mb-2">No main image selected</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleButtonClick(mainImageInputRef)} 
+                  type="button"
+                  disabled={uploading}
+                >
+                  {uploading ? 'Uploading...' : 'Upload Main Image'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Thumbnail Image Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ImageIcon className="h-5 w-5 text-green-500" />
+            Thumbnail Image (Optional)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {thumbnailImage ? (
+            <div className="relative group">
+              <div className="aspect-square relative rounded-lg overflow-hidden w-32 h-32">
+                <Image
+                  src={thumbnailImage.previewUrl || thumbnailImage.url}
+                  alt={thumbnailImage.originalname}
+                  fill
+                  sizes="128px"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200" />
+              </div>
+              <div className="absolute top-2 right-2">
+                <button
+                  onClick={() => handleRemoveImage(images.indexOf(thumbnailImage))}
+                  className="p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="absolute bottom-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                Thumbnail
+              </div>
+            </div>
+          ) : (
+            <div 
+              className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors"
+              onDrop={(e) => handleDrop(e, 'thumbnail')}
+              onDragOver={handleDragOver}
+            >
+              <div className="text-center">
+                <input
+                  type="file"
+                  ref={thumbnailInputRef}
+                  onChange={(e) => handleFileSelect(e, 'thumbnail')}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <ImageIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 text-xs mb-2">No thumbnail</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleButtonClick(thumbnailInputRef)} 
+                  type="button"
+                  disabled={uploading}
+                >
+                  {uploading ? 'Uploading...' : 'Upload Thumbnail'}
+                </Button>
               </div>
             </div>
           )}
@@ -255,13 +342,13 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
         <CardContent>
           <div 
             className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors"
-            onDrop={handleDrop}
+            onDrop={(e) => handleDrop(e, 'carousel')}
             onDragOver={handleDragOver}
           >
             <input
               type="file"
-              ref={fileInputRef}
-              onChange={handleFileSelect}
+              ref={carouselInputRef}
+              onChange={(e) => handleFileSelect(e, 'carousel')}
               accept="image/*"
               multiple
               className="hidden"
@@ -274,7 +361,7 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
             <Button 
               variant="outline" 
               className="mt-4" 
-              onClick={handleButtonClick} 
+              onClick={() => handleButtonClick(carouselInputRef)} 
               type="button"
               disabled={uploading}
             >
@@ -312,14 +399,7 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
                                   />
                                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200" />
                                 </div>
-                                <div className="absolute top-2 right-2 flex gap-2">
-                                  <button
-                                    onClick={() => handleSetMainImage(globalIndex)}
-                                    className="p-1 bg-white/80 hover:bg-white text-gray-600 rounded-full"
-                                    title="Set as main image"
-                                  >
-                                    <Star className="h-4 w-4" />
-                                  </button>
+                                <div className="absolute top-2 right-2">
                                   <button
                                     onClick={() => handleRemoveImage(globalIndex)}
                                     className="p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
