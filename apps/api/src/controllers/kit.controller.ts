@@ -72,10 +72,11 @@ export const kitController = {
             const savedImages = [];
             let mainImageId = null;
             let thumbnailImageId = null;
+            let onHoverImageId = null;
             const carouselImageIds = [];
 
             for (const imageData of images) {
-                const { filename, originalname, url, size, mimetype, isMain, isCarousel, isThumbnail } = imageData;
+                const { filename, originalname, url, size, mimetype, isMain, isCarousel, isThumbnail, isOnHover } = imageData;
 
                 const kitImage = await KitImage.create({
                     kitId: kit._id,
@@ -88,7 +89,8 @@ export const kitController = {
                     imageType: 'kit',
                     isMain,
                     isCarousel,
-                    isThumbnail
+                    isThumbnail,
+                    isOnHover
                 });
 
                 savedImages.push(kitImage);
@@ -97,6 +99,8 @@ export const kitController = {
                     mainImageId = kitImage._id;
                 } else if (isThumbnail) {
                     thumbnailImageId = kitImage._id;
+                } else if (isOnHover) {
+                    onHoverImageId = kitImage._id;
                 } else if (isCarousel) {
                     carouselImageIds.push(kitImage._id);
                 }
@@ -110,6 +114,9 @@ export const kitController = {
             if (thumbnailImageId) {
                 updateData.thumbnail = thumbnailImageId;
             }
+            if (onHoverImageId) {
+                updateData.onHoverImage = onHoverImageId;
+            }
             if (carouselImageIds.length > 0) {
                 updateData.carouselImages = carouselImageIds;
             }
@@ -118,7 +125,7 @@ export const kitController = {
                 kitId,
                 updateData,
                 { new: true }
-            ).populate('mainImage').populate('thumbnail').populate('carouselImages');
+            ).populate('mainImage').populate('thumbnail').populate('onHoverImage').populate('carouselImages');
 
             res.status(200).json({
                 message: "Kit images saved successfully",
@@ -139,6 +146,7 @@ export const kitController = {
             const kits = await Kit.find()
                 .populate('mainImage')
                 .populate('thumbnail')
+                .populate('onHoverImage')
                 .populate('carouselImages')
                 .sort({ createdAt: -1 });
 
@@ -159,6 +167,7 @@ export const kitController = {
             const kit = await Kit.findOne({ slug })
                 .populate('mainImage')
                 .populate('thumbnail')
+                .populate('onHoverImage')
                 .populate('carouselImages');
 
             if (!kit) {
@@ -200,7 +209,7 @@ export const kitController = {
                 kitId!,
                 updateData,
                 { new: true }
-            ).populate('mainImage').populate('thumbnail').populate('carouselImages');
+            ).populate('mainImage').populate('thumbnail').populate('onHoverImage').populate('carouselImages');
 
             if (!kit) {
                 return res.status(404).json({
@@ -245,6 +254,9 @@ export const kitController = {
             }
             if (kit.mainImage) {
                 imagesToDelete.push(kit.mainImage);
+            }
+            if (kit.onHoverImage) {
+                imagesToDelete.push(kit.onHoverImage);
             }
             if (kit.carouselImages && kit.carouselImages.length > 0) {
                 imagesToDelete.push(...kit.carouselImages);

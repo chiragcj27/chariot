@@ -22,7 +22,7 @@ interface BlacklistNotificationProps {
   sellerName: string;
 }
 
-export default function BlacklistNotification({ blacklistInfo, sellerId, sellerName }: BlacklistNotificationProps) {
+export default function BlacklistNotification({ blacklistInfo, sellerId }: BlacklistNotificationProps) {
   const [showReapplication, setShowReapplication] = useState(false);
   const [reapplicationReason, setReapplicationReason] = useState('');
   const [loading, setLoading] = useState(false);

@@ -54,7 +54,7 @@
 }
 
 @theme {
-  --color-pearl: oklch(93.71% 0.015 106.68); 
+  --color-pearl: oklch(0.9839 0.015 106.68); 
   --color-gold: oklch(0.8646 0.0448 80.55);
   --color-seafoam: oklch(0.8845 0.0239 256.11);
   --color-sunrise: oklch(69.63% 0.181 42.81);
@@ -71,7 +71,7 @@ body {
 
 :root {
   --radius: 0.625rem;
-  --background: var(--color-pearl)/90%;
+  --background: var(--color-pearl);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -111,5 +111,14 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }

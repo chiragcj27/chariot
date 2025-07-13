@@ -316,7 +316,7 @@ export function MegaMenuManager() {
                     </div>
 
                     <div className="space-y-3 ml-6">
-                      {category.featuredItems?.map((featuredItem, featuredIndex) => (
+                      {category.featuredItems?.map((featuredItem) => (
                         <div
                           key={featuredItem.id}
                           className="group flex items-center justify-between p-3 bg-gradient-to-r from-yellow-50/50 to-amber-50/50 rounded-lg border border-yellow-200/50 hover:border-yellow-300 transition-all duration-200"

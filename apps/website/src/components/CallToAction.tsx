@@ -2,7 +2,7 @@ import React from "react";
 
 export default function CallToAction() {
   return (
-    <section className="w-full min-h-[60vh] bg-gold/30 flex flex-col items-center justify-center relative">
+    <section className="w-full min-h-[60vh] flex flex-col items-center justify-center relative">
       <span className="absolute left-12 top-12 text-xl font-bold font-secondary text-sunrise">Call to action</span>
       <div className="flex flex-col items-center justify-center mt-12">
         <h1 className="text-6xl md:text-7xl font-bold text-center leading-tight">

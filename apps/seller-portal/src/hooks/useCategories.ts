@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Category, CategoriesResponse } from '@/types/products/create/product.types';
+import { MenuStructure } from '@/types/menu';
 
 const API_BASE_URL = 'http://localhost:3001';
 
 export function useCategories() {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<MenuStructure>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,7 +22,7 @@ export function useCategories() {
           throw new Error(`Failed to fetch categories: ${response.status} ${response.statusText}`);
         }
         
-        const data: CategoriesResponse = await response.json();
+        const data: MenuStructure = await response.json();
         setCategories(data);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch categories';
@@ -48,7 +48,7 @@ export function useCategories() {
           throw new Error(`Failed to fetch categories: ${response.status} ${response.statusText}`);
         }
         
-        const data: CategoriesResponse = await response.json();
+        const data: MenuStructure = await response.json();
         setCategories(data);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch categories';

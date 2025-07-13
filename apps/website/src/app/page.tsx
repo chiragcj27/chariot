@@ -1,4 +1,4 @@
-import ProjectCards from "@/components/ProjectCards";
+import KitGrid from "@/components/KitGrid";
 import CallToAction from "@/components/CallToAction";
 import WhoWeAre from "@/components/WhoWeAre";
 import SubscriptionCards from "@/components/SubscriptionCards";
@@ -7,17 +7,16 @@ import Footer from "@/components/Footer";
 export default function Home() {
   return (
     <div>
+    <div className="px-5 md:px-10 lg:px-20">
       {/* Hero Section */}
-      <div className="flex flex-col px-30 py-30">
+      <div className="flex flex-col py-30">
         <h1 className="text-7xl text-sunrise/80 font-bold">Timeless</h1>
         <h1 className="text-7xl text-sunrise/80 font-bold">Elegance </h1>
         <p className="py-8 text-2xl font-secondary">Discover our exquisite collection of handcrafted jewelry <br /> designed to captivate for generations</p>
       </div>
-      {/* Projects Section */}
-      <div className="flex flex-col px-30">
-        <ProjectCards />
-        <ProjectCards />
-        <ProjectCards />
+      {/* Kits Section */}
+      <div className="flex flex-col">
+        <KitGrid />
       </div>
       {/* What We Do Section */}
       <div className="flex flex-col md:flex-row mt-24 p-8">
@@ -53,6 +52,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+      </div>
       </div>
       {/* Who we are Section */}
       <WhoWeAre />

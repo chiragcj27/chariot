@@ -1,0 +1,40 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ productId: string }> }
+) {
+  try {
+    const { productId } = await params;
+    
+    // Get access token from cookies
+    const accessToken = req.cookies.get('accessToken')?.value;
+    if (!accessToken) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/admin/products/${productId}`;
+
+    const res = await fetch(backendUrl, {
+      method: 'GET',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+    });
+
+    const data = await res.json();
+    
+    if (!res.ok) {
+      return NextResponse.json(data, { status: res.status });
+    }
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error in get product route:', error);
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+} 

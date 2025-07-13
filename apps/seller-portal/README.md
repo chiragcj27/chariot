@@ -1,36 +1,154 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Seller Portal - Product Management
 
-## Getting Started
+This is the seller portal for the Chariot platform, allowing sellers to manage their products.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Product Management
+- **Product Listing**: View all your products with filtering by status
+- **Product Creation**: Create new products with comprehensive forms
+- **Product Editing**: Edit existing products
+- **Product Details**: View detailed product information
+- **Product Deletion**: Delete products with confirmation
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Product Types Supported
+1. **Physical Products**
+   - Stock management
+   - Dimensions and weight
+   - Shipping information
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+2. **Digital Products**
+   - File type and size
+   - Digital asset details
+   - Download management
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. **Service Products**
+   - Delivery timeframes
+   - Revision policies
+   - Deliverables and requirements
+   - Consultation options
 
-## Learn More
+### Product Features
+- **Pricing**: Set prices in multiple currencies
+- **Credits System**: Set credit costs for products
+- **Discounts**: Apply percentage discounts
+- **Tags**: Add tags for better categorization
+- **SEO**: Meta title and description
+- **Images**: Upload up to 5 product images
+- **Status Management**: Draft, Pending, Active, Inactive, Rejected
 
-To learn more about Next.js, take a look at the following resources:
+### Product Status Flow
+1. **Draft**: Product is saved but not submitted for review
+2. **Pending**: Product submitted for admin approval
+3. **Active**: Product approved and live on the platform
+4. **Inactive**: Product temporarily disabled
+5. **Rejected**: Product rejected by admin (with reason)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Pages
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### `/dashboard/products`
+- Main products listing page
+- Filter by status
+- Pagination support
+- Quick actions (View, Edit, Delete)
 
-## Deploy on Vercel
+### `/dashboard/products/create`
+- Product creation form
+- Dynamic form based on product type
+- Image upload with drag & drop
+- Validation and error handling
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### `/dashboard/products/[productId]`
+- Product detail view
+- Complete product information
+- Edit and delete actions
+- Status and approval information
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### `/dashboard/products/[productId]/edit`
+- Product editing form
+- Pre-populated with existing data
+- Same validation as creation form
+
+## API Endpoints
+
+### Frontend API Routes
+- `GET /api/products` - Get seller's products with pagination
+- `POST /api/products` - Create new product
+- `PUT /api/products?id=[productId]` - Update product
+- `GET /api/products/[productId]` - Get single product
+- `DELETE /api/products/[productId]` - Delete product
+
+### Backend API Routes
+- `GET /api/products/seller` - Get seller's own products
+- `POST /api/products` - Create product
+- `PUT /api/products/:productId` - Update product
+- `GET /api/products/:productId` - Get product by ID
+- `DELETE /api/products/:productId` - Delete product
+
+## Components
+
+### ProductForm
+Comprehensive form component that handles all product types with:
+- Dynamic fields based on product type
+- Validation
+- Image upload integration
+- Tag management
+
+### ImageUpload
+Drag & drop image upload component with:
+- Multiple image support
+- File validation
+- Preview functionality
+- Size and type restrictions
+
+### TagInput
+Tag management component for adding and removing product tags.
+
+## Usage
+
+1. **Creating a Product**:
+   - Navigate to `/dashboard/products/create`
+   - Fill out the form with product details
+   - Upload images
+   - Save as draft or submit for approval
+
+2. **Managing Products**:
+   - View all products at `/dashboard/products`
+   - Filter by status to find specific products
+   - Use pagination for large product catalogs
+
+3. **Editing Products**:
+   - Click "Edit" on any product card
+   - Modify the product information
+   - Save changes
+
+4. **Viewing Product Details**:
+   - Click "View" on any product card
+   - See complete product information
+   - Check approval status and admin feedback
+
+## Authentication
+
+All product management features require seller authentication. The portal uses JWT tokens stored in cookies for authentication.
+
+## Error Handling
+
+The portal includes comprehensive error handling:
+- Form validation errors
+- API error responses
+- Network connectivity issues
+- File upload errors
+
+## Responsive Design
+
+The seller portal is fully responsive and works on:
+- Desktop computers
+- Tablets
+- Mobile devices
+
+## Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/admin/sellers/pending`;
 
   const res = await fetch(backendUrl, {

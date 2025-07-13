@@ -55,9 +55,11 @@ export default function LoginPage() {
           ...data.user,
           blacklistInfo: data.blacklistInfo
         }));
+        // Refresh cookies, then redirect
+        router.refresh();
+        router.replace('/dashboard');
       }
       
-      router.push('/dashboard');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Login failed');
     } finally {

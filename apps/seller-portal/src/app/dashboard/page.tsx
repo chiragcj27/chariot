@@ -68,7 +68,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [userInfo?.isBlacklisted]);
+  }, [userInfo?.isBlacklisted, userInfo?.blacklistInfo?.isExpired]);
 
   const statsCards = [
     {

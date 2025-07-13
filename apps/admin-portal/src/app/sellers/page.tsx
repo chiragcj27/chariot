@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import DashboardLayout from '@/components/layout/dashboard-layout';
 import BlacklistDialog from '@/components/blacklist-dialog';
 import { toast } from 'react-hot-toast';
@@ -55,12 +54,7 @@ export default function SellersPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState('all');
 
-  useEffect(() => {
-    fetchSellers();
-    fetchStats();
-  }, [currentPage, statusFilter]);
-
-  const fetchSellers = async () => {
+  const fetchSellers = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/sellers?page=${currentPage}&limit=10&status=${statusFilter}`);
       if (response.ok) {
@@ -75,7 +69,12 @@ export default function SellersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, statusFilter]);
+
+  useEffect(() => {
+    fetchSellers();
+    fetchStats();
+  }, [fetchSellers]);
 
   const fetchStats = async () => {
     try {

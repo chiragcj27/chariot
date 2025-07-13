@@ -11,6 +11,7 @@ export interface IKit {
     description: string;
     thumbnail?: Types.ObjectId;
     mainImage?: Types.ObjectId;
+    onHoverImage?: Types.ObjectId;
     carouselImages: Types.ObjectId[];
     testimonials?: string[];
 }
@@ -21,6 +22,7 @@ export const KitSchema = new Schema<IKit>({
     description: { type: String, required: true },
     thumbnail: { type: Schema.Types.ObjectId, ref: "Image" },
     mainImage: { type: Schema.Types.ObjectId, ref: "Image" },
+    onHoverImage: { type: Schema.Types.ObjectId, ref: "Image" },
     carouselImages: [{ type: Schema.Types.ObjectId, ref: "Image"}],
     testimonials: [{ type: String }],
 }, {

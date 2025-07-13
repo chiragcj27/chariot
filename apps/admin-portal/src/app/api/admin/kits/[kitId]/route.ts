@@ -4,12 +4,13 @@ const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3001';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { kitId: string } }
+  { params }: { params: Promise<{ kitId: string }> }
 ) {
   try {
     const body = await request.json();
+    const { kitId } = await params;
     
-    const response = await fetch(`${API_BASE_URL}/api/kits/${params.kitId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/kits/${kitId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -35,10 +36,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { kitId: string } }
+  { params }: { params: Promise<{ kitId: string }> }
 ) {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/kits/${params.kitId}`, {
+    const { kitId } = await params;
+    const response = await fetch(`${API_BASE_URL}/api/kits/${kitId}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

@@ -52,7 +52,7 @@ export function CreateItemDialog({
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
-  const [uploadingOnHoverImage, setUploadingOnHoverImage] = useState(false)
+  const [uploadingOnHoverImage] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [onHoverImagePreview, setOnHoverImagePreview] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)

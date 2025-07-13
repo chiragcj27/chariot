@@ -1,11 +1,13 @@
+'use client'
 import Image from "next/image";
 
 interface ProductCardProps {
-  title: string;
+  title?: string;
   subtitle?: string;
   image: string;
   onHoverImage?: string;
   className?: string;
+  aspectRatio?: number; // New prop for aspect ratio (width/height)
 }
 
 export default function ProductCard({ 
@@ -13,14 +15,21 @@ export default function ProductCard({
   subtitle, 
   image, 
   onHoverImage, 
-  className = "" 
+  className = "",
+  aspectRatio = 4/5 // Default aspect ratio (slightly taller than wide)
 }: ProductCardProps) {
   return (
     <div className={`flex flex-col items-center ${className}`}>
-      <div className="relative w-full h-[350px] rounded shadow-md mb-6 overflow-hidden group">
+      <div 
+        className="relative w-full rounded shadow-md overflow-hidden group"
+        style={{ 
+          aspectRatio: aspectRatio,
+          height: 'auto'
+        }}
+      >
         <Image
           src={image}
-          alt={title}
+          alt={title || 'Product Image'}
           fill
           className="object-cover transition-opacity duration-300 group-hover:opacity-0"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -28,7 +37,7 @@ export default function ProductCard({
         {onHoverImage && (
           <Image
             src={onHoverImage}
-            alt={`${title} on hover`}
+            alt={`${title || 'Product Image'} on hover`}
             fill
             className="object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -38,12 +47,14 @@ export default function ProductCard({
           />
         )}
       </div>
-      <div className="w-full text-center">
-        <span className="block text-2xl font-secondary font-semibold mb-2">{title}</span>
-        {subtitle && (
-          <span className="block text-lg font-primary text-black/70">{subtitle}</span>
-        )}
-      </div>
+      {(title || subtitle) && (
+        <div className="w-full text-center mt-6">
+          <span className="block text-2xl font-secondary font-semibold mb-2">{title}</span>
+          {subtitle && (
+            <span className="block text-lg font-primary text-black/70">{subtitle}</span>
+          )}
+        </div>
+      )}
     </div>
   );
 } 

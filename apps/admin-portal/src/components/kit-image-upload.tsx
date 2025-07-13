@@ -1,7 +1,7 @@
 import React, { useRef, useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, X, Star, GripVertical, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Star, GripVertical, Image as ImageIcon, MousePointer } from 'lucide-react';
 import Image from 'next/image';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { toast } from 'sonner';
@@ -14,6 +14,7 @@ interface KitImage {
   isMain: boolean;
   isCarousel: boolean;
   isThumbnail: boolean;
+  isOnHover: boolean;
   file?: File;
   previewUrl?: string;
 }
@@ -24,9 +25,10 @@ interface KitImageUploadProps {
   kitId?: string;
 }
 
-export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUploadProps) {
+export function KitImageUpload({ onImagesChange, images }: KitImageUploadProps) {
   const mainImageInputRef = useRef<HTMLInputElement>(null);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const onHoverInputRef = useRef<HTMLInputElement>(null);
   const carouselInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -75,7 +77,7 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
     }
   };
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>, imageType: 'main' | 'thumbnail' | 'carousel') => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>, imageType: 'main' | 'thumbnail' | 'onHover' | 'carousel') => {
     const files = Array.from(event.target.files || []);
     if (files.length === 0) return;
 
@@ -93,6 +95,7 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
           isMain: imageType === 'main',
           isCarousel: imageType === 'carousel',
           isThumbnail: imageType === 'thumbnail',
+          isOnHover: imageType === 'onHover',
           file,
           previewUrl: createPreviewUrl(file),
         };
@@ -100,10 +103,42 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
         newImages.push(newImage);
       }
 
+      // Get existing images of the same type that will be replaced
+      const imagesToDelete = images.filter(img => {
+        if (imageType === 'main') return img.isMain;
+        if (imageType === 'thumbnail') return img.isThumbnail;
+        if (imageType === 'onHover') return img.isOnHover;
+        return false; // Don't delete carousel images when adding more
+      });
+
+      // Delete old images from S3
+      for (const oldImage of imagesToDelete) {
+        if (oldImage.filename) {
+          try {
+            const deleteResponse = await fetch('/api/admin/assets/delete', {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                key: oldImage.filename,
+              }),
+            });
+            
+            if (!deleteResponse.ok) {
+              console.error('Failed to delete old image from S3:', deleteResponse.statusText);
+            }
+          } catch (error) {
+            console.error('Error deleting old image from S3:', error);
+          }
+        }
+      }
+
       // Remove existing images of the same type
       const filteredImages = images.filter(img => {
         if (imageType === 'main') return !img.isMain;
         if (imageType === 'thumbnail') return !img.isThumbnail;
+        if (imageType === 'onHover') return !img.isOnHover;
         return true; // Keep carousel images when adding more
       });
 
@@ -118,13 +153,38 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
     }
   };
 
-  const handleRemoveImage = (index: number) => {
+  const handleRemoveImage = async (index: number) => {
     const newImages = [...images];
     const removedImage = newImages[index];
     
     // Revoke preview URL if it exists
     if (removedImage.previewUrl) {
       URL.revokeObjectURL(removedImage.previewUrl);
+    }
+    
+    // Delete from S3 if the image has a filename (S3 key)
+    if (removedImage.filename) {
+      try {
+        const deleteResponse = await fetch('/api/admin/assets/delete', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            key: removedImage.filename,
+          }),
+        });
+        
+        if (!deleteResponse.ok) {
+          console.error('Failed to delete image from S3:', deleteResponse.statusText);
+          toast.error('Failed to delete image from storage');
+          return;
+        }
+      } catch (error) {
+        console.error('Error deleting image from S3:', error);
+        toast.error('Failed to delete image from storage');
+        return;
+      }
     }
     
     const removed = newImages.filter((_, i) => i !== index);
@@ -146,7 +206,7 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
     inputRef.current?.click();
   };
 
-  const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>, imageType: 'main' | 'thumbnail' | 'carousel') => {
+  const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>, imageType: 'main' | 'thumbnail' | 'onHover' | 'carousel') => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -167,6 +227,7 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
           isMain: imageType === 'main',
           isCarousel: imageType === 'carousel',
           isThumbnail: imageType === 'thumbnail',
+          isOnHover: imageType === 'onHover',
           file,
           previewUrl: createPreviewUrl(file),
         };
@@ -174,10 +235,42 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
         newImages.push(newImage);
       }
 
+      // Get existing images of the same type that will be replaced
+      const imagesToDelete = images.filter(img => {
+        if (imageType === 'main') return img.isMain;
+        if (imageType === 'thumbnail') return img.isThumbnail;
+        if (imageType === 'onHover') return img.isOnHover;
+        return false; // Don't delete carousel images when adding more
+      });
+
+      // Delete old images from S3
+      for (const oldImage of imagesToDelete) {
+        if (oldImage.filename) {
+          try {
+            const deleteResponse = await fetch('/api/admin/assets/delete', {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                key: oldImage.filename,
+              }),
+            });
+            
+            if (!deleteResponse.ok) {
+              console.error('Failed to delete old image from S3:', deleteResponse.statusText);
+            }
+          } catch (error) {
+            console.error('Error deleting old image from S3:', error);
+          }
+        }
+      }
+
       // Remove existing images of the same type
       const filteredImages = images.filter(img => {
         if (imageType === 'main') return !img.isMain;
         if (imageType === 'thumbnail') return !img.isThumbnail;
+        if (imageType === 'onHover') return !img.isOnHover;
         return true; // Keep carousel images when adding more
       });
 
@@ -199,6 +292,7 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
 
   const mainImage = images.find(img => img.isMain);
   const thumbnailImage = images.find(img => img.isThumbnail);
+  const onHoverImage = images.find(img => img.isOnHover);
   const carouselImages = images.filter(img => img.isCarousel);
 
   return (
@@ -324,6 +418,70 @@ export function KitImageUpload({ onImagesChange, images, kitId }: KitImageUpload
                   disabled={uploading}
                 >
                   {uploading ? 'Uploading...' : 'Upload Thumbnail'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* OnHover Image Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MousePointer className="h-5 w-5 text-purple-500" />
+            OnHover Image (Optional)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {onHoverImage ? (
+            <div className="relative group">
+              <div className="aspect-video relative rounded-lg overflow-hidden">
+                <Image
+                  src={onHoverImage.previewUrl || onHoverImage.url}
+                  alt={onHoverImage.originalname}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200" />
+              </div>
+              <div className="absolute top-2 right-2">
+                <button
+                  onClick={() => handleRemoveImage(images.indexOf(onHoverImage))}
+                  className="p-2 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="absolute bottom-2 left-2 bg-purple-500 text-white text-xs px-2 py-1 rounded">
+                OnHover Image
+              </div>
+            </div>
+          ) : (
+            <div 
+              className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors"
+              onDrop={(e) => handleDrop(e, 'onHover')}
+              onDragOver={handleDragOver}
+            >
+              <div className="text-center">
+                <input
+                  type="file"
+                  ref={onHoverInputRef}
+                  onChange={(e) => handleFileSelect(e, 'onHover')}
+                  accept="image/*"
+                  className="hidden"
+                />
+                <MousePointer className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500 mb-2">No onHover image selected</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleButtonClick(onHoverInputRef)} 
+                  type="button"
+                  disabled={uploading}
+                >
+                  {uploading ? 'Uploading...' : 'Upload OnHover Image'}
                 </Button>
               </div>
             </div>

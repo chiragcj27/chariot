@@ -14,6 +14,9 @@ router.post("/images", isSeller, productController.storeProductImage);
 // Get all products
 router.get("/", productController.getAllProducts);
 
+// Get seller's own products
+router.get("/seller", isSeller, productController.getSellerProducts);
+
 // Get featured products
 router.get("/featured", landingController.getFeaturedProducts);
 
@@ -28,6 +31,9 @@ router.get("/category/:categorySlug/item/:itemSlug", productController.getProduc
 
 // Get product by slug (requires category and item context)
 router.get("/category/:categorySlug/item/:itemSlug/product/:productSlug", productController.getProductBySlug);
+
+// Get product by ID (for sellers)
+router.get("/:productId", isSeller, productController.getProductById);
 
 // Update product
 router.put("/:productId", isSeller, productController.updateProduct);

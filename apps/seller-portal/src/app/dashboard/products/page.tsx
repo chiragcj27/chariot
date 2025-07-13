@@ -1,138 +1,160 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { PlusIcon, ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PlusIcon, EyeIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+
+interface ProductImage {
+  _id: string;
+  url: string;
+  alt?: string;
+}
 
 interface Product {
   _id: string;
   name: string;
   description: string;
-  categoryId: {
-    _id: string;
-    title: string;
-  };
-  subCategoryId: {
-    _id: string;
-    title: string;
-  };
-  itemId: {
-    _id: string;
-    title: string;
-  };
-  type: 'PHYSICAL' | 'DIGITAL' | 'SERVICE';
-  price: {
+  type: 'physical' | 'digital' | 'service';
+  status: 'draft' | 'pending' | 'active' | 'inactive' | 'rejected';
+  price?: {
     amount: number;
     currency: string;
   };
+  creditsCost?: number;
+  discountedCreditsCost?: number;
   discount?: {
     percentage: number;
   };
-  theme?: string;
-  season?: string;
-  occasion?: string;
-  tags: string[];
-  featured: boolean;
-  status: 'active' | 'inactive' | 'draft' | 'archived' | 'deleted' | 'pending' | 'rejected';
-  createdAt: Date;
-  updatedAt: Date;
-  images: Array<{
-    _id: string;
-    url: string;
-    isMain: boolean;
-  }>;
-  seo?: {
-    metaTitle: string;
-    metaDescription: string;
-    metaKeywords: string[];
-  };
-  slug: string;
+  images: ProductImage[];
+  createdAt: string;
+  isAdminApproved: boolean;
+  isAdminRejected: boolean;
+  adminRejectionReason?: string;
 }
 
-interface Category {
-  _id: string;
-  title: string;
-  subcategories: {
-    _id: string;
-    title: string;
-    products: Product[];
-  }[];
+interface ProductsResponse {
+  products: Product[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalProducts: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+// Add Pagination type
+interface Pagination {
+  totalPages: number;
+  hasPrev: boolean;
+  hasNext: boolean;
+  currentPage: number;
 }
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
-  const [expandedSubcategories, setExpandedSubcategories] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const fetchProducts = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: '10'
+      });
+      
+      if (statusFilter !== 'all') {
+        params.append('status', statusFilter);
+      }
+
+      const response = await fetch(`/api/products?${params}`, {
+        credentials: 'include'
+      });
+      const data: ProductsResponse = await response.json();
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch products');
+      }
+
+      setProducts(data.products);
+      setPagination(data.pagination);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentPage, statusFilter]);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const response = await fetch('http://localhost:3001/api/products');
-        const data = await response.json();
-        if (data.products) {
-          setProducts(data.products);
-        }
-      } catch (error) {
-        console.error('Failed to fetch products:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
-  const toggleCategory = (categoryId: string) => {
-    const newExpanded = new Set(expandedCategories);
-    if (newExpanded.has(categoryId)) {
-      newExpanded.delete(categoryId);
-    } else {
-      newExpanded.add(categoryId);
+  const handleDelete = async (productId: string) => {
+    if (!confirm('Are you sure you want to delete this product?')) {
+      return;
     }
-    setExpandedCategories(newExpanded);
+
+    try {
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to delete product');
+      }
+
+      // Refresh the products list
+      fetchProducts();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete product');
+    }
   };
 
-  const toggleSubcategory = (subcategoryId: string) => {
-    const newExpanded = new Set(expandedSubcategories);
-    if (newExpanded.has(subcategoryId)) {
-      newExpanded.delete(subcategoryId);
-    } else {
-      newExpanded.add(subcategoryId);
+  const getStatusBadge = (status: string, isApproved: boolean, isRejected: boolean) => {
+    if (isRejected) {
+      return <Badge variant="destructive">Rejected</Badge>;
     }
-    setExpandedSubcategories(newExpanded);
+    
+    switch (status) {
+      case 'draft':
+        return <Badge variant="secondary">Draft</Badge>;
+      case 'pending':
+        return <Badge variant="outline">Pending</Badge>;
+      case 'active':
+        return <Badge variant="default">Active</Badge>;
+      case 'inactive':
+        return <Badge variant="secondary">Inactive</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
 
-  // Group products by category and subcategory
-  const groupedProducts = products.reduce((acc: Record<string, Category>, product) => {
-    const categoryId = product.categoryId._id;
-    const categoryTitle = product.categoryId.title;
-    const subcategoryId = product.subCategoryId._id;
-    const subcategoryTitle = product.subCategoryId.title;
-
-    if (!acc[categoryId]) {
-      acc[categoryId] = {
-        _id: categoryId,
-        title: categoryTitle,
-        subcategories: []
-      };
+  const getTypeBadge = (type: string) => {
+    switch (type) {
+      case 'physical':
+        return <Badge variant="outline" className="bg-blue-50 text-blue-700">Physical</Badge>;
+      case 'digital':
+        return <Badge variant="outline" className="bg-green-50 text-green-700">Digital</Badge>;
+      case 'service':
+        return <Badge variant="outline" className="bg-purple-50 text-purple-700">Service</Badge>;
+      default:
+        return <Badge variant="outline">{type}</Badge>;
     }
-
-    const category = acc[categoryId];
-    let subcategory = category.subcategories.find(sub => sub._id === subcategoryId);
-
-    if (!subcategory) {
-      subcategory = {
-        _id: subcategoryId,
-        title: subcategoryTitle,
-        products: []
-      };
-      category.subcategories.push(subcategory);
-    }
-
-    subcategory.products.push(product);
-    return acc;
-  }, {});
+  };
 
   if (isLoading) {
     return (
@@ -143,159 +165,173 @@ export default function ProductsPage() {
   }
 
   return (
-    <div>
-      <div className="sm:flex sm:items-center">
-        <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            A hierarchical view of all your products organized by categories and subcategories.
-          </p>
-        </div>
-        <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-          <a
-            href="/dashboard/products/create"
-            className="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto"
-          >
-            <PlusIcon className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold text-gray-900">Products</h1>
+        <Link href="/dashboard/products/create">
+          <Button className="flex items-center gap-2">
+            <PlusIcon className="h-4 w-4" />
             Add Product
-          </a>
-        </div>
+          </Button>
+        </Link>
       </div>
 
-      <div className="mt-8">
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <ul className="divide-y divide-gray-200">
-            {Object.values(groupedProducts).map((category) => (
-              <li key={category._id}>
-                <button
-                  onClick={() => toggleCategory(category._id)}
-                  className="w-full px-4 py-4 flex items-center justify-between hover:bg-gray-50 focus:outline-none"
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Filters</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4">
+            <div className="w-48">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="draft">Draft</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {products.map((product) => (
+          <Card key={product._id} className="overflow-hidden">
+            <div className="aspect-video bg-gray-100 flex items-center justify-center">
+              {product.images && product.images.length > 0 ? (
+                <Image
+                  src={product.images[0].url}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                  width={400}
+                  height={225}
+                />
+              ) : (
+                <div className="text-gray-400 text-sm">No image</div>
+              )}
+            </div>
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
+                <div className="flex gap-1">
+                  {getTypeBadge(product.type)}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {getStatusBadge(product.status, product.isAdminApproved, product.isAdminRejected)}
+                <div className="flex flex-col text-xs">
+                  {product.price && product.price.amount > 0 && (
+                    <span className="font-medium text-gray-900">
+                      ${product.price.amount} {product.price.currency}
+                    </span>
+                  )}
+                  {product.creditsCost && product.creditsCost > 0 && (
+                    <span className="text-gray-600">
+                      {product.creditsCost} credits
+                    </span>
+                  )}
+                  {!product.price?.amount && !product.creditsCost && (
+                    <span className="text-gray-500">No pricing</span>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-sm text-gray-600 line-clamp-2 mb-4">
+                {product.description}
+              </p>
+              
+              {product.isAdminRejected && product.adminRejectionReason && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription className="text-xs">
+                    <strong>Rejection Reason:</strong> {product.adminRejectionReason}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <div className="flex gap-2">
+                <Link href={`/dashboard/products/${product._id}`}>
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <EyeIcon className="h-3 w-3" />
+                    View
+                  </Button>
+                </Link>
+                <Link href={`/dashboard/products/${product._id}/edit`}>
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <PencilIcon className="h-3 w-3" />
+                    Edit
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                  onClick={() => handleDelete(product._id)}
                 >
-                  <div className="flex items-center">
-                    {expandedCategories.has(category._id) ? (
-                      <ChevronDownIcon className="h-5 w-5 text-gray-400" />
-                    ) : (
-                      <ChevronRightIcon className="h-5 w-5 text-gray-400" />
-                    )}
-                    <span className="ml-2 text-lg font-medium text-gray-900">{category.title}</span>
-                  </div>
-                  <span className="text-sm text-gray-500">
-                    {category.subcategories.reduce((total, sub) => total + sub.products.length, 0)} products
-                  </span>
-                </button>
-
-                {expandedCategories.has(category._id) && (
-                  <ul className="divide-y divide-gray-200 bg-gray-50">
-                    {category.subcategories.map((subcategory) => (
-                      <li key={subcategory._id}>
-                        <button
-                          onClick={() => toggleSubcategory(subcategory._id)}
-                          className="w-full px-8 py-3 flex items-center justify-between hover:bg-gray-100 focus:outline-none"
-                        >
-                          <div className="flex items-center">
-                            {expandedSubcategories.has(subcategory._id) ? (
-                              <ChevronDownIcon className="h-5 w-5 text-gray-400" />
-                            ) : (
-                              <ChevronRightIcon className="h-5 w-5 text-gray-400" />
-                            )}
-                            <span className="ml-2 text-md font-medium text-gray-900">{subcategory.title}</span>
-                          </div>
-                          <span className="text-sm text-gray-500">{subcategory.products.length} products</span>
-                        </button>
-
-                        {expandedSubcategories.has(subcategory._id) && (
-                          <div className="px-12 py-4 bg-white">
-                            <div className="overflow-x-auto">
-                              <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                  <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                      Name
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                      Type
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                      Price
-                                    </th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                      Status
-                                    </th>
-                                    <th className="relative px-6 py-3">
-                                      <span className="sr-only">Actions</span>
-                                    </th>
-                                  </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                  {subcategory.products.map((product) => (
-                                    <tr key={product._id}>
-                                      <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                          {product.images.find(img => img.isMain)?.url && (
-                                            <div className="flex-shrink-0 h-10 w-10 relative">
-                                              <Image
-                                                className="rounded-full object-cover"
-                                                src={product.images.find(img => img.isMain)?.url || ''}
-                                                alt={product.name}
-                                                fill
-                                                sizes="40px"
-                                              />
-                                            </div>
-                                          )}
-                                          <div className="ml-4">
-                                            <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                                            <div className="text-sm text-gray-500">{product.itemId.title}</div>
-                                          </div>
-                                        </div>
-                                      </td>
-                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {product.type}
-                                      </td>
-                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {product.price.currency} {product.price.amount.toFixed(2)}
-                                        {product.discount && (
-                                          <span className="ml-2 text-xs text-red-600">
-                                            -{product.discount.percentage}%
-                                          </span>
-                                        )}
-                                      </td>
-                                      <td className="px-6 py-4 whitespace-nowrap">
-                                        <span
-                                          className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${
-                                            product.status === 'active'
-                                              ? 'bg-green-100 text-green-800'
-                                              : product.status === 'inactive'
-                                              ? 'bg-red-100 text-red-800'
-                                              : 'bg-gray-100 text-gray-800'
-                                          }`}
-                                        >
-                                          {product.status}
-                                        </span>
-                                      </td>
-                                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button
-                                          type="button"
-                                          className="text-indigo-600 hover:text-indigo-900"
-                                        >
-                                          Edit
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-          </ul>
-        </div>
+                  <TrashIcon className="h-3 w-3" />
+                  Delete
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+
+      {/* Empty State */}
+      {products.length === 0 && !isLoading && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="text-gray-400 mb-4">
+              <PlusIcon className="h-12 w-12" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+            <p className="text-gray-600 mb-4">Get started by creating your first product</p>
+            <Link href="/dashboard/products/create">
+              <Button>Create Product</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pagination */}
+      {pagination && pagination.totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!pagination.hasPrev}
+            onClick={() => setCurrentPage(currentPage - 1)}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-gray-600">
+            Page {pagination.currentPage} of {pagination.totalPages}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!pagination.hasNext}
+            onClick={() => setCurrentPage(currentPage + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   );
 } 

@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import DashboardLayout from '@/components/layout/dashboard-layout';
 import { toast } from 'react-hot-toast';
 
@@ -47,12 +46,7 @@ export default function BlacklistPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    fetchBlacklistedSellers();
-    fetchBlacklistStats();
-  }, [currentPage]);
-
-  const fetchBlacklistedSellers = async () => {
+  const fetchBlacklistedSellers = useCallback(async () => {
     try {
       const response = await fetch(`/api/admin/blacklist?page=${currentPage}&limit=10`);
       if (response.ok) {
@@ -67,7 +61,12 @@ export default function BlacklistPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage]);
+
+  useEffect(() => {
+    fetchBlacklistedSellers();
+    fetchBlacklistStats();
+  }, [fetchBlacklistedSellers]);
 
   const fetchBlacklistStats = async () => {
     try {

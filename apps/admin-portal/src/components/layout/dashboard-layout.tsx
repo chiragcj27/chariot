@@ -13,7 +13,8 @@ import {
   Bars3Icon,
   XMarkIcon,
   AdjustmentsHorizontalIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  ShoppingBagIcon
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
@@ -23,6 +24,7 @@ const navigation = [
   { name: 'Marketing', href: '/marketing', icon: MegaphoneIcon },
   { name: 'Customers', href: '/customers', icon: UsersIcon },
   { name: 'Sellers', href: '/sellers', icon: BuildingStorefrontIcon },
+  { name: 'Products', href: '/products', icon: ShoppingBagIcon },
   { name: 'Blacklisted Sellers', href: '/blacklist', icon: ExclamationTriangleIcon },
   { name: 'Menu Settings', href: '/menu', icon: Cog6ToothIcon },
   { name: 'Kits', href: '/kit', icon: AdjustmentsHorizontalIcon },

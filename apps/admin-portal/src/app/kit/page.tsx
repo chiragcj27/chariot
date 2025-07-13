@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,13 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/layout/dashboard-layout';
 import { KitImageUpload } from '@/components/kit-image-upload';
-import { Plus, Edit, Trash2, Image as ImageIcon, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
 
 interface KitImage {
   _id?: string;
@@ -24,6 +23,7 @@ interface KitImage {
   isMain: boolean;
   isCarousel: boolean;
   isThumbnail: boolean;
+  isOnHover: boolean;
   file?: File;
   previewUrl?: string;
 }
@@ -37,16 +37,25 @@ interface Kit {
     _id: string;
     url: string;
     originalname: string;
+    filename?: string;
   };
   mainImage?: {
     _id: string;
     url: string;
     originalname: string;
+    filename?: string;
+  };
+  onHoverImage?: {
+    _id: string;
+    url: string;
+    originalname: string;
+    filename?: string;
   };
   carouselImages?: Array<{
     _id: string;
     url: string;
     originalname: string;
+    filename?: string;
   }>;
   testimonials?: string[];
   createdAt: string;
@@ -122,7 +131,8 @@ export default function KitPage() {
             mimetype: img.file?.type || 'image/jpeg',
             isMain: img.isMain,
             isCarousel: img.isCarousel,
-            isThumbnail: img.isThumbnail
+            isThumbnail: img.isThumbnail,
+            isOnHover: img.isOnHover
           }));
 
           const imageResponse = await fetch('/api/admin/kits/images', {
@@ -183,7 +193,8 @@ export default function KitPage() {
             mimetype: img.file?.type || 'image/jpeg',
             isMain: img.isMain,
             isCarousel: img.isCarousel,
-            isThumbnail: img.isThumbnail
+            isThumbnail: img.isThumbnail,
+            isOnHover: img.isOnHover
           }));
 
           const imageResponse = await fetch('/api/admin/kits/images', {
@@ -259,25 +270,41 @@ export default function KitPage() {
           _id: kit.thumbnail._id,
           url: kit.thumbnail.url,
           originalname: kit.thumbnail.originalname,
+          filename: kit.thumbnail.filename, // Add filename for S3 deletion
           isMain: false,
           isCarousel: false,
           isThumbnail: true,
+          isOnHover: false,
         }] : []),
         ...(kit.mainImage ? [{
           _id: kit.mainImage._id,
           url: kit.mainImage.url,
           originalname: kit.mainImage.originalname,
+          filename: kit.mainImage.filename, // Add filename for S3 deletion
           isMain: true,
           isCarousel: false,
           isThumbnail: false,
+          isOnHover: false,
+        }] : []),
+        ...(kit.onHoverImage ? [{
+          _id: kit.onHoverImage._id,
+          url: kit.onHoverImage.url,
+          originalname: kit.onHoverImage.originalname,
+          filename: kit.onHoverImage.filename, // Add filename for S3 deletion
+          isMain: false,
+          isCarousel: false,
+          isThumbnail: false,
+          isOnHover: true,
         }] : []),
         ...(kit.carouselImages?.map(img => ({
           _id: img._id,
           url: img.url,
           originalname: img.originalname,
+          filename: img.filename, // Add filename for S3 deletion
           isMain: false,
           isCarousel: true,
           isThumbnail: false,
+          isOnHover: false,
         })) || []),
       ],
     });
@@ -450,19 +477,26 @@ export default function KitPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {kits.map((kit) => (
               <Card key={kit._id} className="overflow-hidden">
-                <div className="aspect-video bg-gray-100 flex items-center justify-center">
-                  {kit.thumbnail ? (
-                    <img
-                      src={kit.thumbnail.url}
-                      alt={kit.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : kit.mainImage ? (
-                    <img
-                      src={kit.mainImage.url}
-                      alt={kit.title}
-                      className="w-full h-full object-cover"
-                    />
+                <div className="aspect-video bg-gray-100 flex items-center justify-center relative group">
+                  {kit.mainImage || kit.thumbnail ? (
+                    <>
+                      <Image
+                        src={kit.mainImage ? kit.mainImage.url : kit.thumbnail!.url}
+                        alt={kit.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className={"object-cover transition-opacity duration-200 " + (kit.onHoverImage ? 'group-hover:opacity-0' : '')}
+                      />
+                      {kit.onHoverImage && (
+                        <Image
+                          src={kit.onHoverImage.url}
+                          alt={kit.title + ' (on hover)'}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                        />
+                      )}
+                    </>
                   ) : (
                     <div className="flex flex-col items-center text-gray-400">
                       <ImageIcon className="h-12 w-12 mb-2" />

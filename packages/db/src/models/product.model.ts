@@ -27,11 +27,17 @@ export interface IProduct {
   categoryId: Types.ObjectId;
   itemId: Types.ObjectId;
   type: ProductType;
+  isKitProduct: boolean;
+  kitId: Types.ObjectId;
+  typeOfKit: KitType;
 
-  price: {
+  price?: {
     amount: number;
     currency: string;
   };
+
+  creditsCost?: number;
+  discountedCreditsCost?: number;
 
   discount?: {
     percentage: number;
@@ -63,6 +69,7 @@ export interface IProduct {
   adminApprovedAt: Date;
   adminRejectedAt: Date;
   sellerId: Types.ObjectId;
+  relatedProductsId: Types.ObjectId[]; // Added field for related products
 }
 
 const baseProductSchema = new mongoose.Schema<IProduct>(
@@ -90,16 +97,32 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
       enum: Object.values(ProductType),
       required: true,
     },
+    isKitProduct: {
+      type: Boolean,
+      default: false,
+    },
+    kitId: {
+      type: Schema.Types.ObjectId,
+      ref: "Kit",
+    },
+    typeOfKit: {
+      type: String,
+      enum: Object.values(KitType),
+    },
     price: {
       amount: {
         type: Number,
-        required: true,
       },
       currency: {
         type: String,
-        required: true,
         default: "USD",
       },
+    },
+    creditsCost: {
+      type: Number,
+    },
+    discountedCreditsCost: {
+      type: Number,
     },
     discount: {
       percentage: {
@@ -172,6 +195,11 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    relatedProductsId: {
+      type: [Schema.Types.ObjectId],
+      ref: "Product",
+      default: [],
     },
   },
   {
@@ -356,26 +384,4 @@ const serviceProductSchema = new mongoose.Schema<IServiceProduct>({
 export const ServiceProduct = Product.discriminator<IServiceProduct>(
   "service",
   serviceProductSchema
-);
-
-interface IKitProduct extends IProduct {
-  kitId: Types.ObjectId;
-  typeOfKit: KitType;
-}
-
-const kitProductSchema = new mongoose.Schema<IKitProduct>({
-  kitId: {
-    type: Schema.Types.ObjectId,
-    ref: "Kit",
-  },
-  typeOfKit: {
-    type: String,
-    enum: Object.values(KitType),
-    required: true,
-  },
-});
-
-export const KitProduct = Product.discriminator<IKitProduct>(
-  "kitProduct",
-  kitProductSchema
 );
