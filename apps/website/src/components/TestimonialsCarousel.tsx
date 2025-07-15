@@ -32,7 +32,7 @@ const TestimonialsCarousel = ({ testimonials = [] }: TestimonialsCarouselProps) 
 
   if (formattedTestimonials.length === 0) {
     return (
-      <div className="bg-white shadow-2xl bg-opacity-80 rounded-3xl w-full h-full flex flex-col items-center justify-center">
+      <div className=" bg-[#EBF1F9] shadow-2xl bg-opacity-80 rounded-3xl w-full h-full flex flex-col items-center justify-center">
         <div className="text-lg font-medium mb-1">Testimonials</div>
         <div className="flex flex-col items-center justify-center w-full px-2">
           <span className="italic text-gray-700 text-center text-xs sm:text-sm md:text-xs lg:text-xs">No testimonials available</span>
@@ -42,7 +42,7 @@ const TestimonialsCarousel = ({ testimonials = [] }: TestimonialsCarouselProps) 
   }
 
   return (
-    <div className="bg-white border-2 border-gray-300 bg-opacity-80 rounded-3xl w-full h-full flex flex-col items-center justify-center relative overflow-hidden">
+    <div className=" bg-[#EBF1F9] border-2 border-gray-300 bg-opacity-80 rounded-2xl w-full h-full flex flex-col items-center justify-center relative overflow-hidden">
       
       {formattedTestimonials.map((testimonial, index) => (
         <div

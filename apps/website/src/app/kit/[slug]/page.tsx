@@ -117,7 +117,7 @@ export default function KitPage({ params }: KitPageProps) {
 
   return (
     <div>
-    <div className="relative w-full min-h-screen overflow-x-hidden">
+    <div className="relative w-full h-[100vh]">
       {/* Main layout area, fixed height for demo, adjust as needed */}
       <div className="relative flex flex-col md:flex-row w-full h-[600px] ">
         {/* MainIMG */}
@@ -161,7 +161,7 @@ export default function KitPage({ params }: KitPageProps) {
             <div className="text-7xl font-bold mb-2">{kit.title}</div>
             <div className="text-2xl font-secondary text-gray-800">{kit.description}</div>
           </div>
-          <button className="bg-sunrise/50 hover:bg-sunrise/70 text-black font-semibold mx-4 px-8 py-2 rounded-lg transition-colors shadow mb-2 text-lg">
+          <button className="bg-[#CFDAE9] hover:bg-[#CFDAE9]/70 border-2 border-[#012F71] text-black font-semibold mx-4 px-8 py-2 rounded-lg transition-colors shadow mb-2 text-lg">
             Explore
           </button>
         </div>
@@ -169,75 +169,66 @@ export default function KitPage({ params }: KitPageProps) {
         <div className="absolute md:top-[95%] md:w-full md:h-[100px] lg:block lg:top-[100%] lg:left-[40%] lg:w-[60%] lg:h-[110px] bg-gray-700 z-0" />
       </div>
     </div>
-    <div className="flex flex-row py-12 items-center justify-start px-8">
-      <button className="bg-sunrise/50 hover:bg-sunrise/70 text-black font-semibold mx-4 px-8 py-2 rounded-lg transition-colors shadow mb-2 text-lg">
+    <div className="flex flex-row py-5 mt-20 items-center justify-start px-8">
+      <button className="bg-[#F8F9FA] font-secondary  hover:bg-[#F8F9FA]/70 border-2 border-[#3981E3] text-black font-semibold mx-4 px-4 py-2 rounded-sm transition-colors shadow mb-2 text-lg">
         Premium Pack
       </button>
-      <button className="border-2 border-sunrise/50 hover:bg-sunrise/50 text-black font-semibold mx-4 px-8 py-2 rounded-lg transition-colors shadow mb-2 text-lg">
-        Standard Pack
+      <button className="border-2 bg-[#042C65] border-[#3981E3] hover:bg-[#042C65]/50 text-white font-semibold mx-4 px-8 py-2 rounded-sm transition-colors shadow mb-2 text-lg font-secondary">
+        Basic Pack
       </button>
     </div>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-8 py-6">
       <ProductCard
         title="Logos"
-        subtitle="Professional logo designs and variations"
-        image="https://placehold.co/400x500/FF6B6B/FFFFFF?text=Logos"
+        image="https://placehold.co/400x500/CFDAE9/000000?text=Logos"
         onHoverImage="https://placehold.co/400x500/4ECDC4/FFFFFF?text=Logos+Hover"
         aspectRatio={4/3}
       />
       <ProductCard
         title="Brand Tone"
-        subtitle="Voice and messaging guidelines"
-        image="https://placehold.co/400x500/45B7D1/FFFFFF?text=Brand+Tone"
+        image="https://placehold.co/400x500/CFDAE9/000000?text=Brand+Tone"
         onHoverImage="https://placehold.co/400x500/96CEB4/FFFFFF?text=Brand+Tone+Hover"
         aspectRatio={4/3}
       />
       <ProductCard
         title="Photography"
-        subtitle="Visual style and photo guidelines"
-        image="https://placehold.co/400x500/FFEAA7/000000?text=Photography"
+        image="https://placehold.co/400x500/CFDAE9/000000?text=Photography"
         onHoverImage="https://placehold.co/400x500/DDA0DD/FFFFFF?text=Photography+Hover"
         aspectRatio={4/3}
       />
       <ProductCard
         title="Stationary"
-        subtitle="Business cards, letterheads, and more"
-        image="https://placehold.co/400x500/A8E6CF/000000?text=Stationary"
+        image="https://placehold.co/400x500/CFDAE9/000000?text=Stationary"
         onHoverImage="https://placehold.co/400x500/FFB6C1/FFFFFF?text=Stationary+Hover"
         aspectRatio={4/3}
       />
       <ProductCard
         title="Brand Guide"
-        subtitle="Complete brand identity manual"
-        image="https://placehold.co/400x500/FF8B94/FFFFFF?text=Brand+Guide"
+        image="https://placehold.co/400x500/CFDAE9/000000?text=Brand+Guide"
         onHoverImage="https://placehold.co/400x500/87CEEB/000000?text=Brand+Guide+Hover"
         aspectRatio={4/3}
       />
       <ProductCard
         title="Instagram Starter Kit"
-        subtitle="Social media templates and assets"
-        image="https://placehold.co/400x500/E6A4B4/FFFFFF?text=Instagram+Kit"
+        image="https://placehold.co/400x500/CFDAE9/000000?text=Instagram+Kit"
         onHoverImage="https://placehold.co/400x500/B8E6B8/000000?text=Instagram+Kit+Hover"
         aspectRatio={4/3}
       />
       <ProductCard
         title="Typography"
-        subtitle="Font families and usage guidelines"
-        image="https://placehold.co/400x500/9B59B6/FFFFFF?text=Typography"
+        image="https://placehold.co/400x500/CFDAE9/000000?text=Typography"
         onHoverImage="https://placehold.co/400x500/F39C12/FFFFFF?text=Typography+Hover"
         aspectRatio={4/3}
       />
       <ProductCard
         title="Color Palette"
-        subtitle="Primary and secondary color schemes"
-        image="https://placehold.co/400x500/3498DB/FFFFFF?text=Color+Palette"
+        image="https://placehold.co/400x500/CFDAE9/000000?text=Color+Palette"
         onHoverImage="https://placehold.co/400x500/E74C3C/FFFFFF?text=Color+Palette+Hover"
         aspectRatio={4/3}
       />
       <ProductCard
         title="Marketing Materials"
-        subtitle="Brochures, flyers, and promotional items"
-        image="https://placehold.co/400x500/2ECC71/FFFFFF?text=Marketing+Materials"
+        image="https://placehold.co/400x500/CFDAE9/000000?text=Marketing+Materials"
         onHoverImage="https://placehold.co/400x500/F1C40F/000000?text=Marketing+Materials+Hover"
         aspectRatio={4/3}
       />
@@ -245,16 +236,16 @@ export default function KitPage({ params }: KitPageProps) {
     {/* Customise Section */}
     <section className="px-8 py-18 pb-16">
       <h2 className="text-3xl font-bold font-secondary mb-6">CUSTOMIZE</h2>
-      <div className="bg-seafoam rounded-lg p-8 flex flex-col items-center">
+      <div className="bg-[#A4BDDE] rounded-lg p-8 flex flex-col items-center">
         <h3 className="text-2xl md:text-3xl font-bold mb-4 text-center">Make It Yours — Custom Kits, Tailored to You</h3>
         <p className="text-lg font-secondary md:text-xl text-center mb-8 max-w-2xl">
           Need something tailored to your brand? We offer customization across templates, color palettes, messaging, and layouts. Whether it’s a full kit revamp or small tweaks, we’ll deliver a ready-to-use version that fits perfectly.
         </p>
         <div className="flex flex-row gap-8">
-          <button className="border-2 border-sunrise bg-sunrise/50 text-lg font-semibold px-6 py-2 rounded transition-colors hover:bg-sunrise/70 focus:outline-none focus:ring-2 focus:ring-sunrise/40">
+          <button className="border-2 border-[#1876F6] bg-[#CFDAE9] text-lg font-semibold px-6 py-2 rounded transition-colors hover:bg-[#CFDAE9]/70 focus:outline-none focus:ring-2 focus:ring-[#1876F6]/40">
             Ask For Quote
           </button>
-          <button className="border-2 border-sunrise bg-sunrise/50 text-lg font-semibold px-6 py-2 rounded transition-colors hover:bg-sunrise/70 focus:outline-none focus:ring-2 focus:ring-sunrise/40">
+          <button className="border-2 border-[#1876F6] bg-[#CFDAE9] text-lg font-semibold px-6 py-2 rounded transition-colors hover:bg-[#CFDAE9]/70 focus:outline-none focus:ring-2 focus:ring-[#1876F6]/40">
             Discovery Call
           </button>
         </div>
@@ -263,16 +254,16 @@ export default function KitPage({ params }: KitPageProps) {
     {/* FAQ Section */}
     <section className="px-8 pb-16">
       <h2 className="text-3xl font-bold font-secondary mb-6">FAQs</h2>
-      <div className="max-w-2xl mx-auto">
+      <div className="w-full">
         {faqs.map((faq, idx) => (
           <div key={idx} className="mb-4">
             <button
-              className={`w-full flex justify-between items-center focus:outline-none transition-colors font-semibold text-lg px-6 py-3 rounded-full shadow-sm border-none
-                ${openFaq === idx ? 'bg-seafoam text-black' : 'bg-seafoam/50 text-black/80 hover:bg-seafoam/70'}`}
+              className={`w-full flex focus:outline-none transition-colors font-semibold text-lg px-6 py-3 rounded-full shadow-sm border-none
+                ${openFaq === idx ? 'bg-[#E2EBF8] text-black' : 'bg-seafoam/50 text-black/80 hover:bg-seafoam/70'}`}
               onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
             >
               <span>{faq.question}</span>
-              <span className="ml-4">{openFaq === idx ? '-' : '+'}</span>
+              <span className="ml-auto">{openFaq === idx ? '-' : '+'}</span>
             </button>
             {openFaq === idx && (
               <div className="pb-4 pt-2 px-4 text-gray-700 font-secondary font-semibold">
@@ -284,7 +275,7 @@ export default function KitPage({ params }: KitPageProps) {
       </div>
       <div className="flex mt-10">
         <button
-          className="bg-sunrise/50 hover:bg-sunrise/90 text-black font-semibold px-8 py-3 rounded-lg transition-colors shadow text-lg"
+          className="bg-[#CFDAE9] hover:bg-[#CFDAE9]/90 text-black font-semibold px-8 py-3 rounded-lg transition-colors shadow text-lg"
           onClick={() => router.push('/')}
         >
           Back to Home

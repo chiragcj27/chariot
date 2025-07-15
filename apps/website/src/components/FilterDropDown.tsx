@@ -33,7 +33,7 @@ export default function FilterDropDown() {
   };
 
   return (
-    <div className="w-80 max-w-full p-4 bg-[#fdfbf6]" style={{ fontFamily: 'inherit' }}>
+    <div className=" bg-[#fdfbf6]" style={{ fontFamily: 'inherit' }}>
       {/* Industry Dropdown */}
       <div className="mb-6">
         <button

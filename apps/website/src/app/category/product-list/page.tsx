@@ -9,36 +9,36 @@ const mockProducts = [
   {
     title: "Unearth",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Unearth",
-    onHoverImage: "https://placehold.co/400x350?text=Unearth+Hover",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Unearth",
+    onHoverImage: "https://placehold.co/400x350/FFEAEA/000000?text=Unearth+Hover",
   },
   {
     title: "Shelley",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Shelley",
-    onHoverImage: "https://placehold.co/400x350?text=Shelley+Hover",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Shelley",
+    onHoverImage: "https://placehold.co/400x350/FFEAEA/000000?text=Shelley+Hover",
   },
   {
     title: "Verano",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Verano",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Verano",
   },
   {
     title: "Noire",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Noire",
-    onHoverImage: "https://placehold.co/400x350?text=Noire+Hover",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Noire",
+    onHoverImage: "https://placehold.co/400x350/FFEAEA/000000?text=Noire+Hover",
   },
   {
     title: "Ann Grand",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Ann Grand",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Ann Grand",
   },
   {
     title: "Michi",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Michi",
-    onHoverImage: "https://placehold.co/400x350?text=Michi+Hover",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Michi",
+    onHoverImage: "https://placehold.co/400x350/FFEAEA/000000?text=Michi+Hover",
   },
 ];
 
@@ -51,7 +51,7 @@ export default function ProductListPage() {
           {/* Sidebar: Heading + Filter */}
           <aside className="md:w-80 w-full md:shrink-0 mb-8 md:mb-0 flex flex-col items-start">
             <h1 className="text-5xl font-secondary font-bold mb-8 leading-tight">
-              Shop our <span className="italic text-sunrise font-primary">Catalogs</span>
+                Catalogs
             </h1>
             <div className="w-full">
               <FilterDropDown />
@@ -65,7 +65,6 @@ export default function ProductListPage() {
                 <ProductCard
                   key={idx}
                   title={product.title}
-                  subtitle={product.subtitle}
                   image={product.image}
                     onHoverImage={product.onHoverImage}
                   />
@@ -77,24 +76,34 @@ export default function ProductListPage() {
     {/* Customise Section */}
     <section className="px-8 py-18 pb-16">
       <h2 className="text-3xl font-bold font-secondary mb-6">CUSTOMIZE</h2>
-      <div className="bg-seafoam rounded-lg p-8 flex flex-col items-center">
+      <div className="bg-[#F0C8C8] rounded-lg p-8 flex flex-col items-center">
         <h3 className="text-2xl md:text-3xl font-bold mb-4 text-center">Make It Yours — Custom Kits, Tailored to You</h3>
         <p className="text-lg font-secondary md:text-xl text-center mb-8 max-w-2xl">
           Need something tailored to your brand? We offer customization across templates, color palettes, messaging, and layouts. Whether it’s a full kit revamp or small tweaks, we’ll deliver a ready-to-use version that fits perfectly.
         </p>
         <div className="flex flex-row gap-8">
-          <button className="border-2 border-sunrise bg-sunrise/50 text-lg font-semibold px-6 py-2 rounded transition-colors hover:bg-sunrise/70 focus:outline-none focus:ring-2 focus:ring-sunrise/40">
+          <button className="bg-[#DF9999] text-lg font-secondary font-semibold px-6 py-2 rounded transition-colors hover:bg-[#DF9999]/70 focus:outline-none focus:ring-2 focus:ring-[#DF9999]/40">
             Ask For Quote
           </button>
-          <button className="border-2 border-sunrise bg-sunrise/50 text-lg font-semibold px-6 py-2 rounded transition-colors hover:bg-sunrise/70 focus:outline-none focus:ring-2 focus:ring-sunrise/40">
+          <button className="bg-[#DF9999] text-lg font-secondary font-semibold px-6 py-2 rounded transition-colors hover:bg-[#DF9999]/70 focus:outline-none focus:ring-2 focus:ring-[#DF9999]/40">
             Discovery Call
           </button>
         </div>
       </div>
     </section>
+    <div className="w-full bg-[#5E5D5D] p-8">
+         <h1 className="text-white text-left text-4xl font-bold">
+          Sub Headline
+         </h1> 
+        <div className="bg-[#D9D9D9] mt-10 mb-20 px-50 py-10">
+         <p className="text-left text-xl font-secondary">
+         Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s.
+         </p>
+         </div>
+    </div>
     <div className="flex px-8 mt-10 mb-10">
         <button
-          className="bg-sunrise/50 hover:bg-sunrise/90 text-black font-semibold px-8 py-3 rounded-lg transition-colors shadow text-lg"
+          className="bg-[#DF9999] hover:bg-[#DF9999]/90 text-black font-secondary font-semibold px-8 py-3 rounded-lg transition-colors shadow text-lg"
           onClick={() => router.push('/')}
         >
           Back to Home

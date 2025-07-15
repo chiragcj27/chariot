@@ -65,13 +65,17 @@
 
 /* 3. Regular CSS rules last */
 
+button {
+  cursor: pointer;
+}
+
 body {
   font-family: var(--font-primary);
 }
 
 :root {
   --radius: 0.625rem;
-  --background: var(--color-pearl);
+  --background: white;
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -120,5 +124,8 @@ body {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+  .rounded-curved {
+    border-radius: 50% 10%;
   }
 }

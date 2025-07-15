@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Footer from "@/components/Footer";
-
+import Image from "next/image";
 const subcategories = [
   "All",
   "Print Marketing",
@@ -95,9 +95,10 @@ export default function Category() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
         {filteredCards.map(card => (
           <div key={card.id} className="flex flex-col items-center">
-            <img src={card.image} alt={card.title} className="w-full h-60 object-cover" />
+            <Image src={card.image} alt={card.title} className="w-full h-60 object-cover" />
             <div className="mt-2 w-full text-center">
               <span className="block font-semibold  truncate font-secondary">{card.title}</span>
+              <span className="block font-semibold  truncate font-secondary">{card.subcategory}</span>
             </div>
           </div>
         ))}

@@ -1,7 +1,7 @@
 "use client"
 import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
-import { useState } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -30,77 +30,80 @@ const faqs = [
 
 const mockProducts = [
   {
-    title: "Unearth",
+    title: "Catalogs",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Unearth",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Catalogs",
     onHoverImage: "https://placehold.co/400x350?text=Unearth+Hover",
   },
   {
-    title: "Shelley",
+    title: "Flyers",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Shelley",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Flyers",
     onHoverImage: "https://placehold.co/400x350?text=Shelley+Hover",
   },
   {
-    title: "Verano",
+    title: "Gift Guides",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Verano",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Gift Guides",
   },
   {
-    title: "Noire",
+    title: "Pamphlets",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Noire",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Pamphlets",
     onHoverImage: "https://placehold.co/400x350?text=Noire+Hover",
   },
   {
-    title: "Ann Grand",
+    title: "Leaflets",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Ann Grand",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Leaflets",
   },
   {
-    title: "Michi",
+    title: "Post Cards",
     subtitle: "7.1 Fluid Engine ✶ $297",
-    image: "https://placehold.co/400x350?text=Michi",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Post Cards",
+    onHoverImage: "https://placehold.co/400x350?text=Michi+Hover",
+  },
+  {
+    title: "Gift Certificates",
+    subtitle: "7.1 Fluid Engine ✶ $297",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Gift Certificates",
+    onHoverImage: "https://placehold.co/400x350?text=Michi+Hover",
+  },
+  {
+    title: "Billboards",
+    subtitle: "7.1 Fluid Engine ✶ $297",
+    image: "https://placehold.co/400x350/FFEAEA/000000?text=Billboards",
     onHoverImage: "https://placehold.co/400x350?text=Michi+Hover",
   },
 ];
 
-export default function CategoryPage() {
+export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const router = useRouter();
 
+  // Calculate full rows and last row
+  const productsPerRow = 3;
+  const fullRows = Math.floor(mockProducts.length / productsPerRow);
+  const fullRowProducts = mockProducts.slice(0, fullRows * productsPerRow);
+  const lastRowProducts = mockProducts.slice(fullRows * productsPerRow);
+
   return (
     <>
-      <div className="min-h-screen bg-[#fdfbf6]">
-        {/* Banner Section */}
-        <section className="relative w-full h-[340px] md:h-[420px] flex items-center justify-center mb-8">
-          {/* Banner Image */}
-          <img
-            src="https://placehold.co/1600x420/cfdae9/FFFFFF?text=Prints"
-            alt="Banner"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-black/30" />
-          {/* Banner Content */}
-          <div className="relative z-10 flex flex-col items-center text-center text-white px-4">
-            <h1 className="text-4xl md:text-6xl font-bold mb-4 font-secondary drop-shadow">
-              PRINT
-            </h1>
-            <p className="text-lg md:text-2xl mb-6 max-w-2xl drop-shadow">
-              Insanely simple. Surprisingly affordable. Wildly empowering. The website solution your resourceful, entrepreneurial self has been looking for.
-            </p>
-            <button className="px-8 py-4 rounded-full border border-white text-lg font-medium bg-white/80 text-black hover:bg-white transition">
-              Explore Prints
-            </button>
-          </div>
-        </section>
+      <div className="min-h-screen ">
         {/* Existing content below */}
         <div className="container mx-auto flex flex-col md:flex-row gap-12 pt-12 pb-8">
-          {/* Main Content: Product Grid */}
           <main className="flex-1">
+            <h1 className="text-6xl font-bold font-secondary mb-8">
+              {slug.charAt(0).toUpperCase() + slug.slice(1)}
+            </h1>
+            <p className="text-2xl font-secondary mb-8">
+              {slug.charAt(0).toUpperCase() + slug.slice(1)} is a collection of products that are designed to be used in a variety of ways.
+            </p>
+            {/* Product Grid with centered last row if needed */}
+            {/* Full rows */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-16">
-              {mockProducts.map((product, idx) => (
+              {fullRowProducts.map((product, idx) => (
                 <Link key={idx} href="/category/product-list" className="block">
                   <ProductCard
                     title={product.title}
@@ -112,21 +115,41 @@ export default function CategoryPage() {
                 </Link>
               ))}
             </div>
+            {/* Last row, centered if 1 or 2 items */}
+            {lastRowProducts.length > 0 && (
+              <div className="flex justify-center gap-x-10 mt-16 w-full">
+                {lastRowProducts.map((product, idx) => (
+                  <Link
+                    key={fullRowProducts.length + idx}
+                    href="/category/product-list"
+                    className="block w-full sm:w-1/2 lg:w-1/3"
+                  >
+                    <ProductCard
+                      title={product.title}
+                      subtitle={product.subtitle}
+                      image={product.image}
+                      onHoverImage={product.onHoverImage}
+                      aspectRatio={1}
+                    />
+                  </Link>
+                ))}
+              </div>
+            )}
           </main>
         </div>
             {/* FAQ Section */}
     <section className="px-8 pb-16">
       <h2 className="text-3xl font-bold font-secondary mb-6">FAQs</h2>
-      <div className="max-w-2xl mx-auto">
+      <div className="w-full">
         {faqs.map((faq, idx) => (
           <div key={idx} className="mb-4">
             <button
-              className={`w-full flex justify-between items-center focus:outline-none transition-colors font-semibold text-lg px-6 py-3 rounded-full shadow-sm border-none
-                ${openFaq === idx ? 'bg-seafoam text-black' : 'bg-seafoam/50 text-black/80 hover:bg-seafoam/70'}`}
+              className={`w-full flex focus:outline-none transition-colors font-semibold text-lg px-6 py-3 rounded-full shadow-sm border-none
+                ${openFaq === idx ? 'bg-[#C95A5A] text-black' : 'bg-[#C95A5A] text-black/80 hover:bg-[#C95A5A]/70'}`}
               onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
             >
               <span>{faq.question}</span>
-              <span className="ml-4">{openFaq === idx ? '-' : '+'}</span>
+              <span className="ml-auto">{openFaq === idx ? '-' : '+'}</span>
             </button>
             {openFaq === idx && (
               <div className="pb-4 pt-2 px-4 text-gray-700 font-secondary font-semibold">
@@ -138,7 +161,7 @@ export default function CategoryPage() {
       </div>
       <div className="flex mt-10">
         <button
-          className="bg-sunrise/50 hover:bg-sunrise/90 text-black font-semibold px-8 py-3 rounded-lg transition-colors shadow text-lg"
+          className="bg-[#DF9999] hover:bg-[#DF9999]/90 text-black font-semibold px-8 py-3 rounded-lg transition-colors shadow text-lg"
           onClick={() => router.push('/')}
         >
           Back to Home
