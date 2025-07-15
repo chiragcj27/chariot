@@ -13,7 +13,7 @@ export async function GET(
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
     
-    const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/admin/products/${productId}`;
+    const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/products/${productId}`;
 
     const res = await fetch(backendUrl, {
       method: 'GET',

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/admin/blacklist`;
+    const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/blacklist`;
 
     const res = await fetch(backendUrl, {
       method: 'GET',

@@ -7,7 +7,7 @@ export async function POST(
   try {
     const { sellerId } = await params;
     
-    const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/admin/blacklist/${sellerId}/remove`;
+    const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/blacklist/${sellerId}/remove`;
 
     const res = await fetch(backendUrl, {
       method: 'POST',

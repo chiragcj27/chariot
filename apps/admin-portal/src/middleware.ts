@@ -25,7 +25,6 @@ export async function middleware(request: NextRequest) {
     // Use your JWT secret here
     const secret = new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET || 'chariot_jwt_secret');
     const { payload } = await jwtVerify(accessToken, secret);
-    console.log(payload);
     if (payload.role !== 'admin') {
       return NextResponse.redirect(new URL('/signin', request.url));
     }

@@ -157,7 +157,7 @@ export function CreateItemDialog({
 
     try {
       // First, get the pre-signed URL from our API
-      const getUrlResponse = await fetch("http://localhost:3001/api/assets/upload-url", {
+      const getUrlResponse = await fetch((process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001") + "/api/assets/upload-url", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -252,7 +252,7 @@ export function CreateItemDialog({
       }
 
       // Make the API call to create the item
-      const response = await fetch("http://localhost:3001/api/menu/items", {
+      const response = await fetch((process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api") + "/menu/items", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

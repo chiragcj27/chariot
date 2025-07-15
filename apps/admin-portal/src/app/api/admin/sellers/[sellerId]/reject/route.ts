@@ -6,7 +6,7 @@ export async function POST(
 ) {
   const params = await context.params;
   const body = await req.json();
-  const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/admin/sellers/${params.sellerId}/reject`;
+  const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/sellers/${params.sellerId}/reject`;
 
   const res = await fetch(backendUrl, {
     method: 'POST',

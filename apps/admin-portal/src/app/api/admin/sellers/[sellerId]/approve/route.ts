@@ -21,7 +21,7 @@ export async function POST(
     // Continue with empty body if parsing fails
   }
 
-  const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/admin/sellers/${params.sellerId}/approve`;
+  const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/sellers/${params.sellerId}/approve`;
 
   const res = await fetch(backendUrl, {
     method: 'POST',

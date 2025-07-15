@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   // Replace with your actual backend API URL
-  const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001/api/auth/refresh';
+  const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/auth/refresh`;
 
   // Forward the refreshToken cookie to the backend
   const refreshToken = req.cookies.get('refreshToken')?.value;

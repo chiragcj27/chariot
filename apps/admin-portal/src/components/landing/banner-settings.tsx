@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 interface Banner {
     _id: string;
@@ -150,8 +150,6 @@ export default function BannerSettings() {
                 throw new Error('Banner not found');
             }
 
-            console.log(bannerToDelete);
-
             // Delete the banner from S3
             const deleteResponse = await fetch(`${API_URL}/assets/delete`, {
                 method: 'DELETE',
@@ -162,7 +160,6 @@ export default function BannerSettings() {
                     key: bannerToDelete.filename,
                 })
             });
-            console.log(deleteResponse);
             if (!deleteResponse.ok) throw new Error('Failed to delete banner from S3');
 
             // Then delete the banner record

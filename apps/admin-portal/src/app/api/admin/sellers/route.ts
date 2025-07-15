@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   if (page) queryParams.append('page', page);
   if (limit) queryParams.append('limit', limit);
 
-  const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/admin/sellers?${queryParams.toString()}`;
+  const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/sellers?${queryParams.toString()}`;
 
   const res = await fetch(backendUrl, {
     method: 'GET',

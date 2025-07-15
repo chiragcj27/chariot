@@ -13,7 +13,7 @@ export async function PATCH(
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
     
-    const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/admin/products/${productId}/approve`;
+    const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/products/${productId}/approve`;
 
     const res = await fetch(backendUrl, {
       method: 'POST',

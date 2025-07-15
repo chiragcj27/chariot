@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/admin/products?${queryParams.toString()}`;
+    const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/products?${queryParams.toString()}`;
 
     const res = await fetch(backendUrl, {
       method: 'GET',
