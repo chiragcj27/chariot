@@ -9,11 +9,16 @@ export async function POST(
     
     const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/blacklist/${sellerId}/remove`;
 
+    const accessToken = req.cookies.get('accessToken')?.value;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
     const res = await fetch(backendUrl, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     const data = await res.json();

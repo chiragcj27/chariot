@@ -9,12 +9,16 @@ export async function PUT(
   try {
     const body = await request.json();
     const { kitId } = await params;
-    
+    const accessToken = request.cookies.get('accessToken')?.value;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
     const response = await fetch(`${API_BASE_URL}/api/kits/${kitId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify(body),
     });
 

@@ -1,14 +1,19 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/blacklist/stats`;
 
+    const accessToken = req.cookies.get('accessToken')?.value;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
     const res = await fetch(backendUrl, {
       method: 'GET',
-      headers: { 
-        'Content-Type': 'application/json',
-      },
+      headers,
     });
 
     const data = await res.json();

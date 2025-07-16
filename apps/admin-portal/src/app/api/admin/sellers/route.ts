@@ -13,11 +13,22 @@ export async function GET(req: NextRequest) {
 
   const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/sellers?${queryParams.toString()}`;
 
-  const res = await fetch(backendUrl, {
+  const accessToken = req.cookies.get('accessToken')?.value;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+    const res = await fetch(backendUrl, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
   });
 
   const data = await res.json();
+  if (!res.ok) {
+    return NextResponse.json(data, { status: res.status });
+  }
+
   return NextResponse.json(data, { status: res.status });
 } 
