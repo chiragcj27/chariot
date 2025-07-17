@@ -24,7 +24,10 @@ const PORT = process.env.PORT || 3001;
 const MONGO_URI = process.env.MONGO_URI || '';
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'https://chariot-website.vercel.app',
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes
