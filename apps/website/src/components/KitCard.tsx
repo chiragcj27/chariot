@@ -54,13 +54,22 @@ export default function KitCard({ kit }: KitCardProps) {
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300" />
         </div>
         
-        <div className="mt-4 space-y-2">
-          <h3 className="text-xl font-semibold text-gray-900 group-hover:text-sunrise transition-colors duration-300">
-            {kit.title}
-          </h3>
-          <p className="text-gray-600 text-sm line-clamp-2">
-            {kit.description}
-          </p>
+        <div className="mt-4">
+          {(() => {
+            const [firstWord, ...rest] = kit.title.split(' ');
+            return (
+              <>
+                <h3 className="text-[32px] font-normal text-gray-900">
+                  {firstWord}
+                </h3>
+                {rest.length > 0 && (
+                  <div className="text-[20px] -mt-2 text-gray-400 font-light">
+                    {rest.join(' ')}
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       </div>
     </Link>

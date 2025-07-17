@@ -53,14 +53,41 @@
   font-display: swap;
 }
 
+@font-face{
+  font-family: 'Glacial';
+  src: url('/fonts/GlacialIndifference-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Balgin';
+  src: url('/fonts/Balgin-semibold.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Balgin-regular';
+  src: url('/fonts/Balgin-regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-pearl: oklch(0.9839 0.015 106.68); 
   --color-gold: oklch(0.8646 0.0448 80.55);
   --color-seafoam: oklch(0.8845 0.0239 256.11);
-  --color-sunrise: oklch(69.63% 0.181 42.81);
+  --color-sunrise: oklch(79.19% 0.121 43.81);
 
   --font-primary: "Belleza", ui-sans-serif, system-ui, sans-serif;
-  --font-secondary: "Avenir", ui-sans-serif, system-ui, sans-serif;
+  --font-balgin: "Balgin", ui-sans-serif, system-ui, sans-serif;
+  --font-balgin-regular: "Balgin-regular", ui-sans-serif, system-ui, sans-serif;
+  --font-avenir: "Avenir", ui-sans-serif, system-ui, sans-serif;
+  --font-secondary: "Glacial", ui-sans-serif, system-ui, sans-serif;
 }
 
 /* 3. Regular CSS rules last */
@@ -70,7 +97,7 @@ button {
 }
 
 body {
-  font-family: var(--font-primary);
+  font-family: var(--font-secondary);
 }
 
 :root {

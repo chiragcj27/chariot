@@ -7,48 +7,47 @@ import Footer from "@/components/Footer";
 export default function Home() {
   return (
     <div>
-    <div className="px-5 md:px-10 lg:px-20">
+      <div className="px-5 md:px-10 lg:px-20">
       {/* Hero Section */}
-      <div className="flex flex-col py-30">
-        <h1 className="text-7xl text-sunrise/80 font-bold">Timeless</h1>
-        <h1 className="text-7xl text-sunrise/80 font-bold">Elegance </h1>
-        <p className="py-8 text-2xl font-secondary">Discover our exquisite collection of handcrafted jewelry <br /> designed to captivate for generations</p>
+      <div className="flex flex-col pt-30 pb-15">
+        <h1 className="text-[#FCA17A] font-balgin text-7xl">
+          Hi, we&apos;re Chariot<br />Built for Jewelrs,<br/>by Jewelrs.
+        </h1>
+        <p className="py-8 text-4xl font-secondary">Branding, websites, catalogs, campaigns — everything your jewelry business needs to grow, all in one place.</p>
       </div>
       {/* Kits Section */}
       <div className="flex flex-col">
         <KitGrid />
       </div>
       {/* What We Do Section */}
-      <div className="flex flex-col md:flex-row mt-24 p-8">
-        <div className="w-full md:w-1/4 mb-8 md:mb-0">
-          <span className="text-sunrise text-xl font-secondary font-bold">What we do</span>
+      <div className="flex flex-col md:flex-row mt-24 pt-10">
+        <div className="w-full md:w-1/3 mb-8 md:mb-0">
+          <span className="text-sunrise text-[36px] font-secondary">What we do</span>
         </div>
-        <div className="w-full md:w-3/4">
-          <h2 className="text-5xl md:text-6xl font-bold mb-12">
-            Full-scale design projects <span className="italic">for tech companies</span><br />
-            that launch, raise funding, go global and<br />
-            become enterprises
+        <div className="w-full md:w-2/3">
+          <h2 className="text-[32px] md:text-[32px] mb-12">
+          End-to-end creative and marketing services for jewelry businesses that launch, grow, and scale worldwide.
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div>
-              <h3 className="text-4xl font-bold mb-2">1. Branding</h3>
-              <div className="border-b-2 mb-2" />
-              <p className="text-gray-400 font-secondary text-lg">With outstanding ideas and metaphors at the heart of each brand concept</p>
+            <div className="mb-4">
+              <h3 className="text-4xl text-sunrise ml-5 mb-2">1. Branding</h3>
+              <div className="border-b-2 border-sunrise mb-4" />
+              <p className="text-[#8A8A8A] font-secondary text-[20px]">Logos, taglines, tone of voice — with deep jewelry industry insight at the core</p>
             </div>
-            <div>
-              <h3 className="text-4xl font-bold mb-2">2. Websites</h3>
-              <div className="border-b-2 border-gray-200 mb-2" />
-              <p className="text-gray-400 font-secondary text-lg">Right words, catchy visuals and great conversion rates</p>
+            <div className="mb-4">
+              <h3 className="text-4xl text-sunrise ml-5 mb-2">2. Websites</h3>
+              <div className="border-b-2 border-sunrise mb-2" />
+              <p className="text-[#8A8A8A] font-secondary text-[20px]">Copy, design, development — everything you need to make your storefront shine</p>
             </div>
-            <div>
-              <h3 className="text-4xl font-bold mb-2">3. Development</h3>
-              <div className="border-b-2 border-gray-200 mb-2" />
-              <p className="text-gray-400 font-secondary text-lg">Webflow, Wordpress, React and other custom code solutions</p>
+            <div className="mb-4">
+              <h3 className="text-4xl text-sunrise ml-5 mb-2">3. Social Media</h3>
+              <div className="border-b-2 border-sunrise mb-2" />
+              <p className="text-[#8A8A8A] font-secondary text-[20px]">Instagram grids, Reels, captions, hashtags — designed to grow your jewelry brand, not just fill the feed</p>
             </div>
-            <div>
-              <h3 className="text-4xl font-bold mb-2">4. Design support</h3>
-              <div className="border-b-2 border-gray-200 mb-2" />
-              <p className="text-gray-400 font-secondary text-lg">UI-UX design, explainer videos, marketing materials, you name it</p>
+            <div className="mb-4">
+              <h3 className="text-4xl text-sunrise ml-5 mb-2">4. Design support</h3>
+              <div className="border-b-2 border-sunrise mb-2" />
+              <p className="text-[#8A8A8A] font-secondary text-[20px]">Catalogs, social posts, renders, packaging, POS — if you need it, we&apos;ve probably done it</p>
             </div>
           </div>
         </div>
@@ -56,6 +55,38 @@ export default function Home() {
       </div>
       {/* Who we are Section */}
       <WhoWeAre />
+      <div className="px-5 md:px-10 lg:px-20 flex flex-col md:flex-row mt-24 pt-10">
+        <div className="w-full md:w-1/3 mb-8 md:mb-0">
+          <span className="text-sunrise text-[36px] font-secondary">Real Industry<br/>Experience</span>
+        </div>
+        <div className="w-full md:w-2/3">
+          <h2 className="text-[32px] md:text-[32px] mb-12">
+          Built on real industry experience <br/>Over three decades of first hand knowledge in the jewelry business — across markets, mediums, and formats.
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="mb-4">
+              <h3 className="text-4xl text-sunrise ml-5 mb-2">1. 30+ Years</h3>
+              <div className="border-b-2 border-sunrise mb-4" />
+              <p className="text-[#8A8A8A] font-secondary text-[20px]">Our team blends experience from creative studios, retail floors, manufacturing units, and global markets</p>
+            </div>
+            <div className="mb-4">
+              <h3 className="text-4xl text-sunrise ml-5 mb-2">2. Global Exposure</h3>
+              <div className="border-b-2 border-sunrise mb-4" />
+              <p className="text-[#8A8A8A] font-secondary text-[20px]">We&apos;ve worked with jewelry businesses across the U.S., Europe, the Middle East, and India</p>
+            </div>
+            <div className="mb-4">
+              <h3 className="text-4xl text-sunrise ml-5 mb-2">3. Omnichannel</h3>
+              <div className="border-b-2 border-sunrise mb-4" />
+              <p className="text-[#8A8A8A] font-secondary text-[20px]">From e-commerce and branding to packaging and in-store displays, we&apos;ve built solutions across every retail touchpoint</p>
+            </div>
+            <div className="mb-4">
+              <h3 className="text-4xl text-sunrise ml-5 mb-2">4. Creative Hub</h3>
+              <div className="border-b-2 border-sunrise mb-4" />
+              <p className="text-[#8A8A8A] font-secondary text-[20px]">From strategy and storytelling to catalogs, campaigns, and content, we help jewelry brands show up and scale up.</p>
+            </div>
+          </div>
+        </div>
+      </div>
       {/* Call to Action Section */}
       <CallToAction />
       {/* Subscription Plans Section */}

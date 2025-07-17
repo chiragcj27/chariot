@@ -29,6 +29,7 @@ const navigation = [
   { name: 'Menu Settings', href: '/menu', icon: Cog6ToothIcon },
   { name: 'Kits', href: '/kit', icon: AdjustmentsHorizontalIcon },
   { name: 'Landing Page Configuration', href: '/landing', icon: AdjustmentsHorizontalIcon },
+  { name: 'Subscription Cards', href: '/subscription-cards', icon: AdjustmentsHorizontalIcon },
 ];
 
 export default function DashboardLayout({

@@ -2,23 +2,22 @@ import React from "react";
 
 export default function CallToAction() {
   return (
-    <section className="w-full min-h-[60vh] flex flex-col items-center justify-center relative">
-      <span className="absolute left-12 top-12 text-xl font-bold font-secondary text-sunrise">Call to action</span>
-      <div className="flex flex-col items-center justify-center mt-12">
-        <h1 className="text-6xl md:text-7xl font-bold text-center leading-tight">
-          Let&apos;s discuss
+    <section className="w-full flex flex-col items-center justify-center relative px-5 md:px-10 lg:px-20 mb-10">
+      <div className="flex flex-col w-[1/3] items-center justify-center mt-12">
+        <h1 className="text-[32px] md:text-[40px] font-balgin-regular">
+          Let&apos;s create
           <br />
-          <span className="italic font-serif">your project!</span>
+          something<span className="text-sunrise"> exceptional</span>
         </h1>
-        <p className="mt-8 font-secondary text-lg text-center max-w-xl">
-          Ping us however you want, even if you don&apos;t have a brief
+        <p className="mt-8 px-13 font-secondary text-[20px] max-w-xl">
+        Whether you&apos;re refining a vision or starting from scratch — we&apos;re here to bring it to life.
         </p>
-        <div className="flex gap-6 mt-8">
-          <button className="bg-seafoam hover:bg-sunrise/20 text-black px-8 py-4 rounded-xl text-xl font-medium transition">
-            Shoot a letter 💌
+        <div className="flex flex-col md:flex-row gap-6 mt-10 -translate-x-3">
+          <button className="bg-[#FFC1A0] hover:bg-[#FFC1A0]/20 border-2 border-[#D94506] text-black px-5 py-2 rounded-4xl text-xl font-medium transition">
+            Send us a message
           </button>
-          <button className="bg-seafoam hover:bg-sunrise/20 text-black px-8 py-4 rounded-xl text-xl font-medium transition">
-            Book a call ☎️
+          <button className="bg-[#FFC1A0] hover:bg-[#FFC1A0]/20 border-2 border-[#D94506] text-black px-5 py-2 rounded-4xl text-xl font-medium transition">
+            Book a consultation
           </button>
         </div>
       </div>

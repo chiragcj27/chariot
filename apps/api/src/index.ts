@@ -13,6 +13,8 @@ import sellerApprovalRoutes from './routes/admin/seller-approval.routes';
 import sellerBlacklistRoutes from './routes/admin/seller-blacklist.routes';
 import adminProductRoutes from './routes/admin/product.routes';
 import kitRoutes from './routes/kit.routes';
+import subscriptionCardRoutes from './routes/subscriptionCard.routes';
+import adminSubscriptionCardRoutes from './routes/admin/subscriptionCard.routes';
 
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -36,6 +38,8 @@ app.use('/api/admin/sellers', sellerApprovalRoutes);
 app.use('/api/admin/blacklist', sellerBlacklistRoutes);
 app.use('/api/admin/products', adminProductRoutes);
 app.use('/api/kits', kitRoutes);
+app.use('/api/subscription-cards', subscriptionCardRoutes);
+app.use('/api/admin/subscription-cards', adminSubscriptionCardRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
   .then(() => {
