@@ -10,8 +10,8 @@ interface ProductFormData {
   name: string;
   description: string;
   type: 'physical' | 'digital' | 'service';
-  categoryId: string;
-  itemId: string;
+  categoryId?: string; // Made optional
+  itemId?: string; // Made optional
   price?: {
     amount?: number;
     currency: string;
@@ -48,12 +48,12 @@ interface ProductFormData {
   
   // Digital product specific
   kind?: string;
-  assetDetails?: {
-    file: string;
-    fileType: string;
-    fileSize: number;
-    fileUrl: string;
-  };
+  zipFile?: {
+    name: string;
+    url: string;
+    key: string;
+    size: number;
+  } | null;
   
   // Service product specific
   deliveryTime?: {
@@ -79,6 +79,7 @@ interface ProductFormData {
   
   // Images
   images: (string | { _id: string; url: string })[];
+  previewFile?: { name: string; url: string; key: string } | null;
 }
 
 export default function CreateProductPage() {
@@ -183,8 +184,31 @@ export default function CreateProductPage() {
     setSuccess(null);
 
     try {
-      // Create product without images first
-      const productDataWithoutImages = { ...formData, images: [] };
+      // Clean the form data before sending
+      const cleanedFormData = { ...formData, images: [] };
+      
+      // For kit products, remove categoryId and itemId
+      if (cleanedFormData.isKitProduct) {
+        delete cleanedFormData.categoryId;
+        delete cleanedFormData.itemId;
+      } else {
+        // For non-kit products, remove empty categoryId and itemId
+        if (!cleanedFormData.categoryId || cleanedFormData.categoryId === '') {
+          delete cleanedFormData.categoryId;
+        }
+        if (!cleanedFormData.itemId || cleanedFormData.itemId === '') {
+          delete cleanedFormData.itemId;
+        }
+        // Remove empty kitId for non-kit products
+        if (!cleanedFormData.kitId || cleanedFormData.kitId === '') {
+          delete cleanedFormData.kitId;
+        }
+      }
+      
+      // For digital products, ensure zipFile data is included
+      if (cleanedFormData.type === 'digital' && cleanedFormData.zipFile) {
+        // Keep the zipFile data as is - it contains the key needed for deletion
+      }
       
       const response = await fetch('/api/products', {
         method: 'POST',
@@ -192,7 +216,7 @@ export default function CreateProductPage() {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(productDataWithoutImages),
+        body: JSON.stringify(cleanedFormData),
       });
 
       const data = await response.json();

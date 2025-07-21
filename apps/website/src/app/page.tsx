@@ -9,11 +9,11 @@ export default function Home() {
     <div>
       <div className="px-5 md:px-10 lg:px-20">
       {/* Hero Section */}
-      <div className="flex flex-col pt-30 pb-15">
-        <h1 className="text-[#FCA17A] font-balgin text-7xl">
+      <div className="flex flex-col pt-20 pb-15">
+        <p className="text-[#FCA17A] font-balgin-regular font-medium leading-17 text-[64px]">
           Hi, we&apos;re Chariot<br />Built for Jewelrs,<br/>by Jewelrs.
-        </h1>
-        <p className="py-8 text-4xl font-secondary">Branding, websites, catalogs, campaigns — everything your jewelry business needs to grow, all in one place.</p>
+        </p>
+        <p className="py-8 text-[32px] font-secondary">Branding, websites, catalogs, campaigns — everything your jewelry business needs to grow, all in one place.</p>
       </div>
       {/* Kits Section */}
       <div className="flex flex-col">

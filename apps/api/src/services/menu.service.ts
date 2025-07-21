@@ -10,34 +10,40 @@ export const menuService = {
         slug: itemData.slug,
         categoryId: categoryId,
         description: itemData.description,
-        image: new mongoose.Types.ObjectId() // temporary image ID
+        // Only create a temporary image ID if an image is provided
+        ...(itemData.image && { image: new mongoose.Types.ObjectId() })
       }], { session });
       
       if (!item[0]) {
         throw new Error('Failed to create item');
       }
 
-      // Create the item image with the required itemId
-      const imageData = {
-        filename: itemData.image?.filename,
-        originalname: itemData.image?.originalname,
-        url: itemData.image?.url,
-        size: itemData.image?.size,
-        mimetype: itemData.image?.mimetype,
-        bucket: itemData.image?.bucket || "chariot-images",
-        imageType: "item",
-        status: "uploaded",
-        itemId: item[0]._id // Required field for ItemImage
-      };
+      const updateData: any = {};
 
-      const itemImage = await ItemImage.create([imageData], { session });
+      // Create the item image only if provided
+      if (itemData.image) {
+        const imageData = {
+          filename: itemData.image?.filename,
+          originalname: itemData.image?.originalname,
+          url: itemData.image?.url,
+          size: itemData.image?.size,
+          mimetype: itemData.image?.mimetype,
+          bucket: itemData.image?.bucket || "chariot-images",
+          imageType: "item",
+          status: "uploaded",
+          itemId: item[0]._id // Required field for ItemImage
+        };
 
-      if (!itemImage[0]) {
-        throw new Error('Failed to create item image');
+        const itemImage = await ItemImage.create([imageData], { session });
+
+        if (!itemImage[0]) {
+          throw new Error('Failed to create item image');
+        }
+
+        updateData.image = itemImage[0]._id;
       }
 
       // Handle onHover image if provided
-      let onHoverImageId = undefined;
       if (itemData.onHover) {
         const onHoverImageData = {
           filename: itemData.onHover.filename,
@@ -57,25 +63,23 @@ export const menuService = {
           throw new Error('Failed to create onHover item image');
         }
 
-        onHoverImageId = onHoverItemImage[0]._id;
+        updateData.onHover = onHoverItemImage[0]._id;
       }
 
-      const updateData: any = {
-        image: itemImage[0]._id
-      };
-      
-      if (onHoverImageId) {
-        updateData.onHover = onHoverImageId;
-      }
-
-      const updatedItem = await Item.findByIdAndUpdate(
-        item[0]._id,
-        updateData,
-        { session, new: true }
-      );
-      
-      if (!updatedItem) {
-        throw new Error('Failed to update item with image reference');
+      // Only update if there are images to update
+      let updatedItem = item[0];
+      if (Object.keys(updateData).length > 0) {
+        const result = await Item.findByIdAndUpdate(
+          item[0]._id,
+          updateData,
+          { session, new: true }
+        );
+        
+        if (!result) {
+          throw new Error('Failed to update item with image reference');
+        }
+        
+        updatedItem = result;
       }
 
       return updatedItem;

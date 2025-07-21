@@ -10,9 +10,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { X } from 'lucide-react';
-import { productTypes, currencies, digitalKinds, timeUnits, fileTypes } from './constants';
+import { productTypes, currencies, digitalKinds, timeUnits } from './constants';
 import { TagInput } from './TagInput';
 import ImageUpload from './ImageUpload';
+import ZipUpload from './ZipUpload';
 import { useCategories } from '@/hooks/useCategories';
 import { useKits } from '@/hooks/useKits';
 
@@ -20,8 +21,8 @@ interface ProductFormData {
   name: string;
   description: string;
   type: 'physical' | 'digital' | 'service';
-  categoryId: string;
-  itemId: string;
+  categoryId?: string; // Made optional
+  itemId?: string; // Made optional
   price?: {
     amount?: number;
     currency: string;
@@ -58,12 +59,12 @@ interface ProductFormData {
   
   // Digital product specific
   kind?: string;
-  assetDetails?: {
-    file: string;
-    fileType: string;
-    fileSize: number;
-    fileUrl: string;
-  };
+  zipFile?: {
+    name: string;
+    url: string;
+    key: string;
+    size: number;
+  } | null;
   
   // Service product specific
   deliveryTime?: {
@@ -89,6 +90,7 @@ interface ProductFormData {
   
   // Images
   images: (string | { _id: string; url: string })[];
+  previewFile?: { name: string; url: string; key: string } | null;
 }
 
 interface ProductFormProps {
@@ -116,6 +118,8 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
     requirements: [],
     consultationRequired: false,
     images: [],
+    previewFile: null,
+    zipFile: null,
     ...initialData
   });
 
@@ -151,12 +155,32 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
       newErrors.description = 'Product description is required';
     }
 
-    if (!formData.categoryId) {
-      newErrors.categoryId = 'Category is required';
-    }
+    // Validate category and item fields based on product type
+    const hasCategoryAndItem = formData.categoryId && formData.itemId;
+    const hasKit = formData.kitId;
 
-    if (!formData.itemId) {
-      newErrors.itemId = 'Item is required';
+    if (formData.isKitProduct) {
+      // For kit products, kitId is required, categoryId and itemId should not be set
+      if (!hasKit) {
+        newErrors.kitId = 'Kit selection is required for kit products';
+      }
+      if (hasCategoryAndItem) {
+        newErrors.categoryId = 'Kit products should not have category and item selected';
+        newErrors.itemId = 'Kit products should not have category and item selected';
+      }
+    } else {
+      // For non-kit products, categoryId and itemId are required, kitId should not be set
+      if (!hasCategoryAndItem) {
+        if (!formData.categoryId) {
+          newErrors.categoryId = 'Category is required for non-kit products';
+        }
+        if (!formData.itemId) {
+          newErrors.itemId = 'Item is required for non-kit products';
+        }
+      }
+      if (hasKit) {
+        newErrors.kitId = 'Non-kit products should not have kit selected';
+      }
     }
 
     // Validate that at least one pricing option is provided
@@ -192,6 +216,10 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
       newErrors.kind = 'Digital product kind is required';
     }
 
+    if (formData.type === 'digital' && !formData.zipFile) {
+      newErrors.zipFile = 'ZIP file is required for digital products';
+    }
+
     if (formData.type === 'service') {
       if (!formData.deliveryTime?.min || !formData.deliveryTime?.max) {
         newErrors.deliveryTime = 'Delivery time is required';
@@ -201,18 +229,88 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
       }
     }
 
-    // Validate kit fields if this is a kit product
-    if (formData.isKitProduct) {
-      if (!formData.kitId) {
-        newErrors.kitId = 'Kit selection is required for kit products';
-      }
-      if (!formData.typeOfKit) {
-        newErrors.typeOfKit = 'Kit type is required for kit products';
-      }
+    // Validate kit type if this is a kit product
+    if (formData.isKitProduct && !formData.typeOfKit) {
+      newErrors.typeOfKit = 'Kit type is required for kit products';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  // --- Preview PDF Upload Logic ---
+  const [previewUploadLoading, setPreviewUploadLoading] = useState(false);
+  const [previewUploadError, setPreviewUploadError] = useState<string | null>(null);
+
+  const handlePreviewFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      setPreviewUploadError('Only PDF files are allowed');
+      return;
+    }
+    setPreviewUploadError(null);
+    setPreviewUploadLoading(true);
+    try {
+      // 1. Request signed URL from backend (corrected fields)
+      const res = await fetch('/api/assets/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name, fileType: file.type, folder: 'previews' })
+      });
+      if (!res.ok) throw new Error('Failed to get upload URL');
+      const { uploadUrl, url, key } = await res.json();
+      // 2. Upload file to S3
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': file.type },
+        body: file
+      });
+      if (!uploadRes.ok) throw new Error('Failed to upload file');
+      // 3. Store in form state
+      setFormData(prev => ({
+        ...prev,
+        previewFile: { name: file.name, url, key }
+      }));
+    } catch (err: unknown) {
+      setPreviewUploadError(
+        err && typeof err === 'object' && 'message' in err && typeof (err as { message?: string }).message === 'string'
+          ? (err as { message: string }).message
+          : 'Upload failed'
+      );
+    } finally {
+      setPreviewUploadLoading(false);
+    }
+  };
+
+  const handleRemovePreviewFile = async () => {
+    const currentPreviewFile = formData.previewFile;
+    
+    if (currentPreviewFile?.key) {
+      try {
+        // Delete from S3
+        const deleteResponse = await fetch('/api/assets/delete', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            key: currentPreviewFile.key,
+          }),
+        });
+        
+        if (!deleteResponse.ok) {
+          console.error('Failed to delete preview file from S3:', deleteResponse.statusText);
+          // Still remove from form state even if S3 deletion fails
+        }
+      } catch (error) {
+        console.error('Error deleting preview file from S3:', error);
+        // Still remove from form state even if S3 deletion fails
+      }
+    }
+    
+    // Remove from form state
+    setFormData(prev => ({ ...prev, previewFile: null }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -331,61 +429,6 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
             {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="category">Category *</Label>
-              {categoriesLoading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
-                  <span className="text-sm text-gray-500">Loading categories...</span>
-                </div>
-              ) : categoriesError ? (
-                <div className="text-red-500 text-sm">Error loading categories: {categoriesError}</div>
-              ) : (
-                <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-                  <SelectTrigger className={errors.categoryId ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(category => (
-                      <SelectItem key={category._id} value={category._id}>
-                        {category.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-              {errors.categoryId && <p className="text-red-500 text-sm mt-1">{errors.categoryId}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="item">Item *</Label>
-              <Select value={selectedItem} onValueChange={handleItemChange} disabled={!selectedCategory}>
-                <SelectTrigger className={errors.itemId ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="Select item" />
-                </SelectTrigger>
-                <SelectContent>
-                  {items.map(item => (
-                    <SelectItem key={item._id} value={item._id}>
-                      {item.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.itemId && <p className="text-red-500 text-sm mt-1">{errors.itemId}</p>}
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="tags">Tags</Label>
-            <TagInput
-              items={formData.tags}
-              onAdd={(tag) => setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }))}
-              onRemove={(tag) => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))}
-              placeholder="Add tags..."
-            />
-          </div>
-
           {/* Kit Selection */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
@@ -396,15 +439,24 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
                   setFormData(prev => ({
                     ...prev,
                     isKitProduct: checked,
-                    kitId: checked ? prev.kitId : undefined,
+                    // Clear fields when switching product type
+                    categoryId: checked ? '' : prev.categoryId,
+                    itemId: checked ? '' : prev.itemId,
+                    kitId: checked ? prev.kitId : '',
                     typeOfKit: checked ? prev.typeOfKit : undefined
                   }));
+                  // Clear selected category and item when switching to kit
+                  if (checked) {
+                    setSelectedCategory('');
+                    setSelectedItem('');
+                  }
                 }}
               />
               <Label htmlFor="isKitProduct">This is a kit product</Label>
             </div>
 
-            {formData.isKitProduct && (
+            {formData.isKitProduct ? (
+              // Kit product fields
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="kit">Kit *</Label>
@@ -453,8 +505,66 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
                   {errors.typeOfKit && <p className="text-red-500 text-sm mt-1">{errors.typeOfKit}</p>}
                 </div>
               </div>
+            ) : (
+              // Regular product fields
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="category">Category *</Label>
+                  {categoriesLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                      <span className="text-sm text-gray-500">Loading categories...</span>
+                    </div>
+                  ) : categoriesError ? (
+                    <div className="text-red-500 text-sm">Error loading categories: {categoriesError}</div>
+                  ) : (
+                    <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+                      <SelectTrigger className={errors.categoryId ? 'border-red-500' : ''}>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map(category => (
+                          <SelectItem key={category._id} value={category._id}>
+                            {category.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  {errors.categoryId && <p className="text-red-500 text-sm mt-1">{errors.categoryId}</p>}
+                </div>
+
+                <div>
+                  <Label htmlFor="item">Item *</Label>
+                  <Select value={selectedItem} onValueChange={handleItemChange} disabled={!selectedCategory}>
+                    <SelectTrigger className={errors.itemId ? 'border-red-500' : ''}>
+                      <SelectValue placeholder="Select item" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {items.map(item => (
+                        <SelectItem key={item._id} value={item._id}>
+                          {item.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.itemId && <p className="text-red-500 text-sm mt-1">{errors.itemId}</p>}
+                </div>
+              </div>
             )}
           </div>
+
+          <div>
+            <Label htmlFor="tags">Tags</Label>
+            <TagInput
+              items={formData.tags}
+              onAdd={(tag) => setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }))}
+              onRemove={(tag) => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))}
+              placeholder="Add tags..."
+            />
+          </div>
+
+
         </CardContent>
       </Card>
 
@@ -735,10 +845,45 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
             <CardTitle>Digital Product Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* ZIP File Upload */}
+            <ZipUpload
+              zipFile={formData.zipFile}
+              onZipFileChange={(zipFile) => setFormData(prev => ({ ...prev, zipFile }))}
+              maxSize={100}
+            />
+            {errors.zipFile && <p className="text-red-500 text-sm mt-1">{errors.zipFile}</p>}
+
+            {/* Preview PDF Upload */}
             <div>
-              <Label htmlFor="kind">Digital Product Kind *</Label>
+              <Label htmlFor="previewFile">Preview PDF (Optional)</Label>
+              {formData.previewFile ? (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-sm text-gray-700">{formData.previewFile.name}</span>
+                  <Button type="button" size="sm" variant="outline" onClick={handleRemovePreviewFile}>
+                    Remove
+                  </Button>
+                  <a href={formData.previewFile.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline text-xs ml-2">View</a>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 mt-2">
+                  <Input
+                    id="previewFile"
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handlePreviewFileChange}
+                    disabled={previewUploadLoading}
+                  />
+                  {previewUploadLoading && <span className="text-xs text-gray-500">Uploading...</span>}
+                  {previewUploadError && <span className="text-xs text-red-500">{previewUploadError}</span>}
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-1">Upload a PDF preview file for this digital product (optional).</p>
+            </div>
+
+            <div>
+              <Label htmlFor="kind">Digital Product Kind</Label>
               <Select value={formData.kind || ''} onValueChange={(value) => setFormData(prev => ({ ...prev, kind: value }))}>
-                <SelectTrigger className={errors.kind ? 'border-red-500' : ''}>
+                <SelectTrigger>
                   <SelectValue placeholder="Select digital product kind" />
                 </SelectTrigger>
                 <SelectContent>
@@ -748,40 +893,6 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
                 </SelectContent>
               </Select>
               {errors.kind && <p className="text-red-500 text-sm mt-1">{errors.kind}</p>}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="fileType">File Type</Label>
-                <Select value={formData.assetDetails?.fileType || ''} onValueChange={(value) => setFormData(prev => ({
-                  ...prev,
-                  assetDetails: { ...prev.assetDetails!, fileType: value }
-                }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select file type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fileTypes.map(type => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="fileSize">File Size (MB)</Label>
-                <Input
-                  id="fileSize"
-                  type="number"
-                  step="0.01"
-                  value={formData.assetDetails?.fileSize || ''}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    assetDetails: { ...prev.assetDetails!, fileSize: parseFloat(e.target.value) || 0 }
-                  }))}
-                  placeholder="0.00"
-                />
-              </div>
             </div>
           </CardContent>
         </Card>

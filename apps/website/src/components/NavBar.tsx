@@ -75,7 +75,7 @@ export default function NavBar() {
           {/* Navigation Links (fade) */}
           <div className={`hidden md:flex gap-8 transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             {categories.map((cat) => (
-              <Link key={cat._id} href={`/category/${cat.slug}`} className="text-lg font-secondary font-bold text-gray-800 hover:text-orange-400">
+              <Link key={cat._id} href={`/category/${cat.slug}`} className="text-lg font-secondary font-medium text-gray-800 hover:text-[#FCA17A]">
                 {cat.title}
               </Link>
             ))}
@@ -143,7 +143,7 @@ export default function NavBar() {
       </nav>
       {/* Mobile Menu (dropdown style) */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-95 flex flex-col md:hidden transition-all duration-500 ease-in-out">
+        <div className="fixed inset-0 z-50 bg-black flex flex-col md:hidden transition-all duration-500 ease-in-out">
           <div className="flex flex-col mt-24 px-8 gap-4 overflow-y-auto">
             {categories.map((cat) => (
               <div key={cat._id}>
@@ -208,45 +208,95 @@ export default function NavBar() {
           borderBottomRightRadius: '50% 10%',
         }}
         transition={{ duration: 0.6, ease: 'easeInOut' }}
-        className="fixed top-0 left-0 w-full z-30 bg-black text-white flex flex-col items-center justify-center space-y-6 text-2xl font-semibold overflow-hidden"
+        className="fixed top-0 left-0 w-full z-40 bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col overflow-hidden"
       >
-      
-          {/* Curtain Content */}
-          <div className="flex flex-1 flex-col justify-cente items-center md:flex-row md:items-start md:justify-center gap-16 w-full max-w-6xl mx-auto mt-20">
-            {/* Categories Columns */}
-            {categories.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-16 flex-1">
-                {categories.map((cat) => (
-                  <div key={cat._id}>
-                    <h2 className="text-white text-[1.5rem] font-semibold mb-4">{cat.title}</h2>
-                    <ul className="">
-                      {Array.isArray(cat.items) && cat.items.length > 0 ? (
-                        cat.items.map((item: CategoryItem) => (
-                          <li key={item._id}>
-                            <Link href={`/category/${cat.slug}/${item.slug}`} className="text-gray-300 text-lg font-secondary hover:text-orange-400 cursor-pointer" onClick={handleCloseMenu}>
-                              {item.title}
-                            </Link>
-                          </li>
-                        ))
-                      ) : (
-                        <li className="text-gray-500 italic">No items</li>
-                      )}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-            {/* Contact Column */}
-            <div className="min-w-[180px]">
-              <h2 className="text-white text-[1.5rem] font-semibold mb-4">Contact</h2>
-              <ul className="">
-                <li><a href="#" className="text-gray-300 text-lg font-secondary hover:text-orange-400">Email</a></li>
-                <li><a href="#" className="text-gray-300 text-lg font-secondary hover:text-orange-400">LinkedIn</a></li>
-                <li><a href="#" className="text-gray-300 text-lg font-secondary hover:text-orange-400">Twitter</a></li>
-                <li><a href="#" className="text-gray-300 text-lg font-secondary hover:text-orange-400">Instagram</a></li>
-              </ul>
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-5 pointer-events-none">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:20px_20px]"></div>
+        </div>
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto px-8 pb-8 mt-18 relative z-10 scrollbar-hide">
+          {/* Main Layout: 4-Column Grid */}
+          <div className="w-full max-w-7xl mx-auto">
+            {/* Categories Grid - 4 Columns including Contact */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {/* First 6 Categories */}
+              {categories.slice(0, 6).map((cat, index) => (
+                <motion.div 
+                  key={cat._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1, duration: 0.5 }}
+                  className="space-y-3"
+                >
+                  <h2 className="text-white text-xl font-bold tracking-wide border-b border-gray-700 pb-2">
+                    {cat.title}
+                  </h2>
+                  <ul className="space-y-2">
+                    {Array.isArray(cat.items) && cat.items.length > 0 ? (
+                      cat.items.map((item: CategoryItem, itemIndex) => (
+                        <motion.li 
+                          key={item._id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: (index * 0.1) + (itemIndex * 0.05), duration: 0.3 }}
+                        >
+                          <Link 
+                            href={`/category/${cat.slug}/${item.slug}`} 
+                            className="text-gray-300 text-base font-medium hover:text-orange-400 cursor-pointer transition-colors duration-200 flex items-center group"
+                            onClick={handleCloseMenu}
+                          >
+                            <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
+                            {item.title}
+                          </Link>
+                        </motion.li>
+                      ))
+                    ) : (
+                      <motion.li 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: index * 0.1, duration: 0.3 }}
+                        className="text-gray-500 italic text-base"
+                      >
+                        No items
+                      </motion.li>
+                    )}
+                  </ul>
+                </motion.div>
+              ))}
+
+              {/* Contact Section as 4th Column */}
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                className="space-y-3"
+              >
+                <h2 className="text-white text-xl font-bold tracking-wide border-b border-gray-700 pb-2">
+                  Contact
+                </h2>
+                <ul className="space-y-2">
+                  {['Email', 'LinkedIn', 'Twitter', 'Instagram'].map((platform, index) => (
+                    <motion.li 
+                      key={platform}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.7 + (index * 0.1), duration: 0.3 }}
+                    >
+                      <a 
+                        href="#" 
+                        className="text-gray-300 text-base font-medium hover:text-orange-400 cursor-pointer transition-colors duration-200 flex items-center group"
+                      >
+                        <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
+                        {platform}
+                      </a>
+                    </motion.li>
+                  ))}
+                </ul>
+              </motion.div>
             </div>
           </div>
+        </div>
         </motion.div>
         )}
         </AnimatePresence>
@@ -264,6 +314,17 @@ export default function NavBar() {
         }
         .animate-curtain-up {
           animation: curtain-up 0.5s cubic-bezier(0.77,0,0.175,1) forwards;
+        }
+        
+        /* Hide scrollbar for webkit browsers */
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .scrollbar-hide {
+          -ms-overflow-style: none;  /* IE and Edge */
+          scrollbar-width: none;  /* Firefox */
         }
       `}</style>
     </Fragment>

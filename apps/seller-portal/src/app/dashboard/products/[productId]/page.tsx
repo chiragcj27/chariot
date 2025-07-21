@@ -64,6 +64,11 @@ interface Product {
     fileSize: number;
     fileUrl: string;
   };
+  previewFile?: {
+    name: string;
+    url: string;
+    key: string;
+  };
   
   // Service product specific
   deliveryTime?: {

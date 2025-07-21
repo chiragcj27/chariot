@@ -25,7 +25,7 @@ interface Item {
   title: string
   slug: string
   description: string
-  image: {
+  image?: {
     url: string
     filename: string
     originalname: string
@@ -365,7 +365,7 @@ export function CreateItemDialog({
             </div>
 
             <div className="grid gap-2">
-              <Label>Image</Label>
+              <Label>Image (Optional)</Label>
               <Tabs defaultValue="upload" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="upload">Upload File</TabsTrigger>

@@ -22,10 +22,44 @@ export const productController = {
   // Create a new product
   createProduct: async (req: Request, res: Response) => {
     try {
+      // Validate product data before creation
+      const { categoryId, itemId, kitId, isKitProduct, type, zipFile } = req.body;
+      
+      const hasCategoryAndItem = categoryId && itemId;
+      const hasKit = kitId && kitId !== '';
+      
+      // Validate the new logic: either categoryId+itemId OR kitId, but not both
+      if (!hasCategoryAndItem && !hasKit) {
+        return res.status(400).json({
+          message: "Product must have either categoryId+itemId OR kitId"
+        });
+      }
+      
+      if (hasCategoryAndItem && hasKit) {
+        return res.status(400).json({
+          message: "Product cannot have both categoryId+itemId AND kitId"
+        });
+      }
+      
+      // If it's a kit product, ensure kitId is present
+      if (isKitProduct && !hasKit) {
+        return res.status(400).json({
+          message: "Kit products must have a kitId"
+        });
+      }
+      
+      // If it's not a kit product, ensure categoryId and itemId are present
+      if (!isKitProduct && !hasCategoryAndItem) {
+        return res.status(400).json({
+          message: "Non-kit products must have both categoryId and itemId"
+        });
+      }
+
       // Generate slug from product name
       const slug = createSlug(req.body.name);
       
-      const productData = {
+      // Prepare product data, filtering out empty strings for ObjectId fields
+      const productData: any = {
         ...req.body,
         sellerId: req.user.userId,
         slug: slug,
@@ -33,6 +67,49 @@ export const productController = {
         isAdminApproved: false,
         isAdminRejected: false
       };
+      
+      // Remove empty categoryId and itemId for kit products
+      if (isKitProduct) {
+        delete productData.categoryId;
+        delete productData.itemId;
+      } else {
+        // Remove empty categoryId and itemId if they're empty strings
+        if (!categoryId || categoryId === '') {
+          delete productData.categoryId;
+        }
+        if (!itemId || itemId === '') {
+          delete productData.itemId;
+        }
+        // Remove empty kitId for non-kit products
+        if (!kitId || kitId === '') {
+          delete productData.kitId;
+        }
+      }
+      
+      // Convert empty strings to undefined for all ObjectId fields to prevent casting errors
+      if (productData.categoryId === '') {
+        delete productData.categoryId;
+      }
+      if (productData.itemId === '') {
+        delete productData.itemId;
+      }
+      if (productData.kitId === '') {
+        delete productData.kitId;
+      }
+      if (productData.sellerId === '') {
+        delete productData.sellerId;
+      }
+      
+      // For digital products, store zipFile data
+      if (type === 'digital' && zipFile) {
+        productData.zipFile = {
+          name: zipFile.name,
+          url: zipFile.url,
+          key: zipFile.key,
+          size: zipFile.size
+        };
+      }
+      
       let product;
 
       // Use the appropriate model based on product type
@@ -435,16 +512,50 @@ export const productController = {
       const { productId } = req.params;
       const updateData = req.body;
       
-      console.log('Updating product:', productId);
-      console.log('Update data:', JSON.stringify(updateData, null, 2));
-      
       const product = await Product.findById(productId).populate('images');
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
-      
-      console.log('Current product status:', product.status);
-      console.log('Current product images:', product.images);
+
+      // Validate product data if categoryId, itemId, kitId, or isKitProduct are being updated
+      if (updateData.categoryId !== undefined || updateData.itemId !== undefined || 
+          updateData.kitId !== undefined || updateData.isKitProduct !== undefined) {
+        
+        const categoryId = updateData.categoryId !== undefined ? updateData.categoryId : product.categoryId;
+        const itemId = updateData.itemId !== undefined ? updateData.itemId : product.itemId;
+        const kitId = updateData.kitId !== undefined ? updateData.kitId : product.kitId;
+        const isKitProduct = updateData.isKitProduct !== undefined ? updateData.isKitProduct : product.isKitProduct;
+        
+        const hasCategoryAndItem = categoryId && itemId;
+        const hasKit = kitId && kitId !== '';
+        
+        // Validate the new logic: either categoryId+itemId OR kitId, but not both
+        if (!hasCategoryAndItem && !hasKit) {
+          return res.status(400).json({
+            message: "Product must have either categoryId+itemId OR kitId"
+          });
+        }
+        
+        if (hasCategoryAndItem && hasKit) {
+          return res.status(400).json({
+            message: "Product cannot have both categoryId+itemId AND kitId"
+          });
+        }
+        
+        // If it's a kit product, ensure kitId is present
+        if (isKitProduct && !hasKit) {
+          return res.status(400).json({
+            message: "Kit products must have a kitId"
+          });
+        }
+        
+        // If it's not a kit product, ensure categoryId and itemId are present
+        if (!isKitProduct && !hasCategoryAndItem) {
+          return res.status(400).json({
+            message: "Non-kit products must have both categoryId and itemId"
+          });
+        }
+      }
       
       // Allow editing of all products, but set to pending for re-approval if not already draft/rejected
       const wasActiveOrPending = ["active", "pending"].includes(product.status);
@@ -459,26 +570,22 @@ export const productController = {
 
       // Handle image cleanup if images are being updated
       if (updateData.images && Array.isArray(updateData.images)) {
-        console.log('Processing images update');
-        console.log('Current images:', product.images);
-        console.log('New images:', updateData.images);
-        
         // For now, just keep the existing images and don't delete any
         // This prevents the image deletion issue
         delete updateData.images;
       }
 
-      // Handle digital asset cleanup if asset is being updated
-      if (product.type === 'digital' && updateData.assetDetails) {
-        const currentAssetFile = (product as any).assetDetails?.file;
-        const newAssetFile = updateData.assetDetails.file;
+      // Handle digital ZIP file cleanup if zipFile is being updated
+      if (product.type === 'digital' && updateData.zipFile) {
+        const currentZipFile = (product as any).zipFile;
+        const newZipFile = updateData.zipFile;
         
-        // If the asset file is being changed, delete the old one
-        if (currentAssetFile && newAssetFile && currentAssetFile !== newAssetFile) {
+        // If the ZIP file is being changed, delete the old one from private bucket
+        if (currentZipFile?.key && newZipFile?.key && currentZipFile.key !== newZipFile.key) {
           try {
-            await s3Service.deleteAsset(currentAssetFile);
+            await s3Service.deletePrivateAsset(currentZipFile.key);
           } catch (s3Error) {
-            console.error('Error deleting old digital asset from S3:', s3Error);
+            console.error('Error deleting old ZIP file from private S3:', s3Error);
           }
         }
       }
@@ -497,21 +604,30 @@ export const productController = {
         'creditsCost', 'discountedCreditsCost', 'discount', 'theme', 'season', 
         'occasion', 'tags', 'featured', 'stock', 'deliverables', 'requirements', 
         'consultationRequired', 'seo', 'dimensions', 'weight', 
-        'kind', 'assetDetails', 'deliveryTime', 'revisions', 'isKitProduct', 
-        'kitId', 'typeOfKit'
+        'kind', 'deliveryTime', 'revisions', 'isKitProduct', 
+        'kitId', 'typeOfKit', 'zipFile', 'previewFile'
       ];
       
       fieldsToUpdate.forEach(field => {
         if (updateData[field] !== undefined) {
-          console.log(`Updating field ${field}:`, updateData[field]);
           (product as any)[field] = updateData[field];
         }
       });
-      
-      console.log('Saving product with data:', JSON.stringify(product.toObject(), null, 2));
+
+      // Handle digital preview file cleanup if previewFile is being updated
+      if (product.type === 'digital' && updateData.previewFile) {
+        const currentPreviewFile = (product as any).previewFile;
+        const newPreviewFile = updateData.previewFile;
+        if (currentPreviewFile?.key && newPreviewFile?.key && currentPreviewFile.key !== newPreviewFile.key) {
+          try {
+            await s3Service.deleteAsset(currentPreviewFile.key);
+          } catch (s3Error) {
+            console.error('Error deleting old preview file from S3:', s3Error);
+          }
+        }
+      }
       
       await product.save();
-      console.log('Product saved successfully');
       
       res.status(200).json({ message: "Product updated successfully", product });
     } catch (error) {
@@ -546,12 +662,21 @@ export const productController = {
         }
       }
 
-      // Delete digital product asset if it exists
-      if (product.type === 'digital' && (product as any).assetDetails?.file) {
+      // Delete digital product ZIP file if it exists
+      if (product.type === 'digital' && (product as any).zipFile?.key) {
         try {
-          await s3Service.deleteAsset((product as any).assetDetails.file);
+          await s3Service.deletePrivateAsset((product as any).zipFile.key);
         } catch (s3Error) {
-          console.error('Error deleting digital asset from S3:', s3Error);
+          console.error('Error deleting ZIP file from private S3:', s3Error);
+        }
+      }
+
+      // Delete digital product preview file if it exists
+      if (product.type === 'digital' && (product as any).previewFile?.key) {
+        try {
+          await s3Service.deleteAsset((product as any).previewFile.key);
+        } catch (s3Error) {
+          console.error('Error deleting preview file from S3:', s3Error);
         }
       }
 

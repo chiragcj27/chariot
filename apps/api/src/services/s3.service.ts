@@ -42,6 +42,43 @@ export const s3Service = {
     }
   },
 
+  async getZipUploadUrl(fileName: string, fileType: string, folder: string) {
+    try {
+      // Use a private bucket for ZIP files (digital products)
+      const bucket = process.env.AWS_S3_PRIVATE_BUCKET || process.env.AWS_S3_BUCKET || "";
+      const region = process.env.AWS_REGION || "";
+
+      if (!bucket) {
+        throw new Error("Private S3 bucket not configured");
+      }
+
+      const key = `${folder}/${uuidv4()}-${fileName}`;
+
+      const command = new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        ContentType: fileType,
+        // Add metadata to identify this as a digital product file
+        Metadata: {
+          'digital-product': 'true',
+          'uploaded-at': new Date().toISOString(),
+        },
+      });
+
+      const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
+      return {
+        uploadUrl,
+        key,
+        url: `https://${bucket}.s3.${region}.amazonaws.com/${encodeURIComponent(key)}`,
+        bucket, // Return bucket info for reference
+      };
+    } catch (error) {
+      console.error("Error in getZipUploadUrl:", error);
+      throw error;
+    }
+  },
+
   async getFileMetadata(key: string) {
     try {
       const command = new GetObjectCommand({
@@ -61,16 +98,64 @@ export const s3Service = {
     }
   },
 
-  async deleteAsset(key: string) {
+  async deleteAsset(key: string, bucket?: string) {
     try {
-      const bucket = process.env.AWS_S3_BUCKET || "";
+      const targetBucket = bucket || process.env.AWS_S3_BUCKET || "";
       const command = new DeleteObjectCommand({
-        Bucket: bucket,
+        Bucket: targetBucket,
         Key: key,
       });
       await s3Client.send(command);
     } catch (error) {
       console.error('Error in deleteAsset:', error);
+      throw error;
+    }
+  },
+
+  async deletePrivateAsset(key: string) {
+    try {
+      const bucket = process.env.AWS_S3_PRIVATE_BUCKET || process.env.AWS_S3_BUCKET || "";
+      if (!bucket) {
+        throw new Error("Private S3 bucket not configured");
+      }
+      await this.deleteAsset(key, bucket);
+    } catch (error) {
+      console.error('Error in deletePrivateAsset:', error);
+      throw error;
+    }
+  },
+
+  async getDigitalProductDownloadUrl(productId: string, userId: string, key?: string) {
+    try {
+      // Use private bucket for digital products
+      const bucket = process.env.AWS_S3_PRIVATE_BUCKET || process.env.AWS_S3_BUCKET || "";
+      
+      if (!bucket) {
+        throw new Error("Private S3 bucket not configured");
+      }
+
+      // Use provided key or fallback to default pattern
+      const fileKey = key || `digital-products/${productId}.zip`;
+
+      const command = new GetObjectCommand({
+        Bucket: bucket,
+        Key: fileKey,
+      });
+
+      // Generate a short-lived signed URL (5 minutes)
+      const downloadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+
+      // Log the download attempt for security
+      console.log(`Download requested for product ${productId} by user ${userId} at ${new Date().toISOString()}`);
+
+      return {
+        downloadUrl,
+        expiresIn: 300, // 5 minutes
+        productId,
+        userId,
+      };
+    } catch (error) {
+      console.error("Error in getDigitalProductDownloadUrl:", error);
       throw error;
     }
   }

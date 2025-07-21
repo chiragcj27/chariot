@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Plus, ChevronDown, Edit, Trash2, Sparkles, Package, Tag } from "lucide-react"
+import { Plus, ChevronDown, Edit, Trash2, Sparkles, Package, Tag, ImageIcon } from "lucide-react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,7 +18,7 @@ interface Item {
   title: string
   slug: string
   description?: string
-  image: {
+  image?: {
     url: string
     filename: string
     originalname: string
@@ -237,27 +237,35 @@ export function MegaMenuManager() {
                         >
                                                   <div className="flex items-center space-x-3">
                           <div className="relative w-10 h-10 rounded-lg overflow-hidden border group">
-                            <Image
-                              src={item.image?.url || "/placeholder.svg"}
-                              alt={item.title}
-                              fill
-                              sizes="(max-width: 40px) 100vw, 40px"
-                              className="object-cover transition-opacity duration-200 group-hover:opacity-0"
-                              onError={(e) => {
-                                e.currentTarget.src = "/placeholder.svg"
-                              }}
-                            />
-                            {item.onHover && (
-                              <Image
-                                src={item.onHover.url}
-                                alt={`${item.title} on hover`}
-                                fill
-                                sizes="(max-width: 40px) 100vw, 40px"
-                                className="object-cover opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-                                onError={(e) => {
-                                  e.currentTarget.src = item.image?.url || "/placeholder.svg"
-                                }}
-                              />
+                            {item.image ? (
+                              <>
+                                <Image
+                                  src={item.image.url}
+                                  alt={item.title}
+                                  fill
+                                  sizes="(max-width: 40px) 100vw, 40px"
+                                  className="object-cover transition-opacity duration-200 group-hover:opacity-0"
+                                  onError={(e) => {
+                                    e.currentTarget.src = "/placeholder.svg"
+                                  }}
+                                />
+                                {item.onHover && (
+                                  <Image
+                                    src={item.onHover.url}
+                                    alt={`${item.title} on hover`}
+                                    fill
+                                    sizes="(max-width: 40px) 100vw, 40px"
+                                    className="object-cover opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                                    onError={(e) => {
+                                      e.currentTarget.src = item.image?.url || "/placeholder.svg"
+                                    }}
+                                  />
+                                )}
+                              </>
+                            ) : (
+                              <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                <ImageIcon className="w-5 h-5 text-gray-400" />
+                              </div>
                             )}
                           </div>
                             <div>

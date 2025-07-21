@@ -32,7 +32,7 @@ const TestimonialsCarousel = ({ testimonials = [] }: TestimonialsCarouselProps) 
 
   if (formattedTestimonials.length === 0) {
     return (
-      <div className=" bg-[#EBF1F9] shadow-2xl bg-opacity-80 rounded-3xl w-full h-full flex flex-col items-center justify-center">
+      <div className=" bg-white shadow-2xl bg-opacity-80 rounded-3xl w-full h-full flex flex-col items-center justify-center">
         <div className="text-lg font-medium mb-1">Testimonials</div>
         <div className="flex flex-col items-center justify-center w-full px-2">
           <span className="italic text-gray-700 text-center text-xs sm:text-sm md:text-xs lg:text-xs">No testimonials available</span>
@@ -42,7 +42,7 @@ const TestimonialsCarousel = ({ testimonials = [] }: TestimonialsCarouselProps) 
   }
 
   return (
-    <div className=" bg-[#EBF1F9] border-2 border-gray-300 bg-opacity-80 rounded-2xl w-full h-full flex flex-col items-center justify-center relative overflow-hidden">
+    <div className=" bg-white border-4 border-[#CFDAE9] bg-opacity-80 rounded-4xl w-full h-full flex flex-col items-center justify-center relative overflow-hidden">
       
       {formattedTestimonials.map((testimonial, index) => (
         <div
@@ -54,9 +54,9 @@ const TestimonialsCarousel = ({ testimonials = [] }: TestimonialsCarouselProps) 
           }`}
         >
           {/* Responsive padding and text sizing */}
-          <div className="pt-8 px-2 sm:pt-10 sm:px-3 md:pt-8 md:px-2 lg:pt-6 lg:px-2">
-            <blockquote className="text-gray-700 mb-1 sm:mb-2 italic leading-relaxed text-center text-xs sm:text-sm md:text-2xl lg:text-2xl">
-              &quot;{testimonial.text}&quot;
+          <div className="pt-8 px-2 sm:pt-10 sm:px-3 md:pt-8 md:px-2 lg:pt-12 lg:px-2">
+            <blockquote className="text-gray-700 mb-1 sm:mb-2 italic leading-relaxed text-center text-xs sm:text-sm md:text-2xl lg:text-lg">
+              &quot;Lorem Ipsum is simply dummy text of the printing and typesetting industry.&quot;
             </blockquote>
             <div className="text-center">
               <div className="font-semibold text-gray-800 text-xs sm:text-xs md:text-xs lg:text-sm">{testimonial.author}</div>

@@ -5,7 +5,7 @@ export interface IItem {
     id: string;
     title: string;
     slug: string;
-    image: Types.ObjectId;
+    image?: Types.ObjectId;
     onHover?: Types.ObjectId;
     description: string;
     categoryId: Types.ObjectId;
@@ -36,7 +36,7 @@ const itemSchema = new mongoose.Schema<IItem>({
     },
     image: {
         type: Schema.Types.ObjectId,
-        required: true,
+        required: false,
         ref: 'Image'
     },
     onHover: {

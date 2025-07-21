@@ -23,12 +23,28 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const MONGO_URI = process.env.MONGO_URI || '';
 
+const allowedOrigins = [
+  'https://chariot-website.vercel.app',
+  'http://localhost:3000',
+  'https://chariot-admin.vercel.app',
+  'http://localhost:3002'
+];
 // Middleware
 app.use(cors({
-  origin: 'https://chariot-website.vercel.app',
+  origin: allowedOrigins,
   credentials: true
 }));
 app.use(express.json());
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  console.log('Health check requested');
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
 
 // Routes
 app.use('/api/menu', menuRoutes);

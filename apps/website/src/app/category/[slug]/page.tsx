@@ -138,7 +138,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
           </main>
         </div>
             {/* FAQ Section */}
-    <section className="px-8 pb-16">
+    <section className="px-15 pb-16">
       <h2 className="text-3xl font-bold font-secondary mb-6">FAQs</h2>
       <div className="w-full">
         {faqs.map((faq, idx) => (

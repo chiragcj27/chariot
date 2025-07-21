@@ -17,8 +17,26 @@ export interface MenuStructure {
     title: string;
     slug: string;
     description: string;
-    image: string;
-    onHover?: string;
+    image?: {
+      url: string;
+      filename: string;
+      originalname: string;
+      size: number;
+      mimetype: string;
+      bucket: string;
+      imageType: string;
+      status: string;
+    };
+    onHover?: {
+      url: string;
+      filename: string;
+      originalname: string;
+      size: number;
+      mimetype: string;
+      bucket: string;
+      imageType: string;
+      status: string;
+    };
     categoryId: string;
   }>;
 }
@@ -61,7 +79,26 @@ export const menuApi = {
     title: string;
     description?: string;
     price?: number;
-    image?: string;
+    image?: {
+      filename: string;
+      originalname: string;
+      url: string;
+      size: number;
+      mimetype: string;
+      bucket: string;
+      imageType: string;
+      status: string;
+    };
+    onHover?: {
+      filename: string;
+      originalname: string;
+      url: string;
+      size: number;
+      mimetype: string;
+      bucket: string;
+      imageType: string;
+      status: string;
+    };
     categoryId: string;
   }): Promise<NonNullable<MenuStructure['items']>[number]> {
     const response = await fetch(`${API_BASE_URL}/menu/items`, {
@@ -126,8 +163,26 @@ export const menuApi = {
     title?: string;
     slug?: string;
     description?: string;
-    image?: string;
-    onHover?: string;
+    image?: {
+      filename: string;
+      originalname: string;
+      url: string;
+      size: number;
+      mimetype: string;
+      bucket: string;
+      imageType: string;
+      status: string;
+    };
+    onHover?: {
+      filename: string;
+      originalname: string;
+      url: string;
+      size: number;
+      mimetype: string;
+      bucket: string;
+      imageType: string;
+      status: string;
+    };
   }): Promise<{ message: string; item: NonNullable<MenuStructure['items']>[number] }> {
     const response = await fetch(`${API_BASE_URL}/menu/item/${itemId}`, {
       method: 'PUT',

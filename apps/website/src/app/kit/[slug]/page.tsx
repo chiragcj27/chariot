@@ -6,8 +6,8 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import Image from 'next/image';
 import TestimonialsCarousel from '@/components/TestimonialsCarousel';
 import ProductCard from '@/components/ProductCard';
-import { useRouter } from 'next/navigation';
 import Footer from '@/components/Footer';
+import { useRouter } from 'next/navigation';
 
 interface KitImage {
   _id: string;
@@ -39,7 +39,7 @@ export default function KitPage({ params }: KitPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null); // For FAQ accordion
-  const router = useRouter();
+  const router = useRouter(); // Removed as per edit hint
 
   const faqs = [
     {
@@ -157,11 +157,11 @@ export default function KitPage({ params }: KitPageProps) {
         </div>
         {/* Right Side: Info */}
         <div className="absolute sm:top-[125%] lg:right-0 md:right-5 md:w-[30%] md:top-[10%] lg:top-[20%] top-[105%] w-full lg:flex lg:w-[38%] flex-col items-start z-40">
-          <div className="rounded px-4 py-3 mb-4 w-full">
-            <div className="text-7xl font-bold mb-2">{kit.title}</div>
-            <div className="text-2xl font-secondary text-gray-800">{kit.description}</div>
+          <div className="rounded py-3 mb-4 -ml-12">
+            <div className="text-[42px] text-[#FA7035] leading-10 font-balgin-regular mb-2">{kit.title.split(' ')[0]}<br/>{kit.title.split(' ')[1]}</div>
+            <div className="text-[28px] mr-30 font-secondary text-gray-800">{kit.description}</div>
           </div>
-          <button className="bg-[#CFDAE9] hover:bg-[#CFDAE9]/70 border-2 border-[#012F71] text-black font-semibold mx-4 px-8 py-2 rounded-lg transition-colors shadow mb-2 text-lg">
+          <button className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] text-lg text-black font-semibold -ml-12 px-10 py-1 transition-colors shadow mb-2">
             Explore
           </button>
         </div>
@@ -169,15 +169,15 @@ export default function KitPage({ params }: KitPageProps) {
         <div className="absolute md:top-[95%] md:w-full md:h-[100px] lg:block lg:top-[100%] lg:left-[40%] lg:w-[60%] lg:h-[110px] bg-gray-700 z-0" />
       </div>
     </div>
-    <div className="flex flex-row py-5 mt-20 items-center justify-start px-8">
-      <button className="bg-[#F8F9FA] font-secondary  hover:bg-[#F8F9FA]/70 border-2 border-[#3981E3] text-black font-semibold mx-4 px-4 py-2 rounded-sm transition-colors shadow mb-2 text-lg">
+    <div className="flex flex-row py-5 mt-20 items-center justify-start px-5 md:px-10 lg:px-18">
+      <button className="border-2 border-[#D94506] rounded-4xl  text-black font-semibold px-4 py-1 transition-colors shadow mb-2 text-lg">
         Premium Pack
       </button>
-      <button className="border-2 bg-[#042C65] border-[#3981E3] hover:bg-[#042C65]/50 text-white font-semibold mx-4 px-8 py-2 rounded-sm transition-colors shadow mb-2 text-lg font-secondary">
+      <button className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] font-semibold mx-4 px-8 py-1 transition-colors shadow mb-2 text-lg font-secondary">
         Basic Pack
       </button>
     </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-8 py-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-10 lg:px-18 py-6">
       <ProductCard
         title="Logos"
         image="https://placehold.co/400x500/CFDAE9/000000?text=Logos"
@@ -214,68 +214,66 @@ export default function KitPage({ params }: KitPageProps) {
         onHoverImage="https://placehold.co/400x500/B8E6B8/000000?text=Instagram+Kit+Hover"
         aspectRatio={4/3}
       />
-      <ProductCard
-        title="Typography"
-        image="https://placehold.co/400x500/CFDAE9/000000?text=Typography"
-        onHoverImage="https://placehold.co/400x500/F39C12/FFFFFF?text=Typography+Hover"
-        aspectRatio={4/3}
-      />
-      <ProductCard
-        title="Color Palette"
-        image="https://placehold.co/400x500/CFDAE9/000000?text=Color+Palette"
-        onHoverImage="https://placehold.co/400x500/E74C3C/FFFFFF?text=Color+Palette+Hover"
-        aspectRatio={4/3}
-      />
-      <ProductCard
-        title="Marketing Materials"
-        image="https://placehold.co/400x500/CFDAE9/000000?text=Marketing+Materials"
-        onHoverImage="https://placehold.co/400x500/F1C40F/000000?text=Marketing+Materials+Hover"
-        aspectRatio={4/3}
-      />
     </div>
     {/* Customise Section */}
-    <section className="px-8 py-18 pb-16">
-      <h2 className="text-3xl font-bold font-secondary mb-6">CUSTOMIZE</h2>
-      <div className="bg-[#A4BDDE] rounded-lg p-8 flex flex-col items-center">
-        <h3 className="text-2xl md:text-3xl font-bold mb-4 text-center">Make It Yours — Custom Kits, Tailored to You</h3>
-        <p className="text-lg font-secondary md:text-xl text-center mb-8 max-w-2xl">
-          Need something tailored to your brand? We offer customization across templates, color palettes, messaging, and layouts. Whether it’s a full kit revamp or small tweaks, we’ll deliver a ready-to-use version that fits perfectly.
-        </p>
-        <div className="flex flex-row gap-8">
-          <button className="border-2 border-[#1876F6] bg-[#CFDAE9] text-lg font-semibold px-6 py-2 rounded transition-colors hover:bg-[#CFDAE9]/70 focus:outline-none focus:ring-2 focus:ring-[#1876F6]/40">
-            Ask For Quote
-          </button>
-          <button className="border-2 border-[#1876F6] bg-[#CFDAE9] text-lg font-semibold px-6 py-2 rounded transition-colors hover:bg-[#CFDAE9]/70 focus:outline-none focus:ring-2 focus:ring-[#1876F6]/40">
-            Discovery Call
-          </button>
+    <section className="px-5 md:px-10 lg:px-18 py-18 pb-16">
+      <h2 className="text-3xl font-medium font-balgin-regular mb-6">CUSTOMIZE</h2>
+      <div className="relative p-15 flex flex-col items-center overflow-hidden">
+        {kit.mainImage && (
+          <Image
+            src={kit.mainImage.url}
+            alt={kit.mainImage.originalname}
+            fill
+            className="object-cover w-full h-full absolute top-0 left-0 opacity-40 pointer-events-none select-none z-0"
+            sizes="100vw"
+            priority={false}
+          />
+        )}
+        <div className="relative z-10 w-full flex flex-col">
+          <h3 className="text-2xl md:text-[30px] font-medium mb-4">Make It Yours — Custom Kits, Tailored to You</h3>
+          <p className="text-lg font-secondary md:text-[22px] mb-8 mr-80">
+            Need something tailored to your brand? We offer customization across templates, color palettes, messaging, and layouts. Whether it&apos;s a full kit revamp or small tweaks, we&apos;ll deliver a ready-to-use version that fits perfectly.
+          </p>
+          <div className="flex flex-row items-center justify-center gap-8">
+            <button className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] text-lg font-semibold px-6 py-2 transition-colors hover:bg-[#FFC1A0]/70 focus:outline-none focus:ring-2 focus:ring-[#FFC1A0]/40">
+                Discovery Call
+            </button>
+            <button className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] text-lg font-semibold px-6 py-2 transition-colors hover:bg-[#FFC1A0]/70 focus:outline-none focus:ring-2 focus:ring-[#FFC1A0]/40">
+              Ask For Quote
+            </button>
+          </div>
         </div>
       </div>
     </section>
     {/* FAQ Section */}
-    <section className="px-8 pb-16">
-      <h2 className="text-3xl font-bold font-secondary mb-6">FAQs</h2>
+    <section className="px-5 md:px-10 lg:px-18 pb-16 bg-white">
+      <h2 className="text-3xl font-bold font-secondary mb-6">FAQ</h2>
       <div className="w-full">
         {faqs.map((faq, idx) => (
-          <div key={idx} className="mb-4">
-            <button
-              className={`w-full flex focus:outline-none transition-colors font-semibold text-lg px-6 py-3 rounded-full shadow-sm border-none
-                ${openFaq === idx ? 'bg-[#E2EBF8] text-black' : 'bg-seafoam/50 text-black/80 hover:bg-seafoam/70'}`}
+          <div key={idx} className="mb-2">
+            <div
+              className="flex items-center cursor-pointer pt-6"
               onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
             >
-              <span>{faq.question}</span>
-              <span className="ml-auto">{openFaq === idx ? '-' : '+'}</span>
-            </button>
+              <span className="text-3xl text-[#FA7035] font-bold mr-8 select-none transition-transform" style={{ minWidth: '32px', textAlign: 'center' }}>
+                {openFaq === idx ? '-' : '+'}
+              </span>
+              <span className="text-xl font-secondary text-black">
+                {faq.question}
+              </span>
+            </div>
             {openFaq === idx && (
-              <div className="pb-4 pt-2 px-4 text-gray-700 font-secondary font-semibold">
+              <div className="pl-16 pb-4 text-gray-700 font-secondary font-semibold">
                 {faq.answer}
               </div>
             )}
+            <div className="border-[1px] border-[#FA7035] w-full" />
           </div>
         ))}
       </div>
       <div className="flex mt-10">
         <button
-          className="bg-[#CFDAE9] hover:bg-[#CFDAE9]/90 text-black font-semibold px-8 py-3 rounded-lg transition-colors shadow text-lg"
+          className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] text-black font-semibold px-8 py-1 transition-colors shadow text-lg"
           onClick={() => router.push('/')}
         >
           Back to Home

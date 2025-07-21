@@ -1,65 +1,41 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 
-// Skip authentication in development
-const isDevelopment = process.env.NODE_ENV === 'development';
-console.log('isDevelopment', isDevelopment);
+const PUBLIC_PATHS = [
+  '/login',
+  '/register',
+  '/favicon.ico',
+  '/_next',
+  '/api/sellers/login',
+  '/api/sellers/register',
+  '/api/auth/logout',
+  '/api/auth/refresh',
+];
 
 export async function middleware(request: NextRequest) {
-  // Skip authentication in development
-  if (isDevelopment) {
-    return NextResponse.next();
-  }
-
-  // For production, keep the original authentication logic
-  const token = request.cookies.get('accessToken')?.value;
   const { pathname } = request.nextUrl;
-
-  // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/register', '/forgot-password'];
-  if (publicRoutes.includes(pathname)) {
+  if (PUBLIC_PATHS.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 
-  // Protected routes
-  if (!token) {
+  const accessToken = request.cookies.get('accessToken')?.value;
+  if (!accessToken) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
   try {
-    const response = await fetch(`${request.nextUrl.origin}/api/auth/verify`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ token }),
-    });
-
-    if (!response.ok) {
+    // Use your JWT secret here
+    const secret = new TextEncoder().encode(process.env.NEXT_PUBLIC_JWT_SECRET || 'chariot_jwt_secret');
+    const { payload } = await jwtVerify(accessToken, secret);
+    if (payload.role !== 'seller') {
       return NextResponse.redirect(new URL('/login', request.url));
     }
-
-    const { payload } = await response.json();
-    if (payload.role !== 'seller') {
-      return NextResponse.redirect(new URL('/unauthorized', request.url));
-    }
-  } catch (error) {
+    return NextResponse.next();
+  } catch {
     return NextResponse.redirect(new URL('/login', request.url));
   }
-
-  return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
-  ],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|login|register).*)'],
 }; 

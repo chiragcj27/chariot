@@ -13,8 +13,8 @@ interface ProductFormData {
   name: string;
   description: string;
   type: 'physical' | 'digital' | 'service';
-  categoryId: string;
-  itemId: string;
+  categoryId?: string; // Made optional
+  itemId?: string; // Made optional
   price?: {
     amount?: number;
     currency: string;
@@ -82,6 +82,7 @@ interface ProductFormData {
   
   // Images
   images: (string | { _id: string; url: string })[];
+  previewFile?: { name: string; url: string; key: string } | null;
 }
 
 export default function EditProductPage() {

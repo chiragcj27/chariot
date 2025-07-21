@@ -16,13 +16,18 @@ export declare enum ProductStatus {
 export interface IProduct {
     name: string;
     description: string;
-    categoryId: Types.ObjectId;
-    itemId: Types.ObjectId;
+    categoryId?: Types.ObjectId; // Made optional
+    itemId?: Types.ObjectId; // Made optional
     type: ProductType;
-    price: {
+    isKitProduct: boolean;
+    kitId?: Types.ObjectId; // Made optional
+    typeOfKit?: 'premium' | 'basic'; // Made optional
+    price?: {
         amount: number;
         currency: string;
     };
+    creditsCost?: number;
+    discountedCreditsCost?: number;
     discount?: {
         percentage: number;
     };
@@ -47,6 +52,7 @@ export interface IProduct {
     adminApprovedAt: Date;
     adminRejectedAt: Date;
     sellerId: Types.ObjectId;
+    relatedProductsId: Types.ObjectId[];
 }
 export declare const Product: mongoose.Model<IProduct, {}, {}, {}, mongoose.Document<unknown, {}, IProduct, {}> & IProduct & {
     _id: Types.ObjectId;
@@ -73,11 +79,16 @@ export declare const PhysicalProduct: mongoose.Model<IPhysicalProduct, {}, {}, {
 }, any>;
 interface IDigitalProduct extends IProduct {
     kind: string;
-    assetDetails: {
-        file: string;
-        fileType: string;
-        fileSize: number;
-        fileUrl: string;
+    zipFile?: {
+        name: string;
+        url: string;
+        key: string;
+        size: number;
+    };
+    previewFile?: {
+        name: string;
+        url: string;
+        key: string;
     };
 }
 export declare const DigitalProduct: mongoose.Model<IDigitalProduct, {}, {}, {}, mongoose.Document<unknown, {}, IDigitalProduct, {}> & IDigitalProduct & {

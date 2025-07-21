@@ -24,12 +24,12 @@ export enum ProductStatus {
 export interface IProduct {
   name: string;
   description: string;
-  categoryId: Types.ObjectId;
-  itemId: Types.ObjectId;
+  categoryId?: Types.ObjectId; // Made optional
+  itemId?: Types.ObjectId; // Made optional
   type: ProductType;
   isKitProduct: boolean;
-  kitId: Types.ObjectId;
-  typeOfKit: KitType;
+  kitId?: Types.ObjectId; // Made optional
+  typeOfKit?: KitType; // Made optional
 
   price?: {
     amount: number;
@@ -85,12 +85,12 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
     categoryId: {
       type: Schema.Types.ObjectId,
       ref: "Menu",
-      required: true,
+      required: false, // Made optional
     },
     itemId: {
       type: Schema.Types.ObjectId,
       ref: "Item",
-      required: true,
+      required: false, // Made optional
     },
     type: {
       type: String,
@@ -104,10 +104,12 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
     kitId: {
       type: Schema.Types.ObjectId,
       ref: "Kit",
+      required: false, // Made optional
     },
     typeOfKit: {
       type: String,
       enum: Object.values(KitType),
+      required: false, // Made optional
     },
     price: {
       amount: {
@@ -208,6 +210,32 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
   }
 );
 
+// Add validation to ensure either categoryId+itemId OR kitId is present, but not both
+baseProductSchema.pre('validate', function(next) {
+  const hasCategoryAndItem = this.categoryId && this.itemId;
+  const hasKit = this.kitId;
+  
+  if (!hasCategoryAndItem && !hasKit) {
+    return next(new Error('Product must have either categoryId+itemId OR kitId'));
+  }
+  
+  if (hasCategoryAndItem && hasKit) {
+    return next(new Error('Product cannot have both categoryId+itemId AND kitId'));
+  }
+  
+  // If it's a kit product, ensure kitId is present
+  if (this.isKitProduct && !hasKit) {
+    return next(new Error('Kit products must have a kitId'));
+  }
+  
+  // If it's not a kit product, ensure categoryId and itemId are present
+  if (!this.isKitProduct && !hasCategoryAndItem) {
+    return next(new Error('Non-kit products must have both categoryId and itemId'));
+  }
+  
+  next();
+});
+
 // Clear existing models if they exist
 if (mongoose.models.Product) {
   delete mongoose.models.Product;
@@ -283,11 +311,16 @@ export const PhysicalProduct = Product.discriminator<IPhysicalProduct>(
 
 interface IDigitalProduct extends IProduct {
   kind: string;
-  assetDetails: {
-    file: string;
-    fileType: string;
-    fileSize: number;
-    fileUrl: string;
+  zipFile?: {
+    name: string;
+    url: string;
+    key: string;
+    size: number;
+  };
+  previewFile?: {
+    name: string;
+    url: string;
+    key: string;
   };
 }
 
@@ -296,23 +329,16 @@ const digitalProductSchema = new mongoose.Schema<IDigitalProduct>({
     type: String,
     required: true,
   },
-  assetDetails: {
-    file: {
-      type: String,
-      required: true,
-    },
-    fileType: {
-      type: String,
-      required: true,
-    },
-    fileSize: {
-      type: Number,
-      required: true,
-    },
-    fileUrl: {
-      type: String,
-      required: true,
-    },
+  zipFile: {
+    name: { type: String },
+    url: { type: String },
+    key: { type: String },
+    size: { type: Number },
+  },
+  previewFile: {
+    name: { type: String },
+    url: { type: String },
+    key: { type: String },
   },
 
 });

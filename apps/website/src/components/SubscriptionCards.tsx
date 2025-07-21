@@ -27,7 +27,16 @@ export default function SubscriptionCards() {
   useEffect(() => {
     fetch(`${API_URL}/api/subscription-cards`)
       .then((res) => res.json())
-      .then(setCards);
+      .then((data) => {
+        // Sort cards by price (low to high)
+        const sortedCards = data.sort((a: SubscriptionCard, b: SubscriptionCard) => {
+          // Extract numeric value from price string (e.g., "$29" -> 29)
+          const priceA = parseFloat(a.price.replace(/[^0-9.]/g, ''));
+          const priceB = parseFloat(b.price.replace(/[^0-9.]/g, ''));
+          return priceA - priceB;
+        });
+        setCards(sortedCards);
+      });
   }, []);
 
   return (

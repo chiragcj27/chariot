@@ -1,12 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 
 export default function LoginPage() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -18,7 +16,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/sellers/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,15 +47,15 @@ export default function LoginPage() {
         toast.success('Login successful');
       }
       
-      // Store user info in localStorage for dashboard access
+      // Redirect to dashboard after successful login
       if (data.user) {
+        // Store user info in localStorage for backward compatibility
         localStorage.setItem('user', JSON.stringify({
           ...data.user,
           blacklistInfo: data.blacklistInfo
         }));
-        // Refresh cookies, then redirect
-        router.refresh();
-        router.replace('/dashboard');
+        // Redirect to dashboard
+        window.location.href = '/dashboard';
       }
       
     } catch (error) {
