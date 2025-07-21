@@ -156,7 +156,7 @@ export default function KitPage({ params }: KitPageProps) {
           </AspectRatio>
         </div>
         {/* Right Side: Info */}
-        <div className="absolute sm:top-[125%] lg:right-0 md:right-5 md:w-[30%] md:top-[10%] lg:top-[20%] top-[105%] w-full lg:flex lg:w-[38%] flex-col items-start z-40">
+        <div className="absolute sm:top-[125%] lg:right-0 md:right-5 md:w-[30%] md:top-[10%] lg:top-[20%] top-[105%] w-full lg:flex lg:w-[38%] flex-col items-start">
           <div className="rounded py-3 mb-4 -ml-12">
             <div className="text-[42px] text-[#FA7035] leading-10 font-balgin-regular mb-2">{kit.title.split(' ')[0]}<br/>{kit.title.split(' ')[1]}</div>
             <div className="text-[28px] mr-30 font-secondary text-gray-800">{kit.description}</div>
