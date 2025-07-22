@@ -102,7 +102,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             </p>
             {/* Product Grid with centered last row if needed */}
             {/* Full rows */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-16">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-20 gap-y-16">
               {fullRowProducts.map((product, idx) => (
                 <Link key={idx} href="/category/product-list" className="block">
                   <ProductCard
@@ -117,12 +117,12 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             </div>
             {/* Last row, centered if 1 or 2 items */}
             {lastRowProducts.length > 0 && (
-              <div className="flex justify-center gap-x-10 mt-16 w-full">
+              <div className="flex justify-center gap-x-20 mt-16 w-full">
                 {lastRowProducts.map((product, idx) => (
                   <Link
                     key={fullRowProducts.length + idx}
                     href="/category/product-list"
-                    className="block w-full sm:w-1/2 lg:w-1/3"
+                    className="block w-full sm:w-1/2 lg:w-[30%]"
                   >
                     <ProductCard
                       title={product.title}
@@ -138,30 +138,34 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
           </main>
         </div>
             {/* FAQ Section */}
-    <section className="px-15 pb-16">
-      <h2 className="text-3xl font-bold font-secondary mb-6">FAQs</h2>
+            <section className="px-5 md:px-10 lg:px-18 pb-16 bg-white">
+      <h2 className="text-3xl font-bold font-secondary mb-6">FAQ</h2>
       <div className="w-full">
         {faqs.map((faq, idx) => (
-          <div key={idx} className="mb-4">
-            <button
-              className={`w-full flex focus:outline-none transition-colors font-semibold text-lg px-6 py-3 rounded-full shadow-sm border-none
-                ${openFaq === idx ? 'bg-[#C95A5A] text-black' : 'bg-[#C95A5A] text-black/80 hover:bg-[#C95A5A]/70'}`}
+          <div key={idx} className="mb-2">
+            <div
+              className="flex items-center cursor-pointer pt-6"
               onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
             >
-              <span>{faq.question}</span>
-              <span className="ml-auto">{openFaq === idx ? '-' : '+'}</span>
-            </button>
+              <span className="text-3xl text-[#FA7035] font-bold mr-8 select-none transition-transform" style={{ minWidth: '32px', textAlign: 'center' }}>
+                {openFaq === idx ? '-' : '+'}
+              </span>
+              <span className="text-xl font-secondary text-black">
+                {faq.question}
+              </span>
+            </div>
             {openFaq === idx && (
-              <div className="pb-4 pt-2 px-4 text-gray-700 font-secondary font-semibold">
+              <div className="pl-16 pb-4 text-gray-700 font-secondary font-semibold">
                 {faq.answer}
               </div>
             )}
+            <div className="border-[1px] border-[#FA7035] w-full" />
           </div>
         ))}
       </div>
       <div className="flex mt-10">
         <button
-          className="bg-[#DF9999] hover:bg-[#DF9999]/90 text-black font-semibold px-8 py-3 rounded-lg transition-colors shadow text-lg"
+          className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] text-black font-semibold px-8 py-1 transition-colors shadow text-lg"
           onClick={() => router.push('/')}
         >
           Back to Home

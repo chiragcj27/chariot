@@ -5,7 +5,7 @@ export default function CallToAction() {
     <section className="w-full flex flex-col items-center justify-center relative px-5 md:px-10 lg:px-20 mb-10">
       <div className="flex flex-col w-[1/3] items-center justify-center mt-12">
         <h1 className="text-[32px] md:text-[40px] font-balgin-regular">
-          Let&apos;s create
+          Let us create
           <br />
           something<span className="text-sunrise"> exceptional</span>
         </h1>

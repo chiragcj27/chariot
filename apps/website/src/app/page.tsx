@@ -11,7 +11,7 @@ export default function Home() {
       {/* Hero Section */}
       <div className="flex flex-col pt-20 pb-15">
         <p className="text-[#FCA17A] font-balgin-regular font-medium leading-17 text-[64px]">
-          Hi, we&apos;re Chariot<br />Built for Jewelrs,<br/>by Jewelrs.
+          Hi, we are Chariot<br />Built for Jewelers,<br/>by Jewelers.
         </p>
         <p className="py-8 text-[32px] font-secondary">Branding, websites, catalogs, campaigns — everything your jewelry business needs to grow, all in one place.</p>
       </div>
