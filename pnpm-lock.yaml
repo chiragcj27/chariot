@@ -446,9 +446,6 @@ importers:
 
   packages/db:
     dependencies:
-      '@chariot/auth':
-        specifier: workspace:*
-        version: link:../auth
       dotenv:
         specifier: ^16.5.0
         version: 16.5.0
