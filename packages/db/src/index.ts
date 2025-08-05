@@ -7,6 +7,7 @@ import { PromotionalStrip } from './models/promotionalStrip.model';
 import { IUser, ISeller, User, Seller, Admin} from './models/user.model';
 import { Kit, IKit } from './models/kits.model';
 import SubscriptionCard from './models/subscriptionCard.model';
+import { IUserSubscription, UserSubscription } from './models/userSubscription.model';
 
 export {
   connectDB,
@@ -27,6 +28,7 @@ export {
   Admin,
   Kit,
   SubscriptionCard,
+  UserSubscription
 };
 
 export type {
@@ -37,6 +39,7 @@ export type {
   IProduct,
   IKit,
   ProductStatus,
+  IUserSubscription,
 };
 
 export { ProductType };

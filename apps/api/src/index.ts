@@ -15,6 +15,8 @@ import adminProductRoutes from './routes/admin/product.routes';
 import kitRoutes from './routes/kit.routes';
 import subscriptionCardRoutes from './routes/subscriptionCard.routes';
 import adminSubscriptionCardRoutes from './routes/admin/subscriptionCard.routes';
+import subscriptionRoutes from './routes/subscription.routes';
+import buyerRoutes from './routes/buyer.routes';
 
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -59,6 +61,8 @@ app.use('/api/admin/products', adminProductRoutes);
 app.use('/api/kits', kitRoutes);
 app.use('/api/subscription-cards', subscriptionCardRoutes);
 app.use('/api/admin/subscription-cards', adminSubscriptionCardRoutes);
+app.use('/api/subscribe', subscriptionRoutes);
+app.use('/api/buyers', buyerRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
   .then(() => {

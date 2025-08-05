@@ -1,7 +1,8 @@
 import connectDB from "./config/database";
 import SubscriptionCard from "./models/subscriptionCard.model";
 
-const cards = [
+// Migration data with new fields
+const migrationData = [
   {
     title: "Starter",
     price: 499, // Convert to number
@@ -57,17 +58,32 @@ const cards = [
   },
 ];
 
-async function seed() {
+async function migrate() {
   try {
     await connectDB();
+    
+    console.log("Starting subscription cards migration...");
+    
+    // Delete existing cards
     await SubscriptionCard.deleteMany({});
-    await SubscriptionCard.insertMany(cards);
-    console.log("Seeded subscription cards successfully.");
+    console.log("Deleted existing subscription cards.");
+    
+    // Insert new cards with updated schema
+    await SubscriptionCard.insertMany(migrationData);
+    console.log("Migrated subscription cards successfully with new schema.");
+    
+    // Verify the migration
+    const cards = await SubscriptionCard.find({});
+    console.log(`Found ${cards.length} subscription cards:`);
+    cards.forEach(card => {
+      console.log(`- ${card.title}: ${card.price} credits, planKey: ${card.planKey}`);
+    });
+    
     process.exit(0);
   } catch (err) {
-    console.error("Error seeding subscription cards:", err);
+    console.error("Error migrating subscription cards:", err);
     process.exit(1);
   }
 }
 
-seed(); 
+migrate(); 

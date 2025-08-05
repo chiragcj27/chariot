@@ -7,7 +7,12 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:connection": "ts-node src/test-connection.ts"
+    "test:connection": "ts-node src/test-connection.ts",
+    "create-plans": "ts-node src/create-paypal-plans.ts",
+    "create-webhook": "ts-node src/create-paypal-webhook.ts",
+    "check-env": "ts-node src/check-env.ts",
+    "update-ids": "ts-node src/update-paypal-ids.ts",
+    "setup-paypal": "pnpm create-plans && pnpm create-webhook"
   },
   "keywords": [],
   "author": "",

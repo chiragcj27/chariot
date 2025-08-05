@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, Fragment } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
+import UserProfileDropdown from './UserProfileDropdown';
 
 interface Category {
   _id: string;
@@ -85,16 +86,8 @@ export default function NavBar() {
         <div className="flex items-center gap-4">
           {/* Action Icons (fade) */}
           <div className={`flex items-center gap-4 transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-            {/* Profile Icon */}
-            <button
-              className="text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200"
-              aria-label="Profile"
-            >
-              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-            </button>
+            {/* User Profile Dropdown */}
+            <UserProfileDropdown />
             {/* Wishlist Icon */}
             <button
               className="text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200"

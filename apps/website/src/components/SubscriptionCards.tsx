@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import SubscriptionCheckout from "./SubscriptionCheckout";
 
 interface SubscriptionCard {
   _id?: string;
@@ -11,6 +13,9 @@ interface SubscriptionCard {
   description: string;
   features: string[];
   button: string;
+  paypalPlanId: string;
+  planKey: string;
+  credits: number;
 }
 
 const bgMap: Record<string, string> = {
@@ -22,7 +27,12 @@ const bgMap: Record<string, string> = {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export default function SubscriptionCards() {
+  const { user } = useAuth();
   const [cards, setCards] = useState<SubscriptionCard[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<SubscriptionCard | null>(null);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     fetch(`${API_URL}/api/subscription-cards`)
@@ -31,16 +41,49 @@ export default function SubscriptionCards() {
         // Sort cards by price (low to high)
         const sortedCards = data.sort((a: SubscriptionCard, b: SubscriptionCard) => {
           // Extract numeric value from price string (e.g., "$29" -> 29)
-          const priceA = parseFloat(a.price.replace(/[^0-9.]/g, ''));
-          const priceB = parseFloat(b.price.replace(/[^0-9.]/g, ''));
+          const priceA = parseFloat(String(a.price || "0").replace(/[^0-9.]/g, ''));
+          const priceB = parseFloat(String(b.price || "0").replace(/[^0-9.]/g, ''));
           return priceA - priceB;
         });
         setCards(sortedCards);
       });
   }, []);
 
+  const handleSubscribe = (plan: SubscriptionCard) => {
+    if (!user) {
+      // Redirect to login or show login modal
+      alert('Please log in to subscribe');
+      return;
+    }
+    setSelectedPlan(plan);
+    setShowCheckout(true);
+  };
+
+  const handleCheckoutSuccess = (subscriptionId: string, newCredits: number) => {
+    console.log('Subscription successful:', subscriptionId, 'New credits:', newCredits);
+    setSuccessMessage(`Successfully subscribed! You now have ${newCredits} credits.`);
+    setShowSuccess(true);
+    
+    // Hide success message after 5 seconds
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 5000);
+  };
+
   return (
     <section className="w-full min-h-screen bg-gradient-to-b from-white to-seafoam py-20 px-4">
+      {/* Success Notification */}
+      {showSuccess && (
+        <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {successMessage}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row gap-8 items-center justify-center max-w-6xl mx-auto">
         {cards.map((card) => (
           <div
@@ -70,13 +113,29 @@ export default function SubscriptionCards() {
                   ))}
                 </ul>
               </div>
-              <button className="mt-auto py-2 rounded-lg border-2 border-[#FA7035] text-primary font-semibold bg-[#FFC1A0] hover:bg-primary hover:text-white transition">
+              <button 
+                onClick={() => handleSubscribe(card)}
+                className="mt-auto py-2 rounded-lg border-2 border-[#FA7035] text-primary font-semibold bg-[#FFC1A0] hover:bg-primary hover:text-white transition"
+              >
                 {card.button}
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Subscription Checkout Modal */}
+      {selectedPlan && (
+        <SubscriptionCheckout
+          plan={selectedPlan}
+          isOpen={showCheckout}
+          onClose={() => {
+            setShowCheckout(false);
+            setSelectedPlan(null);
+          }}
+          onSuccess={handleCheckoutSuccess}
+        />
+      )}
     </section>
   );
 }

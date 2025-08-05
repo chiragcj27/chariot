@@ -34,6 +34,3 @@ export type {
 
 export { ProductType };
 
-export const hello = (): string => {
-    return 'Hello from db package!';
-  };

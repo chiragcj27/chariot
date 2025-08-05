@@ -75,12 +75,21 @@ export async function verify(req: Request, res: Response) {
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     const payload = verifyAccessToken(token);
     
+    // Get full user data
+    const user = await User.findById(payload.userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     return res.json({
       success: true,
-      payload: {
-        userId: payload.userId,
-        email: payload.email,
-        role: payload.role
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        credits: user.credits,
+        approvalStatus: user.approvalStatus,
       }
     });
   } catch (error) {

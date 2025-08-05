@@ -9,6 +9,8 @@ import ProductCard from '@/components/ProductCard';
 import Footer from '@/components/Footer';
 import { useRouter } from 'next/navigation';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
 interface KitImage {
   _id: string;
   url: string;
@@ -69,7 +71,7 @@ export default function KitPage({ params }: KitPageProps) {
       try {
         setLoading(true);
         const { slug } = await params;
-        const response = await fetch(`/api/kits/slug/${slug}`);
+        const response = await fetch(`${API_URL}/api/kits/slug/${slug}`);
         
         if (!response.ok) {
           if (response.status === 404) {

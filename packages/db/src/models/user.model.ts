@@ -17,6 +17,7 @@ export interface IUser extends Document {
   rejectedBy?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
+  credits: number;
 }
 
 const userSchema = new Schema<IUser>({
@@ -62,6 +63,10 @@ const userSchema = new Schema<IUser>({
   rejectedBy: {
     type: Schema.Types.ObjectId,
     ref: 'User',
+  },
+  credits: {
+    type: Number,
+    default: 0,
   },
   createdAt: {
     type: Date,

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
 interface PurchaseStatus {
   isPurchased: boolean;
   isLoading: boolean;
@@ -23,7 +25,7 @@ export function useProductPurchase(productId: string): PurchaseStatus {
         // This will be implemented when we create the order system
         // For now, we'll just check if the user is authenticated
         
-        const response = await fetch(`/api/products/${productId}/purchase-status`, {
+        const response = await fetch(`${API_URL}/api/products/${productId}/purchase-status`, {
           method: 'GET',
           credentials: 'include',
         });

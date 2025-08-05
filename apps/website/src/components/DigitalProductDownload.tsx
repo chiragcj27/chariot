@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
 interface DigitalProductDownloadProps {
   productId: string;
   productName: string;
@@ -32,7 +34,7 @@ export default function DigitalProductDownload({
 
     try {
       // Get the download URL from our API
-      const response = await fetch(`/api/assets/digital-product/${productId}/download`, {
+      const response = await fetch(`${API_URL}/api/assets/digital-product/${productId}/download`, {
         method: 'GET',
         credentials: 'include', // Include cookies for authentication
       });
