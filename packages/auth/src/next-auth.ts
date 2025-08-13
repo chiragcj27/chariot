@@ -60,7 +60,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid password');
         }
         return {
-          id: user._id.toString(),
+          id: (user as any)._id.toString(),
           email: user.email,
           name: user.name,
           role: user.role,
