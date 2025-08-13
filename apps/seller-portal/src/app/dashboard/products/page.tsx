@@ -22,6 +22,20 @@ interface KitImage {
   alt?: string;
 }
 
+interface KitFile {
+  _id?: string;
+  filename: string;
+  originalname: string;
+  url: string;
+  size: number;
+  mimetype: string;
+  fileType: 'pdf' | 'document' | 'zip';
+  pageCount?: number;
+  documentType?: string;
+  containsFiles?: number;
+  isPreview?: boolean;
+}
+
 interface Product {
   _id: string;
   name: string;
@@ -43,7 +57,7 @@ interface Product {
   kitId?: string;
   typeOfKit?: 'premium' | 'basic';
   kitImages?: KitImage[];
-  kitFiles?: any[];
+  kitFiles?: KitFile[];
   kitMainFile?: {
     name: string;
     url: string;
