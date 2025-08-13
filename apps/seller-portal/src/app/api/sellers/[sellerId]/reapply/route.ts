@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest, { params }: { params: { sellerId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ sellerId: string }> }) {
   try {
+    const { sellerId } = await params;
     const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const backendUrl = `${baseBackendUrl}/api/sellers/${params.sellerId}/reapply`;
+    const backendUrl = `${baseBackendUrl}/api/sellers/${sellerId}/reapply`;
     
     const body = await req.json();
     const response = await fetch(backendUrl, {

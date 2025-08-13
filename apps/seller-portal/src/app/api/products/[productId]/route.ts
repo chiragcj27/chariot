@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest, { params }: { params: { productId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   try {
     // Get the access token from cookies
     let accessToken = req.cookies.get('accessToken')?.value;
@@ -41,9 +41,11 @@ export async function GET(req: NextRequest, { params }: { params: { productId: s
       }
     }
 
+    const { productId } = await params;
+
     // Forward the request to the backend API
     const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const backendUrl = `${baseBackendUrl}/api/products/${params.productId}`;
+    const backendUrl = `${baseBackendUrl}/api/products/${productId}`;
     
     const response = await fetch(backendUrl, {
       method: 'GET',
@@ -91,7 +93,7 @@ export async function GET(req: NextRequest, { params }: { params: { productId: s
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { productId: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   try {
     // Get the access token from cookies
     let accessToken = req.cookies.get('accessToken')?.value;
@@ -134,10 +136,11 @@ export async function PUT(req: NextRequest, { params }: { params: { productId: s
 
     // Get the request body
     const body = await req.json();
+    const { productId } = await params;
 
     // Forward the request to the backend API
     const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const backendUrl = `${baseBackendUrl}/api/products/${params.productId}`;
+    const backendUrl = `${baseBackendUrl}/api/products/${productId}`;
     
     const response = await fetch(backendUrl, {
       method: 'PUT',
@@ -187,7 +190,7 @@ export async function PUT(req: NextRequest, { params }: { params: { productId: s
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { productId: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   try {
     // Get the access token from cookies
     let accessToken = req.cookies.get('accessToken')?.value;
@@ -228,9 +231,11 @@ export async function DELETE(req: NextRequest, { params }: { params: { productId
       }
     }
 
+    const { productId } = await params;
+
     // Forward the request to the backend API
     const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const backendUrl = `${baseBackendUrl}/api/products/${params.productId}`;
+    const backendUrl = `${baseBackendUrl}/api/products/${productId}`;
     
     const response = await fetch(backendUrl, {
       method: 'DELETE',

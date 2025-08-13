@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: NextRequest, { params }: { params: { productId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ productId: string }> }) {
   try {
     // Get the access token from cookies
     let accessToken = req.cookies.get('accessToken')?.value;
@@ -41,9 +41,11 @@ export async function GET(req: NextRequest, { params }: { params: { productId: s
       }
     }
 
+    const { productId } = await params;
+
     // Forward the request to the backend API
     const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const backendUrl = `${baseBackendUrl}/api/assets/digital-product/${params.productId}/download`;
+    const backendUrl = `${baseBackendUrl}/api/assets/digital-product/${productId}/download`;
     
     const response = await fetch(backendUrl, {
       method: 'GET',
