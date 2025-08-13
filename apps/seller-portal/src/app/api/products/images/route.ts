@@ -12,10 +12,11 @@ export async function POST(req: NextRequest) {
       const refreshToken = req.cookies.get('refreshToken')?.value;
       
       if (refreshToken) {
-        console.log('Product Images POST - No access token, attempting refresh...');
+        console.log('Products images - No access token, attempting refresh...');
         
         // Try to refresh via direct backend call
-        const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001/api/auth/refresh';
+        const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+        const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
         const backendRefresh = await fetch(backendUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -27,12 +28,12 @@ export async function POST(req: NextRequest) {
           accessToken = backendData.accessToken;
           newAccessToken = backendData.accessToken;
           newRefreshToken = backendData.refreshToken;
-          console.log('Product Images POST - Token refreshed successfully');
+          console.log('Products images - Token refreshed successfully');
         }
       }
       
       if (!accessToken) {
-        console.log('Product Images POST - No valid token available, refresh failed');
+        console.log('Products images - No valid token available, refresh failed');
         return NextResponse.json({ 
           message: 'No token provided - please login again',
           needsLogin: true
@@ -44,7 +45,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Forward the request to the backend API
-    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001/api/products/images';
+    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const backendUrl = `${baseBackendUrl}/api/products/images`;
     
     const response = await fetch(backendUrl, {
       method: 'POST',
@@ -86,7 +88,7 @@ export async function POST(req: NextRequest) {
     
     return nextResponse;
   } catch (error) {
-    console.error('Product image creation error:', error);
+    console.error('Product images error:', error);
     return NextResponse.json(
       { message: 'Internal server error' }, 
       { status: 500 }

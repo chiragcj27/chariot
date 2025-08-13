@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ productId: string }> }
-) {
+export async function GET(req: NextRequest, { params }: { params: { productId: string } }) {
   try {
     // Get the access token from cookies
     let accessToken = req.cookies.get('accessToken')?.value;
@@ -15,10 +12,11 @@ export async function GET(
       const refreshToken = req.cookies.get('refreshToken')?.value;
       
       if (refreshToken) {
-        console.log('Digital Product Download GET - No access token, attempting refresh...');
+        console.log('Digital product download - No access token, attempting refresh...');
         
         // Try to refresh via direct backend call
-        const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001/api/auth/refresh';
+        const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+        const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
         const backendRefresh = await fetch(backendUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -30,23 +28,22 @@ export async function GET(
           accessToken = backendData.accessToken;
           newAccessToken = backendData.accessToken;
           newRefreshToken = backendData.refreshToken;
-          console.log('Digital Product Download GET - Token refreshed successfully');
+          console.log('Digital product download - Token refreshed successfully');
         }
       }
       
       if (!accessToken) {
-        console.log('Digital Product Download GET - No valid token available, refresh failed');
+        console.log('Digital product download - No valid token available, refresh failed');
         return NextResponse.json({ 
-          message: 'Authentication required to download digital products',
+          message: 'No token provided - please login again',
           needsLogin: true
         }, { status: 401 });
       }
     }
 
-    const { productId } = await params;
-
     // Forward the request to the backend API
-    const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/assets/digital-product/${productId}/download`;
+    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const backendUrl = `${baseBackendUrl}/api/assets/digital-product/${params.productId}/download`;
     
     const response = await fetch(backendUrl, {
       method: 'GET',

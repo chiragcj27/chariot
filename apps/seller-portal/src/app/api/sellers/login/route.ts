@@ -1,39 +1,54 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001/api/sellers/login';
-
-  const res = await fetch(backendUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    return NextResponse.json(data, { status: res.status });
-  }
-
-  const response = NextResponse.json(data);
-  // Set tokens in httpOnly cookies
-  if (data.accessToken) {
-    response.cookies.set('accessToken', data.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60, // 1 hour
+  try {
+    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const backendUrl = `${baseBackendUrl}/api/sellers/login`;
+    
+    const body = await req.json();
+    const response = await fetch(backendUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
     });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status });
+    }
+
+    const nextResponse = NextResponse.json(data);
+
+    // Set cookies
+    if (data.accessToken) {
+      nextResponse.cookies.set('accessToken', data.accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60, // 1 hour
+      });
+    }
+
+    if (data.refreshToken) {
+      nextResponse.cookies.set('refreshToken', data.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 30, // 30 days
+      });
+    }
+
+    return nextResponse;
+  } catch (error) {
+    console.error('Login error:', error);
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
   }
-  if (data.refreshToken) {
-    response.cookies.set('refreshToken', data.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-    });
-  }
-  return response;
 } 

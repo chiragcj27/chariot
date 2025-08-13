@@ -15,7 +15,8 @@ export async function POST(req: NextRequest) {
         console.log('Products POST - No access token, attempting refresh...');
         
         // Try to refresh via direct backend call
-        const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001/api/auth/refresh';
+        const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+        const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
         const backendRefresh = await fetch(backendUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -44,7 +45,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Forward the request to the backend API
-    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001/api/products';
+    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const backendUrl = `${baseBackendUrl}/api/products`;
     
     const response = await fetch(backendUrl, {
       method: 'POST',
@@ -96,10 +98,14 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
+    console.log('Products GET - Starting request');
+    
     // Get the access token from cookies
     let accessToken = req.cookies.get('accessToken')?.value;
     let newAccessToken = null;
     let newRefreshToken = null;
+    
+    console.log('Products GET - Access token exists:', !!accessToken);
     
     // If no access token, try to refresh using refresh token
     if (!accessToken) {
@@ -109,7 +115,10 @@ export async function GET(req: NextRequest) {
         console.log('Products GET - No access token, attempting refresh...');
         
         // Try to refresh via direct backend call
-        const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001/api/auth/refresh';
+        const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+        const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
+        console.log('Products GET - Refresh backend URL:', backendUrl);
+        
         const backendRefresh = await fetch(backendUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -122,6 +131,8 @@ export async function GET(req: NextRequest) {
           newAccessToken = backendData.accessToken;
           newRefreshToken = backendData.refreshToken;
           console.log('Products GET - Token refreshed successfully');
+        } else {
+          console.log('Products GET - Refresh failed with status:', backendRefresh.status);
         }
       }
       
@@ -141,10 +152,14 @@ export async function GET(req: NextRequest) {
     const limit = searchParams.get('limit') || '10';
 
     // Build the backend URL with query parameters - use seller endpoint
-    const backendUrl = new URL(process.env.BACKEND_API_URL || 'http://localhost:3001/api/products/seller');
+    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const backendUrl = new URL('/api/products/seller', baseBackendUrl);
     if (status) backendUrl.searchParams.set('status', status);
     backendUrl.searchParams.set('page', page);
     backendUrl.searchParams.set('limit', limit);
+    
+    console.log('Products GET - Backend URL:', backendUrl.toString());
+    console.log('Products GET - Using access token:', !!accessToken);
     
     const response = await fetch(backendUrl.toString(), {
       method: 'GET',
@@ -153,9 +168,13 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    console.log('Products GET - Backend response status:', response.status);
+    
     const data = await response.json();
+    console.log('Products GET - Backend response data:', data);
     
     if (!response.ok) {
+      console.log('Products GET - Backend request failed');
       return NextResponse.json(data, { status: response.status });
     }
 
@@ -182,9 +201,10 @@ export async function GET(req: NextRequest) {
       });
     }
     
+    console.log('Products GET - Request completed successfully');
     return nextResponse;
   } catch (error) {
-    console.error('Product fetch error:', error);
+    console.error('Products GET - Error:', error);
     return NextResponse.json(
       { message: 'Internal server error' }, 
       { status: 500 }
@@ -207,7 +227,8 @@ export async function PUT(req: NextRequest) {
         console.log('Products PUT - No access token, attempting refresh...');
         
         // Try to refresh via direct backend call
-        const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001/api/auth/refresh';
+        const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+        const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
         const backendRefresh = await fetch(backendUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -242,7 +263,8 @@ export async function PUT(req: NextRequest) {
     }
 
     // Forward the request to the backend API
-    const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001/api/products'}/${productId}`;
+    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const backendUrl = `${baseBackendUrl}/api/products/${productId}`;
     
     const response = await fetch(backendUrl, {
       method: 'PUT',

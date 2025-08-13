@@ -1,32 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ sellerId: string }> }
-) {
+export async function POST(req: NextRequest, { params }: { params: { sellerId: string } }) {
   try {
-    const { sellerId } = await params;
-    const body = await req.json();
+    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const backendUrl = `${baseBackendUrl}/api/sellers/${params.sellerId}/reapply`;
     
-    const backendUrl = `${process.env.BACKEND_API_URL || 'http://localhost:3001'}/api/sellers/${sellerId}/reapply`;
-
-    const res = await fetch(backendUrl, {
+    const body = await req.json();
+    const response = await fetch(backendUrl, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
     });
 
-    const data = await res.json();
-    
-    if (!res.ok) {
-      return NextResponse.json(data, { status: res.status });
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(data, { status: response.status });
     }
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error in reapplication route:', error);
+    console.error('Seller reapply error:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

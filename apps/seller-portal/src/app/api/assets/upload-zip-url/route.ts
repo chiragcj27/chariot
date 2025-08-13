@@ -12,10 +12,11 @@ export async function POST(req: NextRequest) {
       const refreshToken = req.cookies.get('refreshToken')?.value;
       
       if (refreshToken) {
-        console.log('ZIP Upload POST - No access token, attempting refresh...');
+        console.log('Assets upload-zip-url - No access token, attempting refresh...');
         
         // Try to refresh via direct backend call
-        const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001/api/auth/refresh';
+        const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+        const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
         const backendRefresh = await fetch(backendUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -27,12 +28,12 @@ export async function POST(req: NextRequest) {
           accessToken = backendData.accessToken;
           newAccessToken = backendData.accessToken;
           newRefreshToken = backendData.refreshToken;
-          console.log('ZIP Upload POST - Token refreshed successfully');
+          console.log('Assets upload-zip-url - Token refreshed successfully');
         }
       }
       
       if (!accessToken) {
-        console.log('ZIP Upload POST - No valid token available, refresh failed');
+        console.log('Assets upload-zip-url - No valid token available, refresh failed');
         return NextResponse.json({ 
           message: 'No token provided - please login again',
           needsLogin: true
@@ -44,7 +45,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Forward the request to the backend API
-    const backendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001/api/assets/upload-zip-url';
+    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const backendUrl = `${baseBackendUrl}/api/assets/upload-zip-url`;
     
     const response = await fetch(backendUrl, {
       method: 'POST',
@@ -86,7 +88,7 @@ export async function POST(req: NextRequest) {
     
     return nextResponse;
   } catch (error) {
-    console.error('ZIP upload URL error:', error);
+    console.error('Asset upload-zip-url error:', error);
     return NextResponse.json(
       { message: 'Internal server error' }, 
       { status: 500 }
