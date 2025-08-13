@@ -160,7 +160,7 @@ async function createPayPalPlans() {
     
     console.log("\n🎉 All PayPal plans created successfully!");
     process.exit(0);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Error creating PayPal plans:", error);
     if (axios.isAxiosError(error)) {
       console.error("PayPal API Error:", error.response?.data);

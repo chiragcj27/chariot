@@ -67,7 +67,7 @@ async function createWebhook(accessToken: string) {
       }
     );
     return response.data;
-  } catch (error) {
+  } catch (error: unknown) {
     if (axios.isAxiosError(error) && error.response?.status === 409) {
       console.log('⚠️  Webhook already exists, fetching existing webhooks...');
       return await listWebhooks(accessToken);
@@ -159,7 +159,7 @@ async function createPayPalWebhook() {
     console.log('3. Test the webhook using the test script');
     
     process.exit(0);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Error creating PayPal webhook:', error);
     if (axios.isAxiosError(error)) {
       console.error('PayPal API Error:', error.response?.data);

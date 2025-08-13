@@ -1,4 +1,4 @@
-import { Schema, Types, model } from 'mongoose';
+import { Schema, Types, model, Document } from 'mongoose';
 import mongoose from 'mongoose';
 
 export type UserRole = 'admin' | 'buyer' | 'seller';
@@ -209,4 +209,3 @@ if (mongoose.models.Admin) {
   delete mongoose.models.Admin;
 }
 export const Admin = User.discriminator<IAdmin>('admin', adminSchema);
-
