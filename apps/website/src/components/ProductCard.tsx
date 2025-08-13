@@ -8,6 +8,7 @@ interface ProductCardProps {
   onHoverImage?: string;
   className?: string;
   aspectRatio?: number; // New prop for aspect ratio (width/height)
+  onClick?: () => void; // New prop for click handler
 }
 
 export default function ProductCard({ 
@@ -16,10 +17,14 @@ export default function ProductCard({
   image, 
   onHoverImage, 
   className = "",
-  aspectRatio = 4/5 // Default aspect ratio (slightly taller than wide)
+  aspectRatio = 4/5, // Default aspect ratio (slightly taller than wide)
+  onClick
 }: ProductCardProps) {
   return (
-    <div className={`flex flex-col items-center ${className}`}>
+    <div 
+      className={`flex flex-col items-center ${className} ${onClick ? 'cursor-pointer' : ''}`}
+      onClick={onClick}
+    >
       <div 
         className="relative w-full rounded shadow-md overflow-hidden group"
         style={{ 

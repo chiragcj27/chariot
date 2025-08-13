@@ -185,6 +185,7 @@ export default function KitPage({ params }: KitPageProps) {
         image="https://placehold.co/400x500/CFDAE9/000000?text=Logos"
         onHoverImage="https://placehold.co/400x500/4ECDC4/FFFFFF?text=Logos+Hover"
         aspectRatio={4/3}
+        onClick={() => router.push(`/kit/${kit.slug}/kit-product`)}
       />
       <ProductCard
         title="Brand Tone"

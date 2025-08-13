@@ -1,4 +1,5 @@
 import mongoose, { model, Schema, Types } from "mongoose";
+import { IFile } from "./file.model";
 
 export enum KitType {
   PREMIUM = "premium",
@@ -70,6 +71,21 @@ export interface IProduct {
   adminRejectedAt: Date;
   sellerId: Types.ObjectId;
   relatedProductsId: Types.ObjectId[]; // Added field for related products
+}
+
+// Kit Product interface for products that are kits
+export interface IKitProduct extends IProduct {
+  kitImages: Types.ObjectId[]; // Images specific to the kit
+  kitFiles: Types.ObjectId[]; // PDFs and other files specific to the kit (preview files)
+  kitMainFile?: {
+    name: string;
+    url: string;
+    key: string;
+    size: number;
+  }; // Main ZIP file (private bucket)
+  kitDescription?: string; // Additional description specific to the kit
+  kitInstructions?: string; // Instructions for using the kit
+  kitContents?: string[]; // List of what's included in the kit
 }
 
 const baseProductSchema = new mongoose.Schema<IProduct>(
@@ -210,6 +226,36 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
   }
 );
 
+// Kit Product Schema
+const kitProductSchema = new mongoose.Schema<IKitProduct>({
+  kitImages: {
+    type: [Schema.Types.ObjectId],
+    ref: "Image",
+    default: [],
+  },
+  kitFiles: {
+    type: [Schema.Types.ObjectId],
+    ref: "File",
+    default: [],
+  },
+  kitMainFile: {
+    name: { type: String },
+    url: { type: String },
+    key: { type: String },
+    size: { type: Number },
+  },
+  kitDescription: {
+    type: String,
+  },
+  kitInstructions: {
+    type: String,
+  },
+  kitContents: {
+    type: [String],
+    default: [],
+  },
+});
+
 // Add validation to ensure either categoryId+itemId OR kitId is present, but not both
 baseProductSchema.pre('validate', function(next) {
   const hasCategoryAndItem = this.categoryId && this.itemId;
@@ -231,6 +277,26 @@ baseProductSchema.pre('validate', function(next) {
   // If it's not a kit product, ensure categoryId and itemId are present
   if (!this.isKitProduct && !hasCategoryAndItem) {
     return next(new Error('Non-kit products must have both categoryId and itemId'));
+  }
+  
+  next();
+});
+
+// Add validation for KitProduct to ensure it has required kit-specific fields
+kitProductSchema.pre('validate', function(next) {
+  // Ensure kitId is present for kit products
+  if (!this.kitId) {
+    return next(new Error('Kit products must have a kitId'));
+  }
+  
+  // Ensure isKitProduct is true for kit products
+  if (!this.isKitProduct) {
+    this.isKitProduct = true;
+  }
+  
+  // Ensure typeOfKit is set if not already set
+  if (!this.typeOfKit) {
+    this.typeOfKit = KitType.BASIC; // Default to basic if not specified
   }
   
   next();
@@ -410,4 +476,10 @@ const serviceProductSchema = new mongoose.Schema<IServiceProduct>({
 export const ServiceProduct = Product.discriminator<IServiceProduct>(
   "service",
   serviceProductSchema
+);
+
+// Check if model exists before creating discriminator
+export const KitProduct = Product.discriminator<IKitProduct>(
+  "kitProduct",
+  kitProductSchema
 );

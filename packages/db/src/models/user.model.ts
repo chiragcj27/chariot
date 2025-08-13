@@ -209,3 +209,4 @@ if (mongoose.models.Admin) {
   delete mongoose.models.Admin;
 }
 export const Admin = User.discriminator<IAdmin>('admin', adminSchema);
+

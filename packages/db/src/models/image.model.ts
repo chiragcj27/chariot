@@ -59,7 +59,7 @@ const imageSchema = new Schema<IImage>({
     imageType: {
         type: String,
         required: true,
-        enum: ['profile', 'product', 'menu', 'featured', 'promotional', 'item', 'kit'],
+        enum: ['profile', 'product', 'menu', 'featured', 'promotional', 'item', 'kit', 'kitProduct'],
     },
     createdAt: {
         type: Date,
@@ -185,6 +185,7 @@ const kitImageSchema = new Schema<IKitImage>({
     },
 });
 
+
 if (mongoose.models.Image) {
     delete mongoose.models.Image;
 }
@@ -214,5 +215,28 @@ if (mongoose.models.kit) {
     delete mongoose.models.kit;
 }
 export const KitImage = Image.discriminator<IKitImage>("kit", kitImageSchema);
+
+// Kit Product Image Schema (images tied to a kit product, not the kit definition)
+interface IKitProductImage extends IImage {
+    productId: Types.ObjectId;
+}
+const kitProductImageSchema = new Schema<IKitProductImage>({
+    productId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Product',
+        required: true,
+    },
+});
+
+if (mongoose.models.kitProductImage) {
+    delete mongoose.models.kitProductImage;
+}
+// Use a distinct model name to avoid collision with Product discriminator 'kitProduct',
+// while setting the discriminator value (imageType) explicitly to 'kitProduct'
+export const KitProductImage = Image.discriminator<IKitProductImage>(
+    "kitProductImage",
+    kitProductImageSchema,
+    "kitProduct"
+);
 
 export default Image;

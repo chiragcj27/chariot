@@ -16,6 +16,22 @@ interface ProductImage {
   alt?: string;
 }
 
+interface KitImage {
+  _id: string;
+  url: string;
+  alt?: string;
+}
+
+interface KitFile {
+  _id: string;
+  filename: string;
+  originalname: string;
+  url: string;
+  size: number;
+  mimetype: string;
+  fileType: string;
+}
+
 interface Product {
   _id: string;
   name: string;
@@ -37,6 +53,21 @@ interface Product {
   tags: string[];
   featured: boolean;
   images: ProductImage[];
+  // Kit-related fields
+  isKitProduct?: boolean;
+  kitId?: string;
+  typeOfKit?: 'premium' | 'basic';
+  kitImages?: KitImage[];
+  kitFiles?: KitFile[];
+  kitMainFile?: {
+    name: string;
+    url: string;
+    key: string;
+    size: number;
+  };
+  kitDescription?: string;
+  kitInstructions?: string;
+  kitContents?: string[];
   createdAt: string;
   updatedAt: string;
   isAdminApproved: boolean;
@@ -168,14 +199,18 @@ export default function ProductDetailPage() {
     }
   };
 
-  const getTypeBadge = (type: string) => {
+  const getTypeBadge = (type: string, isKitProduct?: boolean) => {
+    if (isKitProduct) {
+      return <Badge variant="outline" className="bg-purple-50 text-purple-700">Kit Product</Badge>;
+    }
+    
     switch (type) {
       case 'physical':
         return <Badge variant="outline" className="bg-blue-50 text-blue-700">Physical</Badge>;
       case 'digital':
         return <Badge variant="outline" className="bg-green-50 text-green-700">Digital</Badge>;
       case 'service':
-        return <Badge variant="outline" className="bg-purple-50 text-purple-700">Service</Badge>;
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700">Service</Badge>;
       default:
         return <Badge variant="outline">{type}</Badge>;
     }
@@ -234,7 +269,7 @@ export default function ProductDetailPage() {
           </Link>
           <h1 className="text-2xl font-semibold text-gray-900">{product.name}</h1>
           <div className="flex items-center gap-2 mt-2">
-            {getTypeBadge(product.type)}
+            {getTypeBadge(product.type, product.isKitProduct)}
             {getStatusBadge(product.status, product.isAdminApproved, product.isAdminRejected)}
             {product.featured && <Badge variant="outline" className="bg-yellow-50 text-yellow-700">Featured</Badge>}
           </div>
@@ -277,7 +312,7 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Images */}
+          {/* Product Images */}
           {product.images && product.images.length > 0 && (
             <Card>
               <CardHeader>
@@ -290,6 +325,30 @@ export default function ProductDetailPage() {
                       <Image
                         src={image.url}
                         alt={`${product.name} - Image ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        width={300}
+                        height={300}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Kit Images (shown separately when present) */}
+          {product.isKitProduct && product.kitImages && product.kitImages.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Kit Images</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  {product.kitImages.map((image: KitImage, index: number) => (
+                    <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                      <Image
+                        src={image.url}
+                        alt={`${product.name} - Kit Image ${index + 1}`}
                         className="w-full h-full object-cover"
                         width={300}
                         height={300}
@@ -366,6 +425,16 @@ export default function ProductDetailPage() {
                     </div>
                   </div>
                 )}
+                {product.previewFile && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Preview File</label>
+                    <p className="text-lg">
+                      <a href={product.previewFile.url} target="_blank" rel="noopener noreferrer" className="underline text-blue-600 hover:text-blue-800">
+                        View Preview
+                      </a>
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -418,6 +487,87 @@ export default function ProductDetailPage() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Kit Details */}
+          {product.isKitProduct && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Kit Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Kit Type</label>
+                    <p className="text-lg font-semibold">{product.typeOfKit}</p>
+                  </div>
+                  {product.kitMainFile && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Main Kit File</label>
+                      <p className="text-lg">
+                        <a href={product.kitMainFile.url} target="_blank" rel="noopener noreferrer" className="underline text-blue-600 hover:text-blue-800">
+                          {product.kitMainFile.name} ({product.kitMainFile.size} MB)
+                        </a>
+                      </p>
+                    </div>
+                  )}
+                  {product.kitDescription && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kit Description</label>
+                      <p className="text-lg">{product.kitDescription}</p>
+                    </div>
+                  )}
+                  {product.kitInstructions && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kit Instructions</label>
+                      <p className="text-lg">{product.kitInstructions}</p>
+                    </div>
+                  )}
+                  {product.kitFiles && product.kitFiles.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kit Preview Files</label>
+                      <ul className="list-disc list-inside space-y-1">
+                        {product.kitFiles.map((file: { url: string; originalname?: string; filename?: string }, index: number) => (
+                          <li key={index}>
+                            <a href={file.url} target="_blank" rel="noopener noreferrer" className="underline text-blue-600 hover:text-blue-800">
+                              {file.originalname || file.filename}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {product.kitContents && product.kitContents.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kit Contents</label>
+                      <ul className="list-disc list-inside space-y-1">
+                        {product.kitContents.map((content, index) => (
+                          <li key={index} className="text-lg">{content}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {product.kitImages && product.kitImages.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kit Images</label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {product.kitImages.map((image: KitImage, index: number) => (
+                          <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                            <Image
+                              src={image.url}
+                              alt={`${product.name} - Kit Image ${index + 1}`}
+                              className="w-full h-full object-cover"
+                              width={300}
+                              height={300}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
           )}
 
           {/* SEO Information */}

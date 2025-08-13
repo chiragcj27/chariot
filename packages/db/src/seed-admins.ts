@@ -33,6 +33,7 @@ async function seedAdmins() {
         name: admin.name,
         password: hashed,
         isSuperAdmin: admin.isSuperAdmin,
+        approvalStatus: 'approved',
         refreshToken: '',
       });
       console.log(`Created admin: ${admin.email}`);

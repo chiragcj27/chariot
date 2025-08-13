@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Product, PhysicalProduct, DigitalProduct, ServiceProduct, Image, ProductImage, Menu, Item } from "@chariot/db";
+import { Product, PhysicalProduct, DigitalProduct, ServiceProduct, Image, ProductImage, KitProductImage, Menu, Item, File } from "@chariot/db";
 import { ProductStatus } from "@chariot/db";
 import mongoose from "mongoose";
 import { s3Service } from "../services/s3.service";
@@ -22,6 +22,9 @@ export const productController = {
   // Create a new product
   createProduct: async (req: Request, res: Response) => {
     try {
+      console.log('Creating product with data:', JSON.stringify(req.body, null, 2));
+      console.log('kitImages type:', typeof req.body.kitImages, 'value:', req.body.kitImages);
+      console.log('kitFiles type:', typeof req.body.kitFiles, 'value:', req.body.kitFiles);
       // Validate product data before creation
       const { categoryId, itemId, kitId, isKitProduct, type, zipFile } = req.body;
       
@@ -68,6 +71,17 @@ export const productController = {
         isAdminRejected: false
       };
       
+      // Remove kit images and files from initial creation - they will be uploaded separately
+      if (productData.kitImages) {
+        delete productData.kitImages;
+      }
+      if (productData.kitFiles) {
+        delete productData.kitFiles;
+      }
+      if (productData.kitMainFile) {
+        delete productData.kitMainFile;
+      }
+      
       // Remove empty categoryId and itemId for kit products
       if (isKitProduct) {
         delete productData.categoryId;
@@ -112,26 +126,35 @@ export const productController = {
       
       let product;
 
-      // Use the appropriate model based on product type
-      switch (productData.type) {
-        case "physical":
-          product = await PhysicalProduct.create(productData);
-          break;
-        case "digital":
-          product = await DigitalProduct.create(productData);
-          break;
-        case "service":
-          product = await ServiceProduct.create(productData);
-          break;
-        default:
-          throw new Error(`Invalid product type: ${productData.type}`);
+      // Use the appropriate model based on product type and isKitProduct flag
+      if (productData.isKitProduct) {
+        // For kit products, set the discriminator key to trigger KitProduct creation
+        productData.type = 'kitProduct';
+        product = await Product.create(productData); // This will create a KitProduct due to discriminator
+      } else {
+        // For regular products, use the specific product type models
+        switch (productData.type) {
+          case "physical":
+            product = await PhysicalProduct.create(productData);
+            break;
+          case "digital":
+            product = await DigitalProduct.create(productData);
+            break;
+          case "service":
+            product = await ServiceProduct.create(productData);
+            break;
+          default:
+            throw new Error(`Invalid product type: ${productData.type}`);
+        }
       }
 
+      console.log('Product created successfully:', product);
       res.status(201).json({
         message: "Product created successfully",
         product,
       });
     } catch (error: unknown) {
+      console.error('Error creating product:', error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       res.status(500).json({
@@ -160,6 +183,43 @@ export const productController = {
         });
       }
 
+      // Load product to attach image appropriately
+      const product = await Product.findById(data.productId);
+      if (!product) {
+        return res.status(404).json({
+          message: "Product not found",
+        });
+      }
+
+      // If imageType is explicitly 'kitProduct' and this is a kit product, store as KitProductImage and attach to kitImages
+      if (data.imageType === 'kitProduct' && (product as any).isKitProduct) {
+        const kitProductImage = new KitProductImage({
+          filename: data.filename,
+          originalname: data.originalname,
+          url: data.url,
+          size: data.size,
+          mimetype: data.mimetype,
+          status: data.status || 'pending',
+          imageType: 'kitProduct',
+          productId: new mongoose.Types.ObjectId(data.productId),
+        });
+        await kitProductImage.save();
+
+        // Attach to kitImages on product
+        const kitProduct = product as any;
+        if (!kitProduct.kitImages) {
+          kitProduct.kitImages = [];
+        }
+        kitProduct.kitImages.push(kitProductImage._id as mongoose.Types.ObjectId);
+        await kitProduct.save();
+
+        return res.status(201).json({
+          message: "Kit product image created successfully",
+          image: kitProductImage,
+        });
+      }
+
+      // Default: save as product image and attach to product.images
       const image = new ProductImage({
         ...data,
         imageType: "product",
@@ -175,12 +235,6 @@ export const productController = {
       });
       await image.save();
 
-      const product = await Product.findById(data.productId);
-      if (!product) {
-        return res.status(404).json({
-          message: "Product not found",
-        });
-      }
       product.images.push(image._id as mongoose.Types.ObjectId);
       await product.save();
 
@@ -209,7 +263,7 @@ export const productController = {
         }).populate({
           path: 'itemId',
           model: 'Item'
-        }).populate('images');
+        }).populate('images').populate('kitImages').populate('kitFiles');
 
       res.status(200).json({
         message: "Products retrieved successfully",
@@ -247,6 +301,8 @@ export const productController = {
             model: 'Item'
           })
           .populate('images')
+          .populate('kitImages')
+          .populate('kitFiles')
           .skip(skip)
           .limit(Number(limit))
           .sort({ createdAt: -1 }),
@@ -295,6 +351,8 @@ export const productController = {
             model: 'Item'
           })
           .populate('images')
+          .populate('kitImages')
+          .populate('kitFiles')
           .skip(skip)
           .limit(Number(limit))
           .sort({ createdAt: -1 }),
@@ -340,6 +398,8 @@ export const productController = {
             model: 'Item'
           })
           .populate('images')
+          .populate('kitImages')
+          .populate('kitFiles')
           .skip(skip)
           .limit(Number(limit))
           .sort({ createdAt: -1 }),
@@ -396,6 +456,8 @@ export const productController = {
             model: 'Item'
           })
           .populate('images')
+          .populate('kitImages')
+          .populate('kitFiles')
           .skip(skip)
           .limit(Number(limit))
           .sort({ createdAt: -1 }),
@@ -452,7 +514,9 @@ export const productController = {
           path: 'itemId',
           model: 'Item'
         })
-        .populate('images');
+        .populate('images')
+        .populate('kitImages')
+        .populate('kitFiles');
 
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
@@ -488,7 +552,9 @@ export const productController = {
           path: 'itemId',
           model: 'Item'
         })
-        .populate('images');
+        .populate('images')
+        .populate('kitImages')
+        .populate('kitFiles');
 
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
@@ -512,7 +578,7 @@ export const productController = {
       const { productId } = req.params;
       const updateData = req.body;
       
-      const product = await Product.findById(productId).populate('images');
+      const product = await Product.findById(productId).populate('images').populate('kitImages').populate('kitFiles');
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -641,7 +707,7 @@ export const productController = {
     try {
       const { productId } = req.params;
 
-      const product = await Product.findById(productId).populate('images');
+      const product = await Product.findById(productId).populate('images').populate('kitImages').populate('kitFiles');
 
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
@@ -677,6 +743,53 @@ export const productController = {
           await s3Service.deleteAsset((product as any).previewFile.key);
         } catch (s3Error) {
           console.error('Error deleting preview file from S3:', s3Error);
+        }
+      }
+
+      // Delete kit-related files and images if it's a kit product
+      if ((product as any).isKitProduct) {
+        // Delete kit images from S3 and database
+        if ((product as any).kitImages && (product as any).kitImages.length > 0) {
+          for (const imageId of (product as any).kitImages) {
+            const image = await Image.findById(imageId);
+            if (image) {
+              try {
+                await s3Service.deleteAsset(image.filename);
+              } catch (s3Error) {
+                console.error('Error deleting kit image from S3:', s3Error);
+              }
+              await Image.findByIdAndDelete(imageId);
+            }
+          }
+        }
+
+        // Delete kit files from S3 and database
+        if ((product as any).kitFiles && (product as any).kitFiles.length > 0) {
+          for (const fileId of (product as any).kitFiles) {
+            const file = await File.findById(fileId);
+            if (file) {
+              try {
+                // Use appropriate delete method based on file type
+                if (file.fileType === 'zip') {
+                  await s3Service.deletePrivateAsset(file.filename);
+                } else {
+                  await s3Service.deleteAsset(file.filename);
+                }
+              } catch (s3Error) {
+                console.error('Error deleting kit file from S3:', s3Error);
+              }
+              await File.findByIdAndDelete(fileId);
+            }
+          }
+        }
+
+        // Delete kit main file if it exists
+        if ((product as any).kitMainFile?.key) {
+          try {
+            await s3Service.deletePrivateAsset((product as any).kitMainFile.key);
+          } catch (s3Error) {
+            console.error('Error deleting kit main file from private S3:', s3Error);
+          }
         }
       }
 

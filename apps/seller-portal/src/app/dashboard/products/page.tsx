@@ -16,6 +16,12 @@ interface ProductImage {
   alt?: string;
 }
 
+interface KitImage {
+  _id: string;
+  url: string;
+  alt?: string;
+}
+
 interface Product {
   _id: string;
   name: string;
@@ -32,6 +38,18 @@ interface Product {
     percentage: number;
   };
   images: ProductImage[];
+  // Kit-related fields
+  isKitProduct?: boolean;
+  kitId?: string;
+  typeOfKit?: 'premium' | 'basic';
+  kitImages?: KitImage[];
+  kitFiles?: any[];
+  kitMainFile?: {
+    name: string;
+    url: string;
+    key: string;
+    size: number;
+  };
   createdAt: string;
   isAdminApproved: boolean;
   isAdminRejected: boolean;
@@ -143,14 +161,18 @@ export default function ProductsPage() {
     }
   };
 
-  const getTypeBadge = (type: string) => {
+  const getTypeBadge = (type: string, isKitProduct?: boolean) => {
+    if (isKitProduct) {
+      return <Badge variant="outline" className="bg-purple-50 text-purple-700">Kit Product</Badge>;
+    }
+    
     switch (type) {
       case 'physical':
         return <Badge variant="outline" className="bg-blue-50 text-blue-700">Physical</Badge>;
       case 'digital':
         return <Badge variant="outline" className="bg-green-50 text-green-700">Digital</Badge>;
       case 'service':
-        return <Badge variant="outline" className="bg-purple-50 text-purple-700">Service</Badge>;
+        return <Badge variant="outline" className="bg-orange-50 text-orange-700">Service</Badge>;
       default:
         return <Badge variant="outline">{type}</Badge>;
     }
@@ -213,7 +235,15 @@ export default function ProductsPage() {
         {products.map((product) => (
           <Card key={product._id} className="overflow-hidden">
             <div className="aspect-video bg-gray-100 flex items-center justify-center">
-              {product.images && product.images.length > 0 ? (
+              {product.isKitProduct && product.kitImages && product.kitImages.length > 0 ? (
+                <Image
+                  src={product.kitImages[0].url}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                  width={400}
+                  height={225}
+                />
+              ) : product.images && product.images.length > 0 ? (
                 <Image
                   src={product.images[0].url}
                   alt={product.name}
@@ -229,7 +259,7 @@ export default function ProductsPage() {
               <div className="flex justify-between items-start">
                 <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
                 <div className="flex gap-1">
-                  {getTypeBadge(product.type)}
+                  {getTypeBadge(product.type, product.isKitProduct)}
                 </div>
               </div>
               <div className="flex items-center gap-2">

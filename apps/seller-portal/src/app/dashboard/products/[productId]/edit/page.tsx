@@ -9,6 +9,36 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import ProductForm from '@/components/product-form/ProductForm';
 import Link from 'next/link';
 
+interface KitImage {
+  _id?: string;
+  url: string;
+  filename?: string;
+  originalname?: string;
+  size?: number;
+  mimetype?: string;
+}
+
+interface KitFile {
+  _id?: string;
+  filename: string;
+  originalname: string;
+  url: string;
+  size: number;
+  mimetype: string;
+  fileType: 'pdf' | 'document' | 'zip';
+  pageCount?: number;
+  documentType?: string;
+  containsFiles?: number;
+  isPreview?: boolean;
+}
+
+interface KitMainFile {
+  name: string;
+  url: string;
+  key: string;
+  size: number;
+}
+
 interface ProductFormData {
   name: string;
   description: string;
@@ -35,6 +65,12 @@ interface ProductFormData {
   isKitProduct?: boolean;
   kitId?: string;
   typeOfKit?: 'premium' | 'basic';
+  kitDescription?: string;
+  kitInstructions?: string;
+  kitContents?: string[];
+  kitImages?: KitImage[];
+  kitFiles?: KitFile[];
+  kitMainFile?: KitMainFile | null;
   
   // Physical product specific
   dimensions?: {
@@ -57,6 +93,12 @@ interface ProductFormData {
     fileSize: number;
     fileUrl: string;
   };
+  zipFile?: {
+    name: string;
+    url: string;
+    key: string;
+    size: number;
+  } | null;
   
   // Service product specific
   deliveryTime?: {
@@ -125,16 +167,36 @@ export default function EditProductPage() {
           tags: data.product.tags || [],
           featured: data.product.featured || false,
           status: data.product.status === 'rejected' ? 'draft' : data.product.status,
+          // SEO
+          seo: data.product.seo || { metaTitle: '', metaDescription: '', metaKeywords: [] },
           stock: data.product.stock || 0,
           deliverables: data.product.deliverables || [],
           requirements: data.product.requirements || [],
           consultationRequired: data.product.consultationRequired || false,
           // Transform images from backend format to frontend format
-          images: data.product.images ? data.product.images.map((img: unknown) => ({
-            _id: (img as { _id: string })._id,
-            url: (img as { url: string }).url
+          images: data.product.images ? data.product.images.map((img: { _id: string; url: string }) => ({
+            _id: img._id,
+            url: img.url
           })) : [],
-          ...data.product
+          // Kit-specific fields (populated from backend)
+          isKitProduct: data.product.isKitProduct,
+          kitId: data.product.kitId,
+          typeOfKit: data.product.typeOfKit,
+          kitDescription: data.product.kitDescription || '',
+          kitInstructions: data.product.kitInstructions || '',
+          kitContents: data.product.kitContents || [],
+          kitImages: data.product.kitImages ? data.product.kitImages.map((img: KitImage & { filename?: string; originalname?: string; size?: number; mimetype?: string }) => ({
+            _id: img._id,
+            url: img.url,
+            filename: img.filename,
+            originalname: img.originalname,
+            size: img.size,
+            mimetype: img.mimetype
+          })) : [],
+          kitFiles: data.product.kitFiles || [],
+          kitMainFile: data.product.kitMainFile || null,
+          previewFile: data.product.previewFile || null,
+          zipFile: data.product.zipFile || null,
         };
 
         setProduct(formData);
@@ -150,13 +212,271 @@ export default function EditProductPage() {
     }
   }, [productId]);
 
+  const uploadImageToS3 = async (file: File, uploadUrl: string) => {
+    const response = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: file,
+      headers: {
+        'Content-Type': file.type,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload to S3');
+    }
+  };
+
+  const uploadImages = async (imageUrls: string[], productId: string) => {
+    for (let i = 0; i < imageUrls.length; i++) {
+      const imageUrl = imageUrls[i];
+      if (!imageUrl.startsWith('blob:')) continue;
+
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const file = new File([blob], `image-${i}.${blob.type.split('/')[1]}`, { type: blob.type });
+
+      const uploadUrlResponse = await fetch('/api/assets/upload-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          fileName: file.name,
+          fileType: file.type,
+          folder: 'products',
+        }),
+      });
+      if (!uploadUrlResponse.ok) throw new Error('Failed to get upload URL');
+
+      const { uploadUrl, url, key } = await uploadUrlResponse.json();
+      await uploadImageToS3(file, uploadUrl);
+
+      const imageResponse = await fetch('/api/products/images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          filename: key,
+          originalname: file.name,
+          url: url,
+          size: file.size,
+          mimetype: file.type,
+          productId: productId,
+          isMain: i === 0,
+          isThumbnail: false,
+          status: 'uploaded',
+        }),
+      });
+      if (!imageResponse.ok) throw new Error('Failed to store image metadata');
+    }
+  };
+
+  const uploadKitImages = async (kitImages: KitImage[], productId: string) => {
+    for (let i = 0; i < kitImages.length; i++) {
+      const kitImage = kitImages[i];
+      if (!kitImage.url.startsWith('blob:')) continue;
+
+      const response = await fetch(kitImage.url);
+      const blob = await response.blob();
+      const file = new File([blob], kitImage.filename || `kit-image-${i}.${blob.type.split('/')[1]}`, { type: blob.type });
+
+      const uploadUrlResponse = await fetch('/api/assets/upload-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          fileName: file.name,
+          fileType: file.type,
+          folder: 'kit-images',
+        }),
+      });
+      if (!uploadUrlResponse.ok) throw new Error('Failed to get upload URL');
+
+      const { uploadUrl, url, key } = await uploadUrlResponse.json();
+      await uploadImageToS3(file, uploadUrl);
+
+      const imageResponse = await fetch('/api/products/images', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          filename: key,
+          originalname: file.name,
+          url: url,
+          size: file.size,
+          mimetype: file.type,
+          productId: productId,
+          isMain: false,
+          isThumbnail: false,
+          status: 'uploaded',
+          imageType: 'kitProduct'
+        }),
+      });
+      if (!imageResponse.ok) throw new Error('Failed to store kit image metadata');
+    }
+  };
+
+  const uploadKitFiles = async (kitFiles: KitFile[], productId: string) => {
+    for (let i = 0; i < kitFiles.length; i++) {
+      const kitFile = kitFiles[i];
+      if (!kitFile.url.startsWith('blob:')) {
+        // Create DB record if not already
+        const fileResponse = await fetch('/api/files/kit-preview-files', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            filename: kitFile.filename,
+            originalname: kitFile.originalname,
+            url: kitFile.url,
+            size: kitFile.size,
+            mimetype: kitFile.mimetype,
+            fileType: kitFile.fileType,
+            productId: productId,
+            pageCount: kitFile.pageCount,
+            documentType: kitFile.documentType,
+            isPreview: true,
+            status: 'uploaded',
+          }),
+        });
+        if (!fileResponse.ok) throw new Error('Failed to store kit preview file metadata');
+        continue;
+      }
+
+      const response = await fetch(kitFile.url);
+      const blob = await response.blob();
+      const file = new File([blob], kitFile.originalname || `kit-file-${i}`, { type: kitFile.mimetype });
+
+      const uploadUrlResponse = await fetch('/api/assets/upload-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          fileName: file.name,
+          fileType: file.type,
+          folder: 'kit-preview-files',
+        }),
+      });
+      if (!uploadUrlResponse.ok) throw new Error('Failed to get upload URL');
+
+      const { uploadUrl, url, key } = await uploadUrlResponse.json();
+      await uploadImageToS3(file, uploadUrl);
+
+      const fileResponse = await fetch('/api/files/kit-preview-files', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          filename: key,
+          originalname: file.name,
+          url: url,
+          size: file.size,
+          mimetype: file.type,
+          fileType: kitFile.fileType,
+          productId: productId,
+          pageCount: kitFile.pageCount,
+          documentType: kitFile.documentType,
+          isPreview: true,
+          status: 'uploaded',
+        }),
+      });
+      if (!fileResponse.ok) throw new Error('Failed to store kit preview file metadata');
+    }
+  };
+
+  const uploadKitMainFile = async (kitMainFile: KitMainFile, productId: string) => {
+    if (!kitMainFile) return;
+
+    if (!kitMainFile.url.startsWith('blob:')) {
+      const fileResponse = await fetch('/api/files/kit-main-files', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          filename: kitMainFile.name,
+          originalname: kitMainFile.name,
+          url: kitMainFile.url,
+          key: kitMainFile.key,
+          size: kitMainFile.size,
+          mimetype: 'application/zip',
+          fileType: 'zip',
+          productId: productId,
+          containsFiles: 0,
+          isPreview: false,
+          status: 'uploaded',
+        }),
+      });
+      if (!fileResponse.ok) throw new Error('Failed to store kit main file metadata');
+      return;
+    }
+
+    const response = await fetch(kitMainFile.url);
+    const blob = await response.blob();
+    const file = new File([blob], kitMainFile.name, { type: 'application/zip' });
+
+    const uploadUrlResponse = await fetch('/api/assets/upload-zip-url', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        fileName: file.name,
+        fileType: file.type,
+        folder: 'kit-main-files',
+      }),
+    });
+    if (!uploadUrlResponse.ok) throw new Error('Failed to get upload URL');
+
+    const { uploadUrl, url, key } = await uploadUrlResponse.json();
+    await uploadImageToS3(file, uploadUrl);
+
+    const fileResponse = await fetch('/api/files/kit-main-files', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        filename: key,
+        originalname: file.name,
+        url: url,
+        key: key,
+        size: file.size,
+        mimetype: file.type,
+        fileType: 'zip',
+        productId: productId,
+        containsFiles: 0,
+        isPreview: false,
+        status: 'uploaded',
+      }),
+    });
+    if (!fileResponse.ok) throw new Error('Failed to store kit main file metadata');
+  };
+
   const handleSubmit = async (formData: ProductFormData) => {
     setIsSaving(true);
     setError(null);
     setSuccess(null);
 
     try {
-      const response = await fetch(`/api/products?id=${productId}`, {
+      // Update core fields first
+      const response = await fetch(`/api/products/${productId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -171,19 +491,48 @@ export default function EditProductPage() {
         throw new Error(data.message || 'Failed to update product');
       }
 
-      // Check if the product was active or pending and inform about re-approval
+      // Upload newly added product images (blob URLs only)
+      const imageUrls = formData.images
+        .filter((img): img is string => typeof img === 'string');
+      if (imageUrls.length > 0) {
+        await uploadImages(imageUrls, productId);
+      }
+
+      // Upload newly added kit images
+      if (formData.isKitProduct && formData.kitImages && formData.kitImages.length > 0) {
+        const newKitImages = formData.kitImages.filter(img => img.url.startsWith('blob:'));
+        if (newKitImages.length > 0) {
+          await uploadKitImages(newKitImages, productId);
+        }
+      }
+
+      // Upload newly added kit preview files
+      if (formData.isKitProduct && formData.kitFiles && formData.kitFiles.length > 0) {
+        const newKitFiles = formData.kitFiles.filter(file => file.url.startsWith('blob:'));
+        if (newKitFiles.length > 0) {
+          await uploadKitFiles(newKitFiles as KitFile[], productId);
+        }
+      }
+
+      // Upload or set kit main file
+      if (formData.isKitProduct && formData.kitMainFile) {
+        const isNewMain = formData.kitMainFile.url.startsWith('blob:');
+        if (isNewMain) {
+          await uploadKitMainFile(formData.kitMainFile, productId);
+        }
+      }
+
+      // Success messaging
       const wasActiveOrPending = product && (product.status === 'active' || product.status === 'pending');
-      
       if (wasActiveOrPending) {
         setSuccess('Product updated successfully! It has been set to pending status and will require re-approval from admin.');
       } else {
         setSuccess('Product updated successfully!');
       }
-      
-      // Redirect to product detail page after a short delay
+
       setTimeout(() => {
         router.push(`/dashboard/products/${productId}`);
-      }, 3000);
+      }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while updating the product');
     } finally {

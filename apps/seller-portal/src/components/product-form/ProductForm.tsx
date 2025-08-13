@@ -14,8 +14,42 @@ import { productTypes, currencies, digitalKinds, timeUnits } from './constants';
 import { TagInput } from './TagInput';
 import ImageUpload from './ImageUpload';
 import ZipUpload from './ZipUpload';
+import KitFileUpload from './KitFileUpload';
+import KitImageUpload from './KitImageUpload';
+import KitMainFileUpload from './KitMainFileUpload';
 import { useCategories } from '@/hooks/useCategories';
 import { useKits } from '@/hooks/useKits';
+
+// Import types from components
+interface KitImage {
+  _id?: string;
+  url: string;
+  filename?: string;
+  originalname?: string;
+  size?: number;
+  mimetype?: string;
+}
+
+interface KitFile {
+  _id?: string;
+  filename: string;
+  originalname: string;
+  url: string;
+  size: number;
+  mimetype: string;
+  fileType: 'pdf' | 'document' | 'zip';
+  pageCount?: number;
+  documentType?: string;
+  containsFiles?: number;
+  isPreview?: boolean;
+}
+
+interface KitMainFile {
+  name: string;
+  url: string;
+  key: string;
+  size: number;
+}
 
 interface ProductFormData {
   name: string;
@@ -43,6 +77,12 @@ interface ProductFormData {
   isKitProduct?: boolean;
   kitId?: string;
   typeOfKit?: 'premium' | 'basic';
+  kitDescription?: string;
+  kitInstructions?: string;
+  kitContents?: string[];
+  kitImages?: KitImage[];
+  kitFiles?: KitFile[];
+  kitMainFile?: KitMainFile | null;
   
   // Physical product specific
   dimensions?: {
@@ -95,7 +135,7 @@ interface ProductFormData {
 
 interface ProductFormProps {
   initialData?: Partial<ProductFormData>;
-  onSubmit: (data: ProductFormData) => void;
+  onSubmit: (data: ProductFormData) => void | Promise<void>;
   isLoading?: boolean;
 }
 
@@ -120,6 +160,13 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
     images: [],
     previewFile: null,
     zipFile: null,
+    // Kit-specific fields
+    kitDescription: '',
+    kitInstructions: '',
+    kitContents: [],
+    kitImages: [],
+    kitFiles: [],
+    kitMainFile: null,
     ...initialData
   });
 
@@ -313,10 +360,10 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
     setFormData(prev => ({ ...prev, previewFile: null }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      onSubmit(formData);
+      await onSubmit(formData);
     }
   };
 
@@ -380,6 +427,28 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
     }));
   };
 
+  // Kit content management functions
+  const addKitContent = () => {
+    setFormData(prev => ({
+      ...prev,
+      kitContents: [...(prev.kitContents || []), '']
+    }));
+  };
+
+  const removeKitContent = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      kitContents: (prev.kitContents || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateKitContent = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      kitContents: (prev.kitContents || []).map((item, i) => i === index ? value : item)
+    }));
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Basic Information */}
@@ -403,16 +472,31 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
 
             <div>
               <Label htmlFor="type">Product Type *</Label>
-              <Select value={formData.type} onValueChange={(value: unknown) => setFormData(prev => ({ ...prev, type: value as 'physical' | 'digital' | 'service' }))}>
+              <Select 
+                value={formData.isKitProduct ? 'kitProduct' : formData.type} 
+                onValueChange={(value: unknown) => {
+                  if (!formData.isKitProduct) {
+                    setFormData(prev => ({ ...prev, type: value as 'physical' | 'digital' | 'service' }))
+                  }
+                }}
+                disabled={formData.isKitProduct}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {productTypes.map(type => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
-                  ))}
+                  {formData.isKitProduct ? (
+                    <SelectItem value="kitProduct">Kit Product</SelectItem>
+                  ) : (
+                    productTypes.map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
+              {formData.isKitProduct && (
+                <p className="text-sm text-gray-500 mt-1">Kit products have their own type and cannot be changed</p>
+              )}
             </div>
           </div>
 
@@ -439,6 +523,8 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
                   setFormData(prev => ({
                     ...prev,
                     isKitProduct: checked,
+                    // For kit products, keep the current type (physical/digital/service) but set isKitProduct flag
+                    type: prev.type,
                     // Clear fields when switching product type
                     categoryId: checked ? '' : prev.categoryId,
                     itemId: checked ? '' : prev.itemId,
@@ -719,7 +805,7 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
       </Card>
 
       {/* Product Type Specific Fields */}
-      {formData.type === 'physical' && (
+      {formData.type === 'physical' && !formData.isKitProduct && (
         <Card>
           <CardHeader>
             <CardTitle>Physical Product Details</CardTitle>
@@ -839,7 +925,7 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
         </Card>
       )}
 
-      {formData.type === 'digital' && (
+      {formData.type === 'digital' && !formData.isKitProduct && (
         <Card>
           <CardHeader>
             <CardTitle>Digital Product Details</CardTitle>
@@ -898,7 +984,7 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
         </Card>
       )}
 
-      {formData.type === 'service' && (
+      {formData.type === 'service' && !formData.isKitProduct && (
         <Card>
           <CardHeader>
             <CardTitle>Service Product Details</CardTitle>
@@ -1120,6 +1206,98 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
         onImagesChange={(images) => setFormData(prev => ({ ...prev, images }))}
         maxImages={5}
       />
+
+      {/* Kit Product Specific Sections */}
+      {formData.isKitProduct && (
+        <>
+          {/* Kit Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Kit Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="kitDescription">Kit Description</Label>
+                <Textarea
+                  id="kitDescription"
+                  value={formData.kitDescription || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, kitDescription: e.target.value }))}
+                  placeholder="Provide a detailed description of what's included in this kit"
+                  rows={4}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  This description will be shown to customers to explain what they&apos;ll receive.
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="kitInstructions">Usage Instructions</Label>
+                <Textarea
+                  id="kitInstructions"
+                  value={formData.kitInstructions || ''}
+                  onChange={(e) => setFormData(prev => ({ ...prev, kitInstructions: e.target.value }))}
+                  placeholder="Provide instructions on how to use the kit contents"
+                  rows={3}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Instructions will be provided to customers after purchase.
+                </p>
+              </div>
+
+              <div>
+                <Label>Kit Contents</Label>
+                <div className="space-y-2">
+                  {(formData.kitContents || []).map((content, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={content}
+                        onChange={(e) => updateKitContent(index, e.target.value)}
+                        placeholder="e.g., 10 PSD templates, 5 PDF guides"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeKitContent(index)}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" size="sm" onClick={addKitContent}>
+                    Add Content Item
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  List the specific items included in this kit.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Kit Images */}
+          <KitImageUpload
+            images={formData.kitImages || []}
+            onImagesChange={(kitImages) => setFormData(prev => ({ ...prev, kitImages }))}
+            maxImages={5}
+          />
+
+          {/* Kit Files */}
+          <KitFileUpload
+            files={formData.kitFiles || []}
+            onFilesChange={(kitFiles) => setFormData(prev => ({ ...prev, kitFiles }))}
+            maxFiles={10}
+            maxSize={50}
+          />
+
+          {/* Main Kit File */}
+          <KitMainFileUpload
+            mainFile={formData.kitMainFile || null}
+            onMainFileChange={(kitMainFile) => setFormData(prev => ({ ...prev, kitMainFile }))}
+            maxSize={100}
+          />
+        </>
+      )}
 
       {/* SEO Information */}
       <Card>

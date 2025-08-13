@@ -1,6 +1,6 @@
 // Category and item data is now fetched from the API via useCategories hook
   
-  export const productTypes = ["physical", "digital", "service"];
+  export const productTypes = ["physical", "digital", "service", "kitProduct"];
   export const productStatuses = ["draft", "active", "inactive", "pending", "rejected", "archived", "deleted"];
   export const currencies = ["USD", "EUR", "GBP", "INR"];
   export const digitalKinds = ["video", "audio", "image", "pdf", "document", "software", "template"];
