@@ -30,7 +30,8 @@ const allowedOrigins = [
   'https://chariot-website.vercel.app',
   'http://localhost:3000',
   'https://chariot-admin.vercel.app',
-  'http://localhost:3002'
+  'http://localhost:3002',
+  'https://chariot-seller-portal.vercel.app'
 ];
 // Middleware
 app.use(cors({
