@@ -43,7 +43,7 @@ export interface MenuStructure {
 
 export const menuApi = {
   async getFullMenuStructure(): Promise<MenuStructure[]> {
-    const response = await fetch(`${API_BASE_URL}/menu/structure`);
+    const response = await fetch(`${API_BASE_URL}/api/menu/structure`);
     if (!response.ok) {
       throw new Error('Failed to fetch menu structure');
     }
@@ -62,7 +62,7 @@ export const menuApi = {
       categoryId: string;
     }>;
   }): Promise<{ message: string; category: MenuStructure }> {
-    const response = await fetch(`${API_BASE_URL}/menu/category`, {
+    const response = await fetch(`${API_BASE_URL}/api/menu/category`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ export const menuApi = {
     };
     categoryId: string;
   }): Promise<NonNullable<MenuStructure['items']>[number]> {
-    const response = await fetch(`${API_BASE_URL}/menu/items`, {
+    const response = await fetch(`${API_BASE_URL}/api/menu/items`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export const menuApi = {
   },
 
   async deleteCategory(categoryId: string): Promise<{ message: string }> {
-    const response = await fetch(`${API_BASE_URL}/menu/category/${categoryId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/menu/category/${categoryId}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
@@ -125,7 +125,7 @@ export const menuApi = {
   },
 
   async deleteItem(itemId: string): Promise<{ message: string }> {
-    const response = await fetch(`${API_BASE_URL}/menu/item/${itemId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/menu/item/${itemId}`, {
       method: 'DELETE',
     });
     if (!response.ok) {
@@ -146,7 +146,7 @@ export const menuApi = {
       categoryId: string;
     }>;
   }): Promise<{ message: string; category: MenuStructure }> {
-    const response = await fetch(`${API_BASE_URL}/menu/category/${categoryId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/menu/category/${categoryId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ export const menuApi = {
       status: string;
     };
   }): Promise<{ message: string; item: NonNullable<MenuStructure['items']>[number] }> {
-    const response = await fetch(`${API_BASE_URL}/menu/item/${itemId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/menu/item/${itemId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ export const menuApi = {
   },
 
   async checkCategoryTitleUnique(title: string): Promise<boolean> {
-    const response = await fetch(`${API_BASE_URL}/menu/check-category-title/${encodeURIComponent(title)}`);
+    const response = await fetch(`${API_BASE_URL}/api/menu/check-category-title/${encodeURIComponent(title)}`);
     if (!response.ok) {
       throw new Error('Failed to check category title uniqueness');
     }
