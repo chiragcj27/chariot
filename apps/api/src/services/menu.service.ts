@@ -10,6 +10,7 @@ export const menuService = {
         slug: itemData.slug,
         categoryId: categoryId,
         description: itemData.description,
+        filters: itemData.filters || [],
         // Only create a temporary image ID if an image is provided
         ...(itemData.image && { image: new mongoose.Types.ObjectId() })
       }], { session });

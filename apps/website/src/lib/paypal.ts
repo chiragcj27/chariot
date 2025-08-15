@@ -97,7 +97,6 @@ export class PayPalService {
       return card.paypalPlanId;
     } catch (error) {
       console.error('❌ Error fetching PayPal plan ID:', error);
-      console.log('🔄 Falling back to mock subscription for development');
       return 'mock_plan_id';
     }
   }

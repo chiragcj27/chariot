@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://localhost:3001';
+
 interface ImageFile {
   file: File;
   previewUrl: string;
@@ -24,7 +26,7 @@ export const useImageUpload = () => {
     try {
       // Get signed URLs for all images
       const signedUrlPromises = images.map(async (image) => {
-        const response = await axios.post('http://localhost:3001/api/assets/upload-url', {
+        const response = await axios.post(`${API_BASE_URL}/api/assets/upload-url`, {
           fileName: image.file.name,
           fileType: image.file.type,
           folder: `products/${productId}`

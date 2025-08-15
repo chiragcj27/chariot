@@ -71,6 +71,7 @@ export interface IProduct {
   adminRejectedAt: Date;
   sellerId: Types.ObjectId;
   relatedProductsId: Types.ObjectId[]; // Added field for related products
+  filterValues?: Record<string, string[]>; // Filter values for product categorization
 }
 
 // Kit Product interface for products that are kits
@@ -218,6 +219,10 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
       type: [Schema.Types.ObjectId],
       ref: "Product",
       default: [],
+    },
+    filterValues: {
+      type: Schema.Types.Mixed,
+      default: {},
     },
   },
   {

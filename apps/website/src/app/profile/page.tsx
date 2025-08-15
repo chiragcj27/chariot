@@ -28,7 +28,8 @@ export default function ProfilePage() {
 
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch('http://localhost:3001/api/buyers/profile', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const response = await fetch(`${API_URL}/api/buyers/profile`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

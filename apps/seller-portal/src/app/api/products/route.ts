@@ -12,8 +12,6 @@ export async function POST(req: NextRequest) {
       const refreshToken = req.cookies.get('refreshToken')?.value;
       
       if (refreshToken) {
-        console.log('Products POST - No access token, attempting refresh...');
-        
         // Try to refresh via direct backend call
         const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
         const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
@@ -28,12 +26,10 @@ export async function POST(req: NextRequest) {
           accessToken = backendData.accessToken;
           newAccessToken = backendData.accessToken;
           newRefreshToken = backendData.refreshToken;
-          console.log('Products POST - Token refreshed successfully');
         }
       }
       
       if (!accessToken) {
-        console.log('Products POST - No valid token available, refresh failed');
         return NextResponse.json({ 
           message: 'No token provided - please login again',
           needsLogin: true
@@ -98,26 +94,19 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    console.log('Products GET - Starting request');
-    
     // Get the access token from cookies
     let accessToken = req.cookies.get('accessToken')?.value;
     let newAccessToken = null;
     let newRefreshToken = null;
-    
-    console.log('Products GET - Access token exists:', !!accessToken);
     
     // If no access token, try to refresh using refresh token
     if (!accessToken) {
       const refreshToken = req.cookies.get('refreshToken')?.value;
       
       if (refreshToken) {
-        console.log('Products GET - No access token, attempting refresh...');
-        
         // Try to refresh via direct backend call
         const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
         const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
-        console.log('Products GET - Refresh backend URL:', backendUrl);
         
         const backendRefresh = await fetch(backendUrl, {
           method: 'POST',
@@ -130,14 +119,10 @@ export async function GET(req: NextRequest) {
           accessToken = backendData.accessToken;
           newAccessToken = backendData.accessToken;
           newRefreshToken = backendData.refreshToken;
-          console.log('Products GET - Token refreshed successfully');
-        } else {
-          console.log('Products GET - Refresh failed with status:', backendRefresh.status);
         }
       }
       
       if (!accessToken) {
-        console.log('Products GET - No valid token available, refresh failed');
         return NextResponse.json({ 
           message: 'No token provided - please login again',
           needsLogin: true
@@ -158,23 +143,16 @@ export async function GET(req: NextRequest) {
     backendUrl.searchParams.set('page', page);
     backendUrl.searchParams.set('limit', limit);
     
-    console.log('Products GET - Backend URL:', backendUrl.toString());
-    console.log('Products GET - Using access token:', !!accessToken);
-    
     const response = await fetch(backendUrl.toString(), {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${accessToken}`
       },
     });
-
-    console.log('Products GET - Backend response status:', response.status);
     
     const data = await response.json();
-    console.log('Products GET - Backend response data:', data);
     
     if (!response.ok) {
-      console.log('Products GET - Backend request failed');
       return NextResponse.json(data, { status: response.status });
     }
 
@@ -201,7 +179,6 @@ export async function GET(req: NextRequest) {
       });
     }
     
-    console.log('Products GET - Request completed successfully');
     return nextResponse;
   } catch (error) {
     console.error('Products GET - Error:', error);
@@ -224,8 +201,6 @@ export async function PUT(req: NextRequest) {
       const refreshToken = req.cookies.get('refreshToken')?.value;
       
       if (refreshToken) {
-        console.log('Products PUT - No access token, attempting refresh...');
-        
         // Try to refresh via direct backend call
         const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
         const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
@@ -240,12 +215,10 @@ export async function PUT(req: NextRequest) {
           accessToken = backendData.accessToken;
           newAccessToken = backendData.accessToken;
           newRefreshToken = backendData.refreshToken;
-          console.log('Products PUT - Token refreshed successfully');
         }
       }
       
       if (!accessToken) {
-        console.log('Products PUT - No valid token available, refresh failed');
         return NextResponse.json({ 
           message: 'No token provided - please login again',
           needsLogin: true

@@ -45,7 +45,6 @@ export default function SubscriptionCheckout({
 
   useEffect(() => {
     if (isOpen && step === 'checkout' && paypalButtonRef.current) {
-      console.log('🔄 Rendering PayPal button for plan:', plan.planKey);
       
       // Clear previous button
       paypalButtonRef.current.innerHTML = '';
@@ -55,7 +54,6 @@ export default function SubscriptionCheckout({
         // Render PayPal button
         paypalService.renderPayPalButton(plan.planKey, paypalButtonRef.current!)
           .then(() => {
-            console.log('✅ PayPal button rendered successfully');
           })
           .catch((err) => {
             console.error('❌ Error rendering PayPal button:', err);

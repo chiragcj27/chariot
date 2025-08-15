@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export interface MenuStructure {
   _id: string;
@@ -38,6 +38,15 @@ export interface MenuStructure {
       status: string;
     };
     categoryId: string;
+    filters?: Array<{
+      id: string;
+      name: string;
+      values: Array<{
+        id: string;
+        name: string;
+        value: string;
+      }>;
+    }>;
   }>;
 }
 
@@ -100,6 +109,15 @@ export const menuApi = {
       status: string;
     };
     categoryId: string;
+    filters?: Array<{
+      id: string;
+      name: string;
+      values: Array<{
+        id: string;
+        name: string;
+        value: string;
+      }>;
+    }>;
   }): Promise<NonNullable<MenuStructure['items']>[number]> {
     const response = await fetch(`${API_BASE_URL}/api/menu/items`, {
       method: 'POST',
@@ -163,6 +181,15 @@ export const menuApi = {
     title?: string;
     slug?: string;
     description?: string;
+    filters?: Array<{
+      id: string;
+      name: string;
+      values: Array<{
+        id: string;
+        name: string;
+        value: string;
+      }>;
+    }>;
     image?: {
       filename: string;
       originalname: string;
@@ -204,5 +231,33 @@ export const menuApi = {
     }
     const data = await response.json();
     return data.isUnique;
+  },
+
+  async updateFeaturedItem(categoryId: string, featuredItemId: string, data: {
+    title?: string;
+    price?: number;
+    image?: string;
+  }): Promise<{ message: string; featuredItem: { _id: string; title: string; price: number; image: string; slug: string; categoryId: string } }> {
+    const response = await fetch(`${API_BASE_URL}/api/menu/featured-item/${categoryId}/${featuredItemId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update featured item');
+    }
+    return response.json();
+  },
+
+  async deleteFeaturedItem(categoryId: string, featuredItemId: string): Promise<{ message: string }> {
+    const response = await fetch(`${API_BASE_URL}/api/menu/featured-item/${categoryId}/${featuredItemId}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete featured item');
+    }
+    return response.json();
   },
 }; 

@@ -6,10 +6,11 @@ import { IProduct, Product, PhysicalProduct, DigitalProduct, ServiceProduct, Kit
 import { File, PdfFile, DocumentFile, ZipFile } from './models/file.model';
 import { IFile, IPdfFile, IDocumentFile, IZipFile } from './models/file.model.d';
 import { PromotionalStrip } from './models/promotionalStrip.model';
-import { IUser, ISeller, User, Seller, Admin} from './models/user.model';
+import { IUser, ISeller, IBuyer, User, Seller, Admin, Buyer} from './models/user.model';
 import { Kit, IKit } from './models/kits.model';
 import SubscriptionCard from './models/subscriptionCard.model';
 import { IUserSubscription, UserSubscription } from './models/userSubscription.model';
+import { OTP, IOTP } from './models/otp.model';
 
 export {
   connectDB,
@@ -24,6 +25,7 @@ export {
   KitImage,
   KitProductImage,
   Seller,
+  Buyer,
   Product,
   PhysicalProduct,
   DigitalProduct,
@@ -36,13 +38,15 @@ export {
   File,
   PdfFile,
   DocumentFile,
-  ZipFile
+  ZipFile,
+  OTP
 };
 
 export type {
   IImage,
   IItem,
   ISeller,
+  IBuyer,
   IUser,
   IProduct,
   IKitProduct,
@@ -53,6 +57,7 @@ export type {
   IPdfFile,
   IDocumentFile,
   IZipFile,
+  IOTP,
 };
 
 export { ProductType };

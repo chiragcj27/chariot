@@ -23,6 +23,7 @@ const navigation = [
   { name: 'Pricing & Discounts', href: '/pricing', icon: CurrencyDollarIcon },
   { name: 'Marketing', href: '/marketing', icon: MegaphoneIcon },
   { name: 'Customers', href: '/customers', icon: UsersIcon },
+  { name: 'Buyers', href: '/buyers', icon: UsersIcon },
   { name: 'Sellers', href: '/sellers', icon: BuildingStorefrontIcon },
   { name: 'Products', href: '/products', icon: ShoppingBagIcon },
   { name: 'Blacklisted Sellers', href: '/blacklist', icon: ExclamationTriangleIcon },

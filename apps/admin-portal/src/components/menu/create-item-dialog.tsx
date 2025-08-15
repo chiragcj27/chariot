@@ -17,8 +17,20 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Upload, X, ImageIcon } from "lucide-react"
+import { Upload, X, ImageIcon, Plus, Trash2 } from "lucide-react"
 import Image from "next/image"
+
+interface FilterValue {
+  id: string;
+  name: string;
+  value: string;
+}
+
+interface Filter {
+  id: string;
+  name: string;
+  values: FilterValue[];
+}
 
 interface Item {
   _id: string
@@ -36,6 +48,7 @@ interface Item {
     status: string
   }
   categoryId: string
+  filters?: Filter[]
 }
 
 interface CreateItemDialogProps {
@@ -66,6 +79,64 @@ export function CreateItemDialog({
     imageUrl: "",
     onHoverImageUrl: "",
   })
+  const [filters, setFilters] = useState<Filter[]>([])
+
+  const generateId = () => Math.random().toString(36).substr(2, 9)
+
+  const addFilter = () => {
+    const newFilter: Filter = {
+      id: generateId(),
+      name: "",
+      values: []
+    }
+    setFilters([...filters, newFilter])
+  }
+
+  const removeFilter = (filterId: string) => {
+    setFilters(filters.filter(filter => filter.id !== filterId))
+  }
+
+  const updateFilterName = (filterId: string, name: string) => {
+    setFilters(filters.map(filter => 
+      filter.id === filterId ? { ...filter, name } : filter
+    ))
+  }
+
+  const addFilterValue = (filterId: string) => {
+    const newValue: FilterValue = {
+      id: generateId(),
+      name: "",
+      value: ""
+    }
+    setFilters(filters.map(filter => 
+      filter.id === filterId 
+        ? { ...filter, values: [...filter.values, newValue] }
+        : filter
+    ))
+  }
+
+  const removeFilterValue = (filterId: string, valueId: string) => {
+    setFilters(filters.map(filter => 
+      filter.id === filterId 
+        ? { ...filter, values: filter.values.filter(value => value.id !== valueId) }
+        : filter
+    ))
+  }
+
+  const updateFilterValue = (filterId: string, valueId: string, field: 'name' | 'value', newValue: string) => {
+    setFilters(filters.map(filter => 
+      filter.id === filterId 
+        ? { 
+            ...filter, 
+            values: filter.values.map(value => 
+              value.id === valueId 
+                ? { ...value, [field]: newValue }
+                : value
+            )
+          }
+        : filter
+    ))
+  }
 
   const generateSlug = (title: string) => {
     return title
@@ -229,6 +300,7 @@ export function CreateItemDialog({
         slug: formData.slug,
         description: formData.description,
         categoryId: categoryId,
+        filters: filters.filter(filter => filter.name.trim() !== "" && filter.values.length > 0),
         image: finalImageUrl ? {
           filename: selectedFile?.name || "image.jpg",
           originalname: selectedFile?.name || "image.jpg",
@@ -280,6 +352,7 @@ export function CreateItemDialog({
 
       // Reset form
       setFormData({ title: "", slug: "", description: "", imageUrl: "", onHoverImageUrl: "" })
+      setFilters([])
       setSelectedFile(null)
       setSelectedOnHoverFile(null)
       setImagePreview(null)
@@ -301,6 +374,7 @@ export function CreateItemDialog({
 
   const resetForm = () => {
     setFormData({ title: "", slug: "", description: "", imageUrl: "", onHoverImageUrl: "" })
+    setFilters([])
     setSelectedFile(null)
     setSelectedOnHoverFile(null)
     setImagePreview(null)
@@ -542,6 +616,96 @@ export function CreateItemDialog({
                   <p className="text-xs text-muted-foreground">Enter a direct link to an image file</p>
                 </TabsContent>
               </Tabs>
+            </div>
+
+            {/* Filters Section */}
+            <div className="grid gap-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">Filters</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addFilter}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Filter
+                </Button>
+              </div>
+
+              {filters.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No filters added yet.</p>
+                  <p className="text-sm">Add filters to help sellers categorize their products.</p>
+                </div>
+              )}
+
+              {filters.map((filter) => (
+                <div key={filter.id} className="border rounded-lg p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Input
+                      placeholder="Filter name (e.g., Color, Size, Material)"
+                      value={filter.name}
+                      onChange={(e) => updateFilterName(filter.id, e.target.value)}
+                      className="flex-1 mr-2"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => removeFilter(filter.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium">Filter Values</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addFilterValue(filter.id)}
+                        className="flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" />
+                        Add Value
+                      </Button>
+                    </div>
+
+                    {filter.values.length === 0 && (
+                      <p className="text-sm text-muted-foreground">No values added yet.</p>
+                    )}
+
+                    {filter.values.map((value) => (
+                      <div key={value.id} className="flex items-center gap-2">
+                        <Input
+                          placeholder="Display name"
+                          value={value.name}
+                          onChange={(e) => updateFilterValue(filter.id, value.id, 'name', e.target.value)}
+                          className="flex-1"
+                        />
+                        <Input
+                          placeholder="Value"
+                          value={value.value}
+                          onChange={(e) => updateFilterValue(filter.id, value.id, 'value', e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => removeFilterValue(filter.id, value.id)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 

@@ -10,7 +10,6 @@ async function verifyPaypalWebhook(req: Request): Promise<boolean> {
   
   // In development, skip verification if webhook credentials aren't set
   if (process.env.NODE_ENV === 'development' && (!webhookId || !webhookSecret)) {
-    console.log('⚠️  Webhook verification skipped in development mode');
     return true;
   }
   
@@ -55,7 +54,6 @@ async function verifyPaypalWebhook(req: Request): Promise<boolean> {
       return false;
     }
 
-    console.log('✅ Webhook signature verified successfully');
     return true;
   } catch (error) {
     console.error('❌ Error verifying webhook signature:', error);
@@ -76,7 +74,6 @@ export const webhookController = {
       const eventType = event.event_type;
       const resource = event.resource;
 
-      console.log(`📨 Received PayPal webhook: ${eventType}`);
 
       // 2. Handle key events
       switch (eventType) {
@@ -98,11 +95,9 @@ export const webhookController = {
                 userSub.nextBillingDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
                 await userSub.save();
                 
-                console.log(`✅ Credits added for subscription ${paypalSubscriptionId}: +${plan.credits} credits`);
               }
             }
           } else {
-            console.log(`⚠️  Subscription ${paypalSubscriptionId} not found or not active`);
           }
           break;
         }
@@ -118,9 +113,7 @@ export const webhookController = {
           );
           
           if (updatedSub) {
-            console.log(`✅ Subscription ${paypalSubscriptionId} marked as canceled`);
           } else {
-            console.log(`⚠️  Subscription ${paypalSubscriptionId} not found for cancellation`);
           }
           break;
         }
@@ -133,10 +126,8 @@ export const webhookController = {
           );
           
           if (updatedSub) {
-            console.log(`⚠️  Subscription ${paypalSubscriptionId} marked as past due`);
             // TODO: Send notification to user about payment failure
           } else {
-            console.log(`⚠️  Subscription ${paypalSubscriptionId} not found for payment failure`);
           }
           break;
         }
@@ -149,7 +140,6 @@ export const webhookController = {
           );
           
           if (updatedSub) {
-            console.log(`✅ Subscription ${paypalSubscriptionId} activated`);
           }
           break;
         }
@@ -162,14 +152,12 @@ export const webhookController = {
           );
           
           if (updatedSub) {
-            console.log(`⚠️  Subscription ${paypalSubscriptionId} suspended`);
           }
           break;
         }
         // Add more event types as needed
         default:
           // Log unhandled events
-          console.log(`ℹ️  Unhandled PayPal webhook event: ${eventType}`);
       }
 
       // Always respond 200 to acknowledge receipt

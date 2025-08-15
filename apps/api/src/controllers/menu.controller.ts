@@ -352,7 +352,7 @@ export const menuController = {
   async updateItem(req: Request, res: Response) {
     try {
       const { itemId } = req.params;
-      const { title, slug, description, image, onHover } = req.body;
+      const { title, slug, description, image, onHover, filters } = req.body;
 
       if (!itemId) {
         return res.status(400).json({ message: "Item ID is required" });
@@ -364,6 +364,7 @@ export const menuController = {
       if (description !== undefined) updateData.description = description;
       if (image !== undefined) updateData.image = image;
       if (onHover !== undefined) updateData.onHover = onHover;
+      if (filters !== undefined) updateData.filters = filters;
 
       const result = await Item.findByIdAndUpdate(itemId, updateData, {
         new: true,
@@ -382,6 +383,76 @@ export const menuController = {
       });
     } catch (error) {
       res.status(500).json({ message: "Error updating item", error });
+    }
+  },
+
+  async updateFeaturedItem(req: Request, res: Response) {
+    try {
+      const { categoryId, featuredItemId } = req.params;
+      const updateData = req.body;
+
+      const category = await Menu.findById(categoryId);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      const featuredItemIndex = category.featuredItems?.findIndex(
+        (item) => item.id === featuredItemId
+      );
+
+      if (featuredItemIndex === -1 || featuredItemIndex === undefined) {
+        return res.status(404).json({ message: "Featured item not found" });
+      }
+
+      // Update the featured item
+      if (category.featuredItems) {
+        category.featuredItems[featuredItemIndex] = {
+          ...category.featuredItems[featuredItemIndex],
+          ...updateData,
+        };
+      }
+
+      await category.save();
+
+      res.status(200).json({
+        message: "Featured item updated successfully",
+        featuredItem: category.featuredItems?.[featuredItemIndex],
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error updating featured item", error });
+    }
+  },
+
+  async deleteFeaturedItem(req: Request, res: Response) {
+    try {
+      const { categoryId, featuredItemId } = req.params;
+
+      const category = await Menu.findById(categoryId);
+      if (!category) {
+        return res.status(404).json({ message: "Category not found" });
+      }
+
+      if (!category.featuredItems) {
+        return res.status(404).json({ message: "Featured item not found" });
+      }
+
+      const featuredItemIndex = category.featuredItems.findIndex(
+        (item) => item.id === featuredItemId
+      );
+
+      if (featuredItemIndex === -1) {
+        return res.status(404).json({ message: "Featured item not found" });
+      }
+
+      // Remove the featured item
+      category.featuredItems.splice(featuredItemIndex, 1);
+      await category.save();
+
+      res.status(200).json({
+        message: "Featured item deleted successfully",
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting featured item", error });
     }
   },
 };

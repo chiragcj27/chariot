@@ -19,6 +19,7 @@ import KitImageUpload from './KitImageUpload';
 import KitMainFileUpload from './KitMainFileUpload';
 import { useCategories } from '@/hooks/useCategories';
 import { useKits } from '@/hooks/useKits';
+import { Filter } from '@/types/menu';
 
 // Import types from components
 interface KitImage {
@@ -131,6 +132,9 @@ interface ProductFormData {
   // Images
   images: (string | { _id: string; url: string })[];
   previewFile?: { name: string; url: string; key: string } | null;
+  
+  // Filter values
+  filterValues?: Record<string, string[]>;
 }
 
 interface ProductFormProps {
@@ -167,6 +171,7 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
     kitImages: [],
     kitFiles: [],
     kitMainFile: null,
+    filterValues: {},
     ...initialData
   });
 
@@ -636,6 +641,66 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
                   </Select>
                   {errors.itemId && <p className="text-red-500 text-sm mt-1">{errors.itemId}</p>}
                 </div>
+
+                {/* Filter Selection */}
+                {selectedItem && items.length > 0 && (
+                  <div className="space-y-4">
+                    <Label className="text-base font-medium">Product Filters</Label>
+                    {(() => {
+                      const selectedItemData = items.find(item => item._id === selectedItem);
+                      const itemFilters = selectedItemData?.filters || [];
+                      
+                      if (itemFilters.length === 0) {
+                        return (
+                          <p className="text-sm text-muted-foreground">
+                            No filters available for this item.
+                          </p>
+                        );
+                      }
+
+                      return (
+                        <div className="space-y-4">
+                          {itemFilters.map((filter: Filter) => (
+                            <div key={filter.id} className="space-y-2">
+                              <Label className="text-sm font-medium">{filter.name}</Label>
+                              <div className="flex flex-wrap gap-2">
+                                {filter.values.map((value) => {
+                                  const isSelected = formData.filterValues?.[filter.id]?.includes(value.value) || false;
+                                  return (
+                                    <button
+                                      key={value.id}
+                                      type="button"
+                                      onClick={() => {
+                                        const currentValues = formData.filterValues?.[filter.id] || [];
+                                        const newValues = isSelected
+                                          ? currentValues.filter(v => v !== value.value)
+                                          : [...currentValues, value.value];
+                                        
+                                        setFormData(prev => ({
+                                          ...prev,
+                                          filterValues: {
+                                            ...prev.filterValues,
+                                            [filter.id]: newValues
+                                          }
+                                        }));
+                                      }}
+                                      className={isSelected
+                                        ? 'px-3 py-1 text-sm rounded-full border transition-colors bg-blue-500 text-white border-blue-500'
+                                        : 'px-3 py-1 text-sm rounded-full border transition-colors bg-white text-gray-700 border-gray-300 hover:border-blue-300'
+                                      }
+                                    >
+                                      {value.name}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -1,22 +1,21 @@
 import mongoose, { Types } from 'mongoose';
 export interface IItem {
-    id: string;
+    _id?: Types.ObjectId;
     title: string;
     slug: string;
-    image: {
-        filename: string;
-        originalname: string;
-        url: string;
-        size: number;
-        mimetype: string;
-        width?: number;
-        height?: number;
-        bucket?: string;
-        status: 'pending' | 'uploaded' | 'failed';
-        metadata?: Record<string, any>;
-    };
-    description: string;
+    image?: Types.ObjectId;
+    onHover?: Types.ObjectId;
+    description?: string;
     categoryId: Types.ObjectId;
+    filters?: Array<{
+        id: string;
+        name: string;
+        values: Array<{
+            id: string;
+            name: string;
+            value: string;
+        }>;
+    }>;
 }
 
 interface IFeaturedItem {

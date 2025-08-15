@@ -1,3 +1,15 @@
+export interface FilterValue {
+  id: string;
+  name: string;
+  value: string;
+}
+
+export interface Filter {
+  id: string;
+  name: string;
+  values: FilterValue[];
+}
+
 export interface MenuItem {
   _id: string;
   title: string;
@@ -6,6 +18,7 @@ export interface MenuItem {
   image?: string;
   onHover?: string;
   categoryId: string;
+  filters?: Filter[];
 }
 
 export interface MenuCategory {

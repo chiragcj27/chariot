@@ -10,8 +10,12 @@ import { CreateCategoryDialog } from "@/components/menu/create-category-dialog"
 import { CreateItemDialog } from "@/components/menu/create-item-dialog"
 import { Badge } from "@/components/ui/badge"
 import { CreateFeaturedItemDialog } from "@/components/menu/create-featured-item-dialog"
+import { EditCategoryDialog } from "@/components/menu/edit-category-dialog"
+import { EditItemDialog } from "@/components/menu/edit-item-dialog"
+import { EditFeaturedItemDialog } from "@/components/menu/edit-featured-item-dialog"
 import { cn } from "@/lib/utils"
 import { menuApi } from "@/lib/api/menu"
+import { toast } from "sonner"
 
 interface Item {
   _id: string
@@ -89,14 +93,58 @@ export function MegaMenuManager() {
       )
     }
 
+    const handleCategoryUpdated = (event: CustomEvent<Category>) => {
+      setCategories((prev) =>
+        prev.map((cat) =>
+          cat._id === event.detail._id ? event.detail : cat
+        )
+      )
+    }
+
+    const handleItemUpdated = (event: CustomEvent<Item>) => {
+      setCategories((prev) =>
+        prev.map((cat) =>
+          cat._id === event.detail.categoryId
+            ? {
+                ...cat,
+                items: cat.items?.map((item) =>
+                  item._id === event.detail._id ? event.detail : item
+                ) || []
+              }
+            : cat
+        )
+      )
+    }
+
+    const handleFeaturedItemUpdated = (event: CustomEvent<FeaturedItem>) => {
+      setCategories((prev) =>
+        prev.map((cat) =>
+          cat._id === event.detail.categoryId
+            ? {
+                ...cat,
+                featuredItems: cat.featuredItems?.map((item) =>
+                  item.id === event.detail.id ? event.detail : item
+                ) || []
+              }
+            : cat
+        )
+      )
+    }
+
     window.addEventListener('categoryCreated', handleCategoryCreated as EventListener)
     window.addEventListener('item-created', handleItemCreated as EventListener)
     window.addEventListener('featured-item-created', handleFeaturedItemCreated as EventListener)
+    window.addEventListener('categoryUpdated', handleCategoryUpdated as EventListener)
+    window.addEventListener('itemUpdated', handleItemUpdated as EventListener)
+    window.addEventListener('featuredItemUpdated', handleFeaturedItemUpdated as EventListener)
 
     return () => {
       window.removeEventListener('categoryCreated', handleCategoryCreated as EventListener)
       window.removeEventListener('item-created', handleItemCreated as EventListener)
       window.removeEventListener('featured-item-created', handleFeaturedItemCreated as EventListener)
+      window.removeEventListener('categoryUpdated', handleCategoryUpdated as EventListener)
+      window.removeEventListener('itemUpdated', handleItemUpdated as EventListener)
+      window.removeEventListener('featuredItemUpdated', handleFeaturedItemUpdated as EventListener)
     }
   }, [])
 
@@ -123,6 +171,71 @@ export function MegaMenuManager() {
       newOpen.add(categoryId)
     }
     setOpenCategories(newOpen)
+  }
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    if (!confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      await menuApi.deleteCategory(categoryId)
+      setCategories((prev) => prev.filter((cat) => cat._id !== categoryId))
+      toast.success("Category deleted successfully")
+    } catch (error) {
+      console.error('Failed to delete category:', error)
+      toast.error("Failed to delete category")
+    }
+  }
+
+  const handleDeleteItem = async (itemId: string) => {
+    if (!confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      await menuApi.deleteItem(itemId)
+      setCategories((prev) =>
+        prev.map((cat) => ({
+          ...cat,
+          items: cat.items?.filter((item) => item._id !== itemId) || []
+        }))
+      )
+      toast.success("Item deleted successfully")
+    } catch (error) {
+      console.error('Failed to delete item:', error)
+      toast.error("Failed to delete item")
+    }
+  }
+
+  const handleDeleteFeaturedItem = async (featuredItemId: string) => {
+    if (!confirm('Are you sure you want to delete this featured item? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      // Find the category that contains this featured item
+      const category = categories.find(cat => 
+        cat.featuredItems?.some(item => item.id === featuredItemId)
+      )
+      
+      if (!category) {
+        throw new Error('Category not found for featured item')
+      }
+
+      await menuApi.deleteFeaturedItem(category._id, featuredItemId)
+
+      setCategories((prev) =>
+        prev.map((cat) => ({
+          ...cat,
+          featuredItems: cat.featuredItems?.filter((item) => item.id !== featuredItemId) || []
+        }))
+      )
+      toast.success("Featured item deleted successfully")
+    } catch (error) {
+      console.error('Failed to delete featured item:', error)
+      toast.error("Failed to delete featured item")
+    }
   }
 
   if (loading) {
@@ -169,7 +282,7 @@ export function MegaMenuManager() {
           >
             <Collapsible open={openCategories.has(category._id)} onOpenChange={() => toggleCategory(category._id)}>
               <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 rounded-t-lg">
+                <CardHeader className="cursor-pointer hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 rounded-t-lg group">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div
@@ -203,6 +316,25 @@ export function MegaMenuManager() {
                           {category.featuredItems.length} featured
                         </Badge>
                       )}
+                      <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <EditCategoryDialog category={category}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                        </EditCategoryDialog>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600"
+                          onClick={() => handleDeleteCategory(category._id)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
@@ -278,17 +410,20 @@ export function MegaMenuManager() {
                             </div>
                           </div>
                           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
-                            >
-                              <Edit className="w-3 h-3" />
-                            </Button>
+                            <EditItemDialog item={item}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </EditItemDialog>
                             <Button
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600"
+                              onClick={() => handleDeleteItem(item._id)}
                             >
                               <Trash2 className="w-3 h-3" />
                             </Button>
@@ -348,17 +483,20 @@ export function MegaMenuManager() {
                             </div>
                           </div>
                           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 hover:bg-yellow-100 hover:text-yellow-700"
-                            >
-                              <Edit className="w-3 h-3" />
-                            </Button>
+                            <EditFeaturedItemDialog featuredItem={featuredItem}>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0 hover:bg-yellow-100 hover:text-yellow-700"
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </EditFeaturedItemDialog>
                             <Button
                               variant="ghost"
                               size="sm"
                               className="h-8 w-8 p-0 hover:bg-red-100 hover:text-red-600"
+                              onClick={() => handleDeleteFeaturedItem(featuredItem.id)}
                             >
                               <Trash2 className="w-3 h-3" />
                             </Button>

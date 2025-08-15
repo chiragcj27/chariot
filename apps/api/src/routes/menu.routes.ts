@@ -24,6 +24,12 @@ router.delete('/item/:itemId', menuController.deleteItem);
 // Update item
 router.put('/item/:itemId', menuController.updateItem);
 
+// Update featured item
+router.put('/featured-item/:categoryId/:featuredItemId', menuController.updateFeaturedItem);
+
+// Delete featured item
+router.delete('/featured-item/:categoryId/:featuredItemId', menuController.deleteFeaturedItem);
+
 // Check title uniqueness
 router.get('/check-category-title/:title', menuController.checkCategoryTitleUnique);
 

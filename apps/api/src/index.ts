@@ -12,12 +12,14 @@ import sellerRoutes from './routes/seller.routes';
 import sellerApprovalRoutes from './routes/admin/seller-approval.routes';
 import sellerBlacklistRoutes from './routes/admin/seller-blacklist.routes';
 import adminProductRoutes from './routes/admin/product.routes';
+import adminRoutes from './routes/admin';
 import kitRoutes from './routes/kit.routes';
 import fileRoutes from './routes/file.routes';
 import subscriptionCardRoutes from './routes/subscriptionCard.routes';
 import adminSubscriptionCardRoutes from './routes/admin/subscriptionCard.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import buyerRoutes from './routes/buyer.routes';
+import passwordResetRoutes from './routes/password-reset.routes';
 
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -42,7 +44,6 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  console.log('Health check requested');
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
@@ -57,15 +58,14 @@ app.use('/api/products', productRoutes);
 app.use('/api/landing', landingRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/sellers', sellerRoutes);
-app.use('/api/admin/sellers', sellerApprovalRoutes);
-app.use('/api/admin/blacklist', sellerBlacklistRoutes);
-app.use('/api/admin/products', adminProductRoutes);
+app.use('/api', adminRoutes);
 app.use('/api/kits', kitRoutes);
 app.use('/api/files', fileRoutes);
 app.use('/api/subscription-cards', subscriptionCardRoutes);
 app.use('/api/admin/subscription-cards', adminSubscriptionCardRoutes);
 app.use('/api/subscribe', subscriptionRoutes);
 app.use('/api/buyers', buyerRoutes);
+app.use('/api/password-reset', passwordResetRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
   .then(() => {

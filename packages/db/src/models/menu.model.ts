@@ -1,6 +1,18 @@
 import mongoose, { model, Schema, Types } from 'mongoose';
 import { ItemImage } from './image.model';
 
+export interface IFilterValue {
+    id: string;
+    name: string;
+    value: string;
+}
+
+export interface IFilter {
+    id: string;
+    name: string;
+    values: IFilterValue[];
+}
+
 export interface IItem {
     id: string;
     title: string;
@@ -9,6 +21,7 @@ export interface IItem {
     onHover?: Types.ObjectId;
     description: string;
     categoryId: Types.ObjectId;
+    filters?: IFilter[];
 }
 
 interface IFeaturedItem {
@@ -24,6 +37,36 @@ interface ICategory {
     slug: string;
     featuredItems: IFeaturedItem[];
 }
+
+const filterValueSchema = new mongoose.Schema({
+    id: {
+        type: String,
+        required: true,
+    },
+    name: {
+        type: String,
+        required: true,
+    },
+    value: {
+        type: String,
+        required: true,
+    },
+}, { _id: false });
+
+const filterSchema = new mongoose.Schema({
+    id: {
+        type: String,
+        required: true,
+    },
+    name: {
+        type: String,
+        required: true,
+    },
+    values: {
+        type: [filterValueSchema],
+        required: true,
+    },
+}, { _id: false });
 
 const itemSchema = new mongoose.Schema<IItem>({
     title: {
@@ -51,6 +94,11 @@ const itemSchema = new mongoose.Schema<IItem>({
         type: Schema.Types.ObjectId,
         required: true,
         ref: 'Menu'
+    },
+    filters: {
+        type: [filterSchema],
+        required: false,
+        default: [],
     }
 });
 

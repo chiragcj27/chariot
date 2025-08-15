@@ -123,7 +123,6 @@ export default function KitMainFileUpload({
             console.error('Failed to delete main kit file from S3:', deleteResponse.statusText);
             // Still remove from form state even if S3 deletion fails
           } else {
-            console.log('Main kit file deleted from S3 successfully');
           }
         } catch (error) {
           console.error('Error deleting main kit file from S3:', error);

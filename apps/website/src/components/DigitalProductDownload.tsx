@@ -55,7 +55,7 @@ export default function DigitalProductDownload({
         throw new Error(errorData.message || 'Failed to get download URL');
       }
 
-      const { downloadUrl, expiresIn } = await response.json();
+      const { downloadUrl } = await response.json();
 
       // Create a temporary link and trigger download
       const link = document.createElement('a');
@@ -70,7 +70,6 @@ export default function DigitalProductDownload({
       document.body.removeChild(link);
 
       // Show success message
-      console.log(`Download started for ${productName}. URL expires in ${expiresIn} seconds.`);
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to download product');

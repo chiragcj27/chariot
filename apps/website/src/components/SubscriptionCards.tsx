@@ -60,7 +60,6 @@ export default function SubscriptionCards() {
   };
 
   const handleCheckoutSuccess = (subscriptionId: string, newCredits: number) => {
-    console.log('Subscription successful:', subscriptionId, 'New credits:', newCredits);
     setSuccessMessage(`Successfully subscribed! You now have ${newCredits} credits.`);
     setShowSuccess(true);
     

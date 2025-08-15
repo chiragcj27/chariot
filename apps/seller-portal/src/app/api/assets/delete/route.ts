@@ -12,7 +12,6 @@ export async function POST(req: NextRequest) {
       const refreshToken = req.cookies.get('refreshToken')?.value;
       
       if (refreshToken) {
-        console.log('Assets delete - No access token, attempting refresh...');
         
         // Try to refresh via direct backend call
         const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
@@ -28,12 +27,10 @@ export async function POST(req: NextRequest) {
           accessToken = backendData.accessToken;
           newAccessToken = backendData.accessToken;
           newRefreshToken = backendData.refreshToken;
-          console.log('Assets delete - Token refreshed successfully');
         }
       }
       
       if (!accessToken) {
-        console.log('Assets delete - No valid token available, refresh failed');
         return NextResponse.json({ 
           message: 'No token provided - please login again',
           needsLogin: true

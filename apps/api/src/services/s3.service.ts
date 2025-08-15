@@ -146,7 +146,6 @@ export const s3Service = {
       const downloadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
 
       // Log the download attempt for security
-      console.log(`Download requested for product ${productId} by user ${userId} at ${new Date().toISOString()}`);
 
       return {
         downloadUrl,

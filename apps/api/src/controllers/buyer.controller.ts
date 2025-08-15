@@ -1,16 +1,47 @@
 import { Request, Response } from 'express';
-import { User } from '@chariot/db';
+import { User, Buyer } from '@chariot/db';
 import { hashPassword, comparePassword, generateTokens } from '@chariot/auth';
+import { emailService } from '../services/email.service';
 
 // Buyer registration
 export async function registerBuyer(req: Request, res: Response) {
   try {
-    const { name, email, password } = req.body;
+    const {
+      companyInformation,
+      contactInformation,
+      otherInformation,
+      isChariotCustomer = false,
+      chariotCustomerId
+    } = req.body;
 
     // Validate required fields
-    if (!name || !email || !password) {
+    if (!companyInformation || !contactInformation || !otherInformation) {
       return res.status(400).json({
-        message: 'Name, email, and password are required.',
+        message: 'Company information, contact information, and other information are required.',
+      });
+    }
+
+    // Validate company information
+    const { name: companyName, address, country, state, zipcode, telephone, websiteUrl } = companyInformation;
+    if (!companyName || !address || !country || !state || !zipcode || !telephone || !websiteUrl) {
+      return res.status(400).json({
+        message: 'All company information fields are required.',
+      });
+    }
+
+    // Validate contact information
+    const { firstName, lastName, position, email, telephone: contactTelephone } = contactInformation;
+    if (!firstName || !lastName || !position || !email || !contactTelephone) {
+      return res.status(400).json({
+        message: 'All contact information fields are required.',
+      });
+    }
+
+    // Validate other information
+    const { primaryMarketSegment, buyingOrganization, TaxId, JBT_id, DUNN } = otherInformation;
+    if (!primaryMarketSegment || !buyingOrganization || !TaxId || !JBT_id || !DUNN) {
+      return res.status(400).json({
+        message: 'All other information fields are required.',
       });
     }
 
@@ -22,29 +53,45 @@ export async function registerBuyer(req: Request, res: Response) {
       });
     }
 
-    // Hash password
-    const hashedPassword = await hashPassword(password);
-
-    // Create buyer user
-    const buyer = new User({
-      name,
+    // Create buyer user with pending approval
+    const buyer = new Buyer({
       email,
-      password: hashedPassword,
+      name: `${firstName} ${lastName}`,
       role: 'buyer',
-      approvalStatus: 'approved', // Buyers are auto-approved
-      credits: 0, // Start with 0 credits
+      approvalStatus: 'pending', // Buyers need admin approval
+      credits: 0,
+      companyInformation,
+      contactInformation,
+      otherInformation,
+      isChariotCustomer,
+      chariotCustomerId,
+      creditsPoints: 0,
     });
 
     await buyer.save();
 
+    // Send notification email to admin
+    try {
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@chariot.com';
+      await emailService.sendNewBuyerNotification(
+        adminEmail,
+        `${firstName} ${lastName}`,
+        email,
+        companyName
+      );
+    } catch (emailError) {
+      console.error('Failed to send admin notification email:', emailError);
+      // Don't fail the registration if email fails
+    }
+
     res.status(201).json({
-      message: 'Buyer registration successful.',
+      message: 'Buyer registration submitted successfully. Your application is pending admin approval.',
       user: {
         id: buyer._id,
         name: buyer.name,
         email: buyer.email,
         role: buyer.role,
-        credits: buyer.credits,
+        approvalStatus: buyer.approvalStatus,
       },
     });
   } catch (error) {
@@ -58,24 +105,49 @@ export async function registerBuyer(req: Request, res: Response) {
 // Buyer login
 export async function loginBuyer(req: Request, res: Response) {
   try {
-    const { email, password } = req.body;
+    const { userAccountId, password } = req.body;
 
-    if (!email || !password) {
+    if (!userAccountId || !password) {
       return res.status(400).json({
-        message: 'Email and password are required.',
+        message: 'User Account ID and password are required.',
       });
     }
 
-    // Find buyer by email
-    const buyer = await User.findOne({ email, role: 'buyer' });
+    // Find buyer by userAccountId
+    const buyer = await Buyer.findOne({ userAccountId, role: 'buyer' });
+    
     if (!buyer) {
       return res.status(401).json({
         message: 'Invalid credentials.',
       });
     }
 
+    // Check approval status
+    if (buyer.approvalStatus === 'pending') {
+      return res.status(403).json({
+        message: 'Your account is pending approval. Please wait for admin approval.',
+        approvalStatus: 'pending',
+      });
+    }
+
+    if (buyer.approvalStatus === 'rejected') {
+      return res.status(403).json({
+        message: 'Your account has been rejected. Please contact support for more information.',
+        approvalStatus: 'rejected',
+        rejectionReason: buyer.rejectionReason,
+      });
+    }
+
+    // Check if buyer has a password (should exist after approval)
+    if (!buyer.password) {
+      return res.status(401).json({
+        message: 'Account not properly set up. Please contact support.',
+      });
+    }
+
     // Check password
     const isValidPassword = await comparePassword(password, buyer.password);
+    
     if (!isValidPassword) {
       return res.status(401).json({
         message: 'Invalid credentials.',
@@ -93,6 +165,7 @@ export async function loginBuyer(req: Request, res: Response) {
         name: buyer.name,
         role: buyer.role,
         credits: buyer.credits,
+        userAccountId: buyer.userAccountId,
       },
       ...tokens,
     });

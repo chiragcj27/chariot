@@ -98,12 +98,10 @@ export default function ZipUpload({ zipFile, onZipFileChange, maxSize = 100 }: Z
   };
 
   const removeZipFile = async () => {
-    console.log('removeZipFile called, zipFile:', zipFile);
     setIsDeleting(true);
     
     // If there's a current ZIP file with a key, delete it from S3
     if (zipFile?.key) {
-      console.log('Attempting to delete ZIP file with key:', zipFile.key);
       try {
         // Delete from private S3 bucket
         const deleteResponse = await fetch('/api/assets/delete-private', {
@@ -116,8 +114,6 @@ export default function ZipUpload({ zipFile, onZipFileChange, maxSize = 100 }: Z
           }),
         });
         
-        console.log('Delete response status:', deleteResponse.status);
-        console.log('Delete response ok:', deleteResponse.ok);
         
         if (!deleteResponse.ok) {
           const errorData = await deleteResponse.json();
@@ -125,8 +121,7 @@ export default function ZipUpload({ zipFile, onZipFileChange, maxSize = 100 }: Z
           toast.error('Failed to delete ZIP file from storage');
           // Still remove from form state even if S3 deletion fails
         } else {
-          const successData = await deleteResponse.json();
-          console.log('Delete successful:', successData);
+          await deleteResponse.json();
           toast.success('ZIP file removed successfully');
         }
       } catch (error) {
@@ -135,7 +130,6 @@ export default function ZipUpload({ zipFile, onZipFileChange, maxSize = 100 }: Z
         // Still remove from form state even if S3 deletion fails
       }
     } else {
-      console.log('No ZIP file key found, just removing from form state');
       toast.success('ZIP file removed successfully');
     }
     

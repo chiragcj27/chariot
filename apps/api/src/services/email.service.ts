@@ -15,6 +15,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+
+
 export const emailService = {
   async sendSellerApprovalEmail(sellerEmail: string, sellerName: string) {
     try {
@@ -41,7 +43,6 @@ export const emailService = {
       };
 
       const info = await transporter.sendMail(mailOptions);
-      console.log('Seller approval email sent:', info.messageId);
       return info;
     } catch (error) {
       console.error('Error sending seller approval email:', error);
@@ -70,7 +71,6 @@ export const emailService = {
       };
 
       const info = await transporter.sendMail(mailOptions);
-      console.log('Seller rejection email sent:', info.messageId);
       return info;
     } catch (error) {
       console.error('Error sending seller rejection email:', error);
@@ -97,7 +97,6 @@ export const emailService = {
       };
 
       const info = await transporter.sendMail(mailOptions);
-      console.log('New seller notification email sent:', info.messageId);
       return info;
     } catch (error) {
       console.error('Error sending new seller notification email:', error);
@@ -133,7 +132,6 @@ export const emailService = {
       };
 
       const info = await transporter.sendMail(mailOptions);
-      console.log('Seller blacklist email sent:', info.messageId);
       return info;
     } catch (error) {
       console.error('Error sending seller blacklist email:', error);
@@ -167,7 +165,6 @@ export const emailService = {
       };
 
       const info = await transporter.sendMail(mailOptions);
-      console.log('Seller blacklist removal email sent:', info.messageId);
       return info;
     } catch (error) {
       console.error('Error sending seller blacklist removal email:', error);
@@ -195,10 +192,130 @@ export const emailService = {
       };
 
       const info = await transporter.sendMail(mailOptions);
-      console.log('Seller reapplication notification email sent:', info.messageId);
       return info;
     } catch (error) {
       console.error('Error sending seller reapplication notification email:', error);
+      throw error;
+    }
+  },
+
+  async sendNewBuyerNotification(adminEmail: string, buyerName: string, buyerEmail: string, companyName: string) {
+    try {
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: adminEmail,
+        subject: 'New Buyer Registration Requires Approval',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">New Buyer Registration</h2>
+            <p>A new buyer has registered and requires your approval:</p>
+            <p><strong>Buyer Name:</strong> ${buyerName}</p>
+            <p><strong>Company Name:</strong> ${companyName}</p>
+            <p><strong>Email:</strong> ${buyerEmail}</p>
+            <p>Please review their application in the admin portal and approve/reject accordingly.</p>
+            <p>Best regards,<br>The Chariot System</p>
+          </div>
+        `,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      return info;
+    } catch (error) {
+      console.error('Error sending new buyer notification email:', error);
+      throw error;
+    }
+  },
+
+  async sendBuyerApprovalEmail(buyerEmail: string, buyerName: string, userAccountId: string, password: string) {
+    try {
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: buyerEmail,
+        subject: 'Your Buyer Account Has Been Approved!',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Welcome to Chariot Marketplace!</h2>
+            <p>Dear ${buyerName},</p>
+            <p>Great news! Your buyer account has been approved by our admin team.</p>
+            <p><strong>Your login credentials:</strong></p>
+            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 5px; margin: 15px 0;">
+              <p><strong>User Account ID:</strong> ${userAccountId}</p>
+              <p><strong>Password:</strong> ${password}</p>
+            </div>
+            <p><em>Example: User Account ID: CHARIOT1A2B3, Password: K9m#Np2x</em></p>
+            <p>Please visit <a href="${process.env.WEBSITE_URL || 'http://localhost:3000'}/login">Chariot Marketplace</a> to login and start shopping.</p>
+            <p><strong>Important:</strong> Please change your password after your first login for security purposes.</p>
+            <p>If you have any questions, please don't hesitate to contact our support team.</p>
+            <p>Best regards,<br>The Chariot Team</p>
+          </div>
+        `,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      return info;
+    } catch (error) {
+      console.error('Error sending buyer approval email:', error);
+      throw error;
+    }
+  },
+
+
+
+  async sendBuyerRejectionEmail(buyerEmail: string, buyerName: string, reason: string) {
+    try {
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: buyerEmail,
+        subject: 'Buyer Account Application Update',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #dc2626;">Buyer Account Application</h2>
+            <p>Dear ${buyerName},</p>
+            <p>Thank you for your interest in becoming a buyer on Chariot Marketplace.</p>
+            <p>After careful review, we regret to inform you that your buyer account application has not been approved at this time.</p>
+            <p><strong>Reason:</strong> ${reason}</p>
+            <p>You may reapply in the future with updated information.</p>
+            <p>If you have any questions, please contact our support team.</p>
+            <p>Best regards,<br>The Chariot Team</p>
+          </div>
+        `,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      return info;
+    } catch (error) {
+      console.error('Error sending buyer rejection email:', error);
+      throw error;
+    }
+  },
+
+  async sendPasswordResetOTP(email: string, otp: string, userName: string) {
+    try {
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: email,
+        subject: 'Password Reset OTP - Chariot Marketplace',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Password Reset Request</h2>
+            <p>Dear ${userName},</p>
+            <p>We received a request to reset your password for your Chariot Marketplace account.</p>
+            <p>Your One-Time Password (OTP) is:</p>
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; border: 2px solid #2563eb;">
+              <h1 style="color: #2563eb; font-size: 32px; letter-spacing: 8px; margin: 0;">${otp}</h1>
+            </div>
+            <p><strong>This OTP will expire in 10 minutes.</strong></p>
+            <p>If you didn't request this password reset, please ignore this email. Your account remains secure.</p>
+            <p>For security reasons, please do not share this OTP with anyone.</p>
+            <p>Best regards,<br>The Chariot Team</p>
+          </div>
+        `,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      return info;
+    } catch (error) {
+      console.error('Error sending password reset OTP email:', error);
       throw error;
     }
   },

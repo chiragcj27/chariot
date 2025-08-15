@@ -85,7 +85,6 @@ export default function ImageUpload({ images, onImagesChange, maxImages = 5 }: I
           console.error('Failed to delete image from S3:', deleteResponse.statusText);
           // Still remove from UI even if S3 deletion fails
         } else {
-          console.log('Image deleted from S3 successfully');
         }
       }
       

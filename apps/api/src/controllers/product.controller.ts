@@ -22,9 +22,6 @@ export const productController = {
   // Create a new product
   createProduct: async (req: Request, res: Response) => {
     try {
-      console.log('Creating product with data:', JSON.stringify(req.body, null, 2));
-      console.log('kitImages type:', typeof req.body.kitImages, 'value:', req.body.kitImages);
-      console.log('kitFiles type:', typeof req.body.kitFiles, 'value:', req.body.kitFiles);
       // Validate product data before creation
       const { categoryId, itemId, kitId, isKitProduct, type, zipFile } = req.body;
       
@@ -148,7 +145,6 @@ export const productController = {
         }
       }
 
-      console.log('Product created successfully:', product);
       res.status(201).json({
         message: "Product created successfully",
         product,

@@ -8,16 +8,48 @@ interface User {
   name: string;
   role: string;
   credits: number;
+  userAccountId?: string;
+  approvalStatus?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
+  login: (userAccountId: string, password: string) => Promise<boolean>;
+  register: (buyerData: BuyerRegistrationData) => Promise<boolean>;
   logout: () => void;
   updateCredits: (newCredits: number) => void;
   updateUser: (userData: Partial<User>) => void;
+}
+
+interface BuyerRegistrationData {
+  companyInformation: {
+    name: string;
+    address: string;
+    country: string;
+    state: string;
+    zipcode: string;
+    telephone: string[];
+    fax: string[];
+    websiteUrl: string;
+  };
+  contactInformation: {
+    firstName: string;
+    lastName: string;
+    position: string;
+    email: string;
+    telephone: string[];
+    fax: string[];
+  };
+  otherInformation: {
+    primaryMarketSegment: string;
+    buyingOrganization: string;
+    TaxId: string;
+    JBT_id: string;
+    DUNN: string;
+  };
+  isChariotCustomer?: boolean;
+  chariotCustomerId?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -51,7 +83,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const verifyToken = async (token: string) => {
     try {
-      const response = await fetch('http://localhost:3001/api/auth/verify', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/auth/verify`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -82,14 +115,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (userAccountId: string, password: string): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:3001/api/buyers/login', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/buyers/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ userAccountId, password }),
       });
 
       if (response.ok) {
@@ -108,19 +142,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
+  const register = async (buyerData: BuyerRegistrationData): Promise<boolean> => {
     try {
-      const response = await fetch('http://localhost:3001/api/buyers/register', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/buyers/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify(buyerData),
       });
 
       if (response.ok) {
-        // After successful registration, log in automatically
-        return await login(email, password);
+        // Registration successful but no automatic login since approval is required
+        return true;
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Registration failed');

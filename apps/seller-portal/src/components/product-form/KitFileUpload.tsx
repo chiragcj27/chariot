@@ -183,7 +183,6 @@ export default function KitFileUpload({
           console.error('Failed to delete file from S3:', deleteResponse.statusText);
           // Still remove from UI even if S3 deletion fails
         } else {
-          console.log('File deleted from S3 successfully');
         }
       }
 

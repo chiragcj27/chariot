@@ -209,3 +209,196 @@ if (mongoose.models.Admin) {
   delete mongoose.models.Admin;
 }
 export const Admin = User.discriminator<IAdmin>('admin', adminSchema);
+
+
+enum MarketSegment {
+  'Single Store Retailer',
+  '2-5 Store Chains',
+  '6-14 Store Chains',
+  '15-29 Store Chains',
+  '30+ Store Chains',
+  'Wholesale/Distributor',
+  'Buying Group',
+  'Government Facilities',
+  'Other',
+}
+
+enum BuyingOrganization {
+  'AGS - American Gem Society',
+  'BIG - Buyers International Group',
+  'CBG - Continental Buying Group',
+  'CJG - Canadian Jewellery Group',
+  'IJO - Independent Jewelers Organization',
+  'LJG - Leading Jewelers Guild', 
+  'RJO - Retail Jewelers Organization',
+  'SJO - Southeastern Jewelers Organization',
+  'Other',
+}
+
+
+export interface IBuyer extends Omit<IUser, 'password'> {
+  companyInformation: {
+    name: string;
+    address: string;
+    country: string;
+    state: string;
+    zipcode: string;
+    telephone: string[];
+    fax: string[];
+    websiteUrl: string;
+  },
+  contactInformation: {
+    firstName: string;
+    lastName: string;
+    position: string;
+    email: string;
+    telephone: string[];
+    fax: string[];
+  },
+  creditsPoints: number;
+  userAccountId?: string; // Optional during signup, will be generated after approval
+  password?: string; // Optional during signup, will be generated after approval
+  isChariotCustomer: boolean;
+  chariotCustomerId?: string;
+  otherInformation:{
+    primaryMarketSegment: MarketSegment;
+    buyingOrganization: BuyingOrganization;
+    TaxId: string;
+    JBT_id: string;
+    DUNN: string;
+  }
+}
+
+const buyerSchema = new Schema<IBuyer>({
+  companyInformation: {
+    name: {
+      type: String,
+      required: true,
+    },
+    address: {
+      type: String,
+      required: true,
+    },
+    country: {
+      type: String,
+      required: true,
+    },
+    state: {
+      type: String,
+      required: true,
+    },
+    zipcode: {
+      type: String,
+      required: true,
+    },
+    telephone: {
+      type: [String],
+      required: true,
+    },
+    fax: {
+      type: [String],
+      default: [],
+    },
+    websiteUrl: {
+      type: String,
+      required: true,
+    },
+  },
+  contactInformation: {
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+    },
+    position: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+    },
+    telephone: {
+      type: [String],
+      required: true,
+    },
+    fax: {
+      type: [String],
+      default: [],
+    },
+  },
+  creditsPoints: {
+    type: Number,
+    default: 0,
+  },
+  userAccountId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allow null/undefined values
+  },
+  password: {
+    type: String,
+    required: false, // Optional during signup, will be set after approval
+  },
+  isChariotCustomer: {
+    type: Boolean,
+    default: false,
+  },
+  chariotCustomerId: {
+    type: String,
+  },
+  otherInformation: {
+    primaryMarketSegment: {
+      type: String,
+      enum: [
+        'Single Store Retailer',
+        '2-5 Store Chains',
+        '6-14 Store Chains',
+        '15-29 Store Chains',
+        '30+ Store Chains',
+        'Wholesale/Distributor',
+        'Buying Group',
+        'Government Facilities',
+        'Other',
+      ],
+      required: true,
+    },
+    buyingOrganization: {
+      type: String,
+      enum: [
+        'AGS - American Gem Society',
+        'BIG - Buyers International Group',
+        'CBG - Continental Buying Group',
+        'CJG - Canadian Jewellery Group',
+        'IJO - Independent Jewelers Organization',
+        'LJG - Leading Jewelers Guild', 
+        'RJO - Retail Jewelers Organization',
+        'SJO - Southeastern Jewelers Organization',
+        'Other',
+      ],
+      required: true,
+    },
+    TaxId: {
+      type: String,
+      required: true,
+    },
+    JBT_id: {
+      type: String,
+      required: true,
+    },
+    DUNN: {
+      type: String,
+      required: true,
+    },
+  },
+}, {
+  timestamps: true,
+});
+
+if (mongoose.models.Buyer) {
+  delete mongoose.models.Buyer;
+}
+export const Buyer = User.discriminator<IBuyer>('buyer', buyerSchema);
