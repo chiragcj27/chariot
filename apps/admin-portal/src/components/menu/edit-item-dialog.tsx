@@ -480,8 +480,8 @@ export function EditItemDialog({ item, children, onItemUpdated }: EditItemDialog
               </div>
             </TabsContent>
 
-            <TabsContent value="filters" className="space-y-4">
-              <div className="flex items-center justify-between">
+            <TabsContent value="filters" className="space-y-4 max-h-[400px] overflow-y-auto">
+              <div className="flex items-center justify-between sticky top-0 bg-background z-10 pb-2">
                 <Label className="text-base font-medium">Filters</Label>
                 <Button
                   type="button"
@@ -542,7 +542,7 @@ export function EditItemDialog({ item, children, onItemUpdated }: EditItemDialog
                         <p className="text-sm text-muted-foreground">No values added yet.</p>
                       )}
 
-                      <div className="space-y-2">
+                      <div className="space-y-2 max-h-[200px] overflow-y-auto">
                         {filter.values.map((value) => (
                           <div key={value.id} className="flex items-center gap-2">
                             <Input

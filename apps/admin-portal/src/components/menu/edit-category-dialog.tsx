@@ -253,8 +253,8 @@ export function EditCategoryDialog({ category, children, onCategoryUpdated }: Ed
               </div>
             </TabsContent>
 
-            <TabsContent value="featured" className="space-y-4">
-              <div className="flex items-center justify-between">
+            <TabsContent value="featured" className="space-y-4 max-h-[400px] overflow-y-auto">
+              <div className="flex items-center justify-between sticky top-0 bg-background z-10 pb-2">
                 <Label className="text-base font-medium">Featured Items</Label>
                 <Button
                   type="button"
@@ -341,7 +341,7 @@ export function EditCategoryDialog({ category, children, onCategoryUpdated }: Ed
                 </div>
               )}
 
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-[200px] overflow-y-auto">
                 {featuredItems.map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center space-x-3">
