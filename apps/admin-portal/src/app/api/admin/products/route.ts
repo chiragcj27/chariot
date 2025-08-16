@@ -32,17 +32,21 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    const data = await res.json();
-    
     if (!res.ok) {
-      return NextResponse.json(data, { status: res.status });
+      const errorData = await res.json();
+      console.error('Backend API error:', errorData);
+      return NextResponse.json(errorData, { status: res.status });
     }
 
+    const data = await res.json();
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error in admin products route:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { 
+        message: 'Internal server error',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

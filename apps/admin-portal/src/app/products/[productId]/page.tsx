@@ -33,6 +33,9 @@ interface Product {
   };
   creditsCost?: number;
   discountedCreditsCost?: number;
+  discount?: {
+    percentage: number;
+  };
   status: string;
   sellerId: { _id: string; name: string; email: string };
   relatedProductsId: string[];
@@ -43,8 +46,37 @@ interface Product {
   isAdminRejected: boolean;
   type: string;
   tags: string[];
-  categoryId?: { _id: string; title: string; slug: string };
-  itemId?: { _id: string; title: string; slug: string };
+  theme?: string;
+  season?: string;
+  occasion?: string;
+  featured: boolean;
+  
+  // Category and Item information
+  categoryId?: { 
+    _id: string; 
+    title: string; 
+    slug: string; 
+  };
+  itemId?: { 
+    _id: string; 
+    title: string; 
+    slug: string; 
+    description?: string;
+    filters?: Array<{
+      id: string;
+      name: string;
+      values: Array<{
+        id: string;
+        value: string;
+        isDefault?: boolean;
+      }>;
+    }>;
+  };
+  
+  // Filter values
+  filterValues?: Record<string, string[]>;
+  
+  // Images
   images?: Array<{
     _id: string;
     url: string;
@@ -52,10 +84,81 @@ interface Product {
     isMain: boolean;
     isThumbnail: boolean;
   }>;
+  
   // Kit fields
   isKitProduct?: boolean;
   kitId?: string;
   typeOfKit?: 'premium' | 'basic';
+  kitImages?: Array<{
+    _id: string;
+    url: string;
+    originalname: string;
+  }>;
+  kitFiles?: Array<{
+    _id: string;
+    name: string;
+    url: string;
+    fileType: string;
+    size: number;
+  }>;
+  kitMainFile?: {
+    name: string;
+    url: string;
+    key: string;
+    size: number;
+  };
+  kitDescription?: string;
+  kitInstructions?: string;
+  kitContents?: string[];
+  
+  // Physical product specific
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+    unit: string;
+  };
+  weight?: {
+    value: number;
+    unit: string;
+  };
+  stock: number;
+  
+  // Digital product specific
+  kind?: string;
+  assetDetails?: {
+    file: string;
+    fileType: string;
+    fileSize: number;
+    fileUrl: string;
+  };
+  previewFile?: {
+    name: string;
+    url: string;
+    key: string;
+  };
+  
+  // Service product specific
+  deliveryTime?: {
+    min: number;
+    max: number;
+    unit: string;
+  };
+  revisions?: {
+    allowed: number;
+    cost: number;
+    unit: string;
+  };
+  deliverables: string[];
+  requirements: string[];
+  consultationRequired: boolean;
+  
+  // SEO
+  seo?: {
+    metaTitle: string;
+    metaDescription: string;
+    metaKeywords: string[];
+  };
 }
 
 export default function ProductDetailsPage() {
@@ -388,6 +491,353 @@ export default function ProductDetailsPage() {
                           {image.isMain && <Badge variant="default" className="text-xs">Main</Badge>}
                           {image.isThumbnail && <Badge variant="secondary" className="text-xs">Thumbnail</Badge>}
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Category and Item Information */}
+            {(product.categoryId || product.itemId) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Category & Item</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {product.categoryId && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Category</label>
+                      <p className="text-lg font-semibold">{product.categoryId.title}</p>
+                      <p className="text-sm text-gray-500">Slug: {product.categoryId.slug}</p>
+                    </div>
+                  )}
+                  {product.itemId && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Item</label>
+                      <p className="text-lg font-semibold">{product.itemId.title}</p>
+                      <p className="text-sm text-gray-500">Slug: {product.itemId.slug}</p>
+                      {product.itemId.description && (
+                        <p className="text-sm text-gray-600 mt-1">{product.itemId.description}</p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Filter Values */}
+            {product.filterValues && Object.keys(product.filterValues).length > 0 && product.itemId?.filters && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Filter Values</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {product.itemId.filters.map((filter) => {
+                    const selectedValues = product.filterValues?.[filter.id] || [];
+                    return (
+                      <div key={filter.id} className="space-y-2">
+                        <label className="text-sm font-medium text-gray-500">{filter.name}</label>
+                        <div className="flex flex-wrap gap-2">
+                          {filter.values.map((value) => {
+                            const isSelected = selectedValues.includes(value.value);
+                            const isDefault = value.isDefault;
+                            return (
+                              <Badge 
+                                key={value.id} 
+                                variant={isSelected ? "default" : "outline"}
+                                className={isSelected ? "" : isDefault ? "bg-green-50 text-green-700 border-green-300" : ""}
+                              >
+                                {value.value}
+                                {isDefault && <span className="ml-1">★</span>}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Product Type Specific Details */}
+            {product.type === 'physical' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Physical Product Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Stock Quantity</label>
+                      <p className="text-lg font-semibold">{product.stock || 0}</p>
+                    </div>
+                  </div>
+                  {product.dimensions && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Dimensions</label>
+                      <p className="text-lg">
+                        {product.dimensions.length} × {product.dimensions.width} × {product.dimensions.height} {product.dimensions.unit}
+                      </p>
+                    </div>
+                  )}
+                  {product.weight && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Weight</label>
+                      <p className="text-lg">{product.weight.value} {product.weight.unit}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {product.type === 'digital' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Digital Product Details</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {product.kind && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Product Kind</label>
+                      <p className="text-lg font-semibold capitalize">{product.kind}</p>
+                    </div>
+                  )}
+                  {product.assetDetails && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">File Type</label>
+                        <p className="text-lg">{product.assetDetails.fileType}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">File Size</label>
+                        <p className="text-lg">{product.assetDetails.fileSize} MB</p>
+                      </div>
+                    </div>
+                  )}
+                  {product.previewFile && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Preview File</label>
+                      <p className="text-lg">
+                        <a href={product.previewFile.url} target="_blank" rel="noopener noreferrer" className="underline text-blue-600 hover:text-blue-800">
+                          View Preview
+                        </a>
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Kit Information */}
+            {product.isKitProduct && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Kit Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {product.typeOfKit && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kit Type</label>
+                      <p className="text-lg font-semibold capitalize">{product.typeOfKit}</p>
+                    </div>
+                  )}
+                  {product.kitDescription && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kit Description</label>
+                      <p className="text-gray-700 whitespace-pre-wrap">{product.kitDescription}</p>
+                    </div>
+                  )}
+                  {product.kitInstructions && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kit Instructions</label>
+                      <p className="text-gray-700 whitespace-pre-wrap">{product.kitInstructions}</p>
+                    </div>
+                  )}
+                  {product.kitContents && product.kitContents.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kit Contents</label>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        {product.kitContents.map((content, index) => (
+                          <li key={index} className="text-gray-700">{content}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {product.kitMainFile && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Main Kit File</label>
+                      <p className="text-sm">
+                        <a href={product.kitMainFile.url} target="_blank" rel="noopener noreferrer" className="underline text-blue-600 hover:text-blue-800">
+                          {product.kitMainFile.name} ({(product.kitMainFile.size / 1024 / 1024).toFixed(2)} MB)
+                        </a>
+                      </p>
+                    </div>
+                  )}
+                  {product.kitFiles && product.kitFiles.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kit Files</label>
+                      <div className="space-y-2 mt-2">
+                        {product.kitFiles.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div>
+                              <p className="text-sm font-medium">{file.name}</p>
+                              <p className="text-xs text-gray-500">
+                                {file.fileType} • {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                            <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 text-sm">
+                              View
+                            </a>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Service Information */}
+            {product.type === 'service' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Service Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {product.deliveryTime && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Delivery Time</label>
+                      <p className="text-lg">
+                        {product.deliveryTime.min} - {product.deliveryTime.max} {product.deliveryTime.unit}
+                      </p>
+                    </div>
+                  )}
+                  {product.revisions && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Revisions</label>
+                      <p className="text-lg">
+                        {product.revisions.allowed} revisions included
+                        {product.revisions.cost > 0 && (
+                          <span className="text-sm text-gray-500 ml-2">
+                            Additional: ${product.revisions.cost} per {product.revisions.unit}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                  {product.deliverables && product.deliverables.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Deliverables</label>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        {product.deliverables.map((deliverable, index) => (
+                          <li key={index} className="text-gray-700">{deliverable}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {product.requirements && product.requirements.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Requirements</label>
+                      <ul className="list-disc list-inside space-y-1 mt-2">
+                        {product.requirements.map((requirement, index) => (
+                          <li key={index} className="text-gray-700">{requirement}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Consultation Required</label>
+                    <p className="text-lg">{product.consultationRequired ? 'Yes' : 'No'}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* SEO Information */}
+            {product.seo && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>SEO Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {product.seo.metaTitle && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Meta Title</label>
+                      <p className="text-sm text-gray-700">{product.seo.metaTitle}</p>
+                    </div>
+                  )}
+                  {product.seo.metaDescription && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Meta Description</label>
+                      <p className="text-sm text-gray-700">{product.seo.metaDescription}</p>
+                    </div>
+                  )}
+                  {product.seo.metaKeywords && product.seo.metaKeywords.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Meta Keywords</label>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {product.seo.metaKeywords.map((keyword, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">{keyword}</Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Additional Information */}
+            {(product.theme || product.season || product.occasion || product.featured) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Additional Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {product.theme && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Theme</label>
+                      <p className="text-lg">{product.theme}</p>
+                    </div>
+                  )}
+                  {product.season && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Season</label>
+                      <p className="text-lg">{product.season}</p>
+                    </div>
+                  )}
+                  {product.occasion && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Occasion</label>
+                      <p className="text-lg">{product.occasion}</p>
+                    </div>
+                  )}
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Featured</label>
+                    <p className="text-lg">{product.featured ? 'Yes' : 'No'}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Kit Images */}
+            {product.isKitProduct && product.kitImages && product.kitImages.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Kit Images ({product.kitImages.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {product.kitImages.map((image) => (
+                      <div key={image._id} className="relative">
+                        <Image
+                          src={image.url}
+                          alt={image.originalname}
+                          width={400}
+                          height={128}
+                          className="w-full h-32 object-cover rounded-md"
+                        />
                       </div>
                     ))}
                   </div>

@@ -25,6 +25,7 @@ interface Product {
   creditsCost?: number;
   discountedCreditsCost?: number;
   status: string;
+  type?: string;
   sellerId: { _id: string; name: string; email: string };
   relatedProductsId: string[];
   adminRejectionReason?: string;
@@ -282,6 +283,13 @@ export default function ProductsPage() {
                     <p className="text-sm text-gray-600 line-clamp-3">
                       {product.description || "No description available"}
                     </p>
+                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                      <Badge variant="outline" className="text-xs">
+                        {product.type || 'Unknown Type'}
+                      </Badge>
+                      <span>•</span>
+                      <span>Created {formatDate(product.createdAt)}</span>
+                    </div>
                   </div>
                   
                                      <div className="space-y-2">
@@ -333,25 +341,37 @@ export default function ProductsPage() {
                     </div>
                   )}
                   
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex flex-col sm:flex-row gap-2 pt-2">
                     {product.status.toLowerCase() === 'pending' && (
                       <>
                         <Button 
                           size="sm" 
-                          onClick={() => approveProduct(product._id)}
-                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          variant="outline"
+                          onClick={() => router.push(`/products/${product._id}`)}
+                          className="flex-1"
+                          title="Review all product details before approval"
                         >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Approve
+                          <Eye className="w-4 h-4 mr-1" />
+                          View Details
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="destructive"
-                          onClick={() => openRejectDialog(product)}
-                        >
-                          <XCircle className="w-4 h-4 mr-1" />
-                          Reject
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => approveProduct(product._id)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Approve
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => openRejectDialog(product)}
+                          >
+                            <XCircle className="w-4 h-4 mr-1" />
+                            Reject
+                          </Button>
+                        </div>
                       </>
                     )}
                     

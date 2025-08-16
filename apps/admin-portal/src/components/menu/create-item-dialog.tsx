@@ -23,6 +23,7 @@ import Image from "next/image"
 interface FilterValue {
   id: string;
   value: string;
+  isDefault?: boolean;
 }
 
 interface Filter {
@@ -104,7 +105,8 @@ export function CreateItemDialog({
   const addFilterValue = (filterId: string) => {
     const newValue: FilterValue = {
       id: generateId(),
-      value: ""
+      value: "",
+      isDefault: false
     }
     setFilters(filters.map(filter => 
       filter.id === filterId 
@@ -130,6 +132,21 @@ export function CreateItemDialog({
               value.id === valueId 
                 ? { ...value, value: newValue }
                 : value
+            )
+          }
+        : filter
+    ))
+  }
+
+  const toggleDefaultValue = (filterId: string, valueId: string) => {
+    setFilters(filters.map(filter => 
+      filter.id === filterId 
+        ? { 
+            ...filter, 
+            values: filter.values.map(value => 
+              value.id === valueId 
+                ? { ...value, isDefault: !value.isDefault }
+                : { ...value, isDefault: false } // Ensure only one default per filter
             )
           }
         : filter
@@ -301,7 +318,8 @@ export function CreateItemDialog({
           values: filter.values.map(value => ({
             id: value.id,
             name: value.value, // Use value as name for backward compatibility
-            value: value.value
+            value: value.value,
+            isDefault: value.isDefault || false
           }))
         }))
 
@@ -698,6 +716,16 @@ export function CreateItemDialog({
                           onChange={(e) => updateFilterValue(filter.id, value.id, e.target.value)}
                           className="flex-1"
                         />
+                        <Button
+                          type="button"
+                          variant={value.isDefault ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => toggleDefaultValue(filter.id, value.id)}
+                          className="flex items-center gap-1"
+                          title={value.isDefault ? "Default value" : "Set as default"}
+                        >
+                          {value.isDefault ? "Default" : "Set Default"}
+                        </Button>
                         <Button
                           type="button"
                           variant="destructive"

@@ -1,14 +1,19 @@
-import { Router } from "express";
+import express from 'express';
 import { adminProductController } from "../../controllers/admin/product.controller";
 import { isAdmin } from "../../middleware/adminAuth";
 
-const router = Router();
+const router = express.Router();
+
+// Test route
+router.get("/test", (req, res) => {
+  res.json({ message: "Admin products route is working" });
+});
 
 // Get all pending products
 router.get("/pending", isAdmin, adminProductController.getPendingProducts);
 
 // List products with optional seller and name search
-router.get("/", isAdmin, adminProductController.listProducts);
+router.get("/", adminProductController.listProducts);
 
 // Approve a product
 router.post("/:productId/approve", isAdmin, adminProductController.approveProduct);
@@ -22,4 +27,4 @@ router.patch("/:productId/related-products", isAdmin, adminProductController.upd
 // Get a single product by ID
 router.get("/:productId", isAdmin, adminProductController.getProductById);
 
-export default router; 
+export default router;

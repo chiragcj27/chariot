@@ -55,8 +55,20 @@ export const productController = {
         });
       }
 
-      // Generate slug from product name
-      const slug = createSlug(req.body.name);
+      // Generate unique slug from product name
+      const baseSlug = createSlug(req.body.name);
+      let slug = baseSlug;
+      let counter = 1;
+      
+      // Check if slug already exists and generate a unique one
+      while (true) {
+        const existingProduct = await Product.findOne({ slug });
+        if (!existingProduct) {
+          break;
+        }
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
       
       // Prepare product data, filtering out empty strings for ObjectId fields
       const productData: any = {
@@ -150,7 +162,6 @@ export const productController = {
         product,
       });
     } catch (error: unknown) {
-      console.error('Error creating product:', error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error occurred";
       res.status(500).json({

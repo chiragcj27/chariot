@@ -37,7 +37,7 @@ export class PayPalService {
   private planCache: Map<string, string> = new Map();
 
   private constructor() {
-    this.loadPayPalScript();
+    // Don't load script in constructor to avoid SSR issues
   }
 
   public static getInstance(): PayPalService {
@@ -49,6 +49,12 @@ export class PayPalService {
 
   private loadPayPalScript(): Promise<void> {
     return new Promise((resolve, reject) => {
+      // Check if we're in a browser environment
+      if (typeof window === 'undefined') {
+        reject(new Error('PayPal script can only be loaded in browser environment'));
+        return;
+      }
+
       if (window.paypal) {
         resolve();
         return;

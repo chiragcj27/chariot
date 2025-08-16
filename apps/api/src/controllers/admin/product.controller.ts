@@ -140,10 +140,12 @@ export const adminProductController = {
       const { productId } = req.params;
 
       const product = await Product.findById(productId)
-        .populate('sellerId', 'name email')
+        .populate('sellerId', 'name email role')
         .populate('categoryId', 'title slug')
-        .populate('itemId', 'title slug')
-        .populate('images');
+        .populate('itemId', 'title slug description filters')
+        .populate('images')
+        .populate('kitImages')
+        .populate('kitFiles');
 
       if (!product) {
         return res.status(404).json({
@@ -189,7 +191,7 @@ export const adminProductController = {
             filter.isAdminApproved = true;
             break;
           case 'rejected':
-            filter.status = 'REJECTED';
+            filter.status = 'rejected';
             filter.isAdminRejected = true;
             break;
           default:
@@ -200,7 +202,7 @@ export const adminProductController = {
       
       const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
       const products = await Product.find(filter)
-        .populate('sellerId', 'name email')
+        .populate('sellerId', 'name email role')
         .sort({ createdAt: -1 }) // Sort by newest first
         .skip(skip)
         .limit(parseInt(limit as string));

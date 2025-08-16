@@ -175,16 +175,6 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
     ...initialData
   });
 
-  // Set selected category and item when initial data is provided
-  useEffect(() => {
-    if (initialData?.categoryId) {
-      setSelectedCategory(initialData.categoryId);
-    }
-    if (initialData?.itemId) {
-      setSelectedItem(initialData.itemId);
-    }
-  }, [initialData]);
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedItem, setSelectedItem] = useState<string>('');
@@ -195,6 +185,18 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
   // Get items for the selected category
   const selectedCategoryData = categories.find(cat => cat._id === selectedCategory);
   const items = selectedCategoryData?.items || [];
+
+  // Set selected category and item when initial data is provided
+  useEffect(() => {
+    if (initialData?.categoryId) {
+      setSelectedCategory(initialData.categoryId);
+    }
+    if (initialData?.itemId) {
+      setSelectedItem(initialData.itemId);
+    }
+  }, [initialData]);
+
+
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};

@@ -1,6 +1,7 @@
 export interface FilterValue {
   id: string;
   value: string;
+  isDefault?: boolean;
 }
 
 export interface Filter {

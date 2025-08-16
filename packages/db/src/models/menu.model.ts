@@ -4,6 +4,7 @@ import { ItemImage } from './image.model';
 export interface IFilterValue {
     id: string;
     value: string;
+    isDefault?: boolean;
 }
 
 export interface IFilter {
@@ -45,6 +46,10 @@ const filterValueSchema = new mongoose.Schema({
     value: {
         type: String,
         required: true,
+    },
+    isDefault: {
+        type: Boolean,
+        default: false,
     },
 }, { _id: false });
 

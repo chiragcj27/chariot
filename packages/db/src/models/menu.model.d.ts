@@ -13,6 +13,7 @@ export interface IItem {
         values: Array<{
             id: string;
             value: string;
+            isDefault?: boolean;
         }>;
     }>;
 }

@@ -51,8 +51,8 @@ export default function SubscriptionCards() {
 
   const handleSubscribe = (plan: SubscriptionCard) => {
     if (!user) {
-      // Redirect to login or show login modal
-      alert('Please log in to subscribe');
+      // Redirect to login page
+      window.location.href = '/login';
       return;
     }
     setSelectedPlan(plan);
