@@ -3,7 +3,6 @@ import { ItemImage } from './image.model';
 
 export interface IFilterValue {
     id: string;
-    name: string;
     value: string;
 }
 
@@ -40,10 +39,6 @@ interface ICategory {
 
 const filterValueSchema = new mongoose.Schema({
     id: {
-        type: String,
-        required: true,
-    },
-    name: {
         type: String,
         required: true,
     },

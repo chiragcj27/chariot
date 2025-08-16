@@ -22,7 +22,6 @@ import Image from "next/image"
 
 interface FilterValue {
   id: string;
-  name: string;
   value: string;
 }
 
@@ -105,7 +104,6 @@ export function CreateItemDialog({
   const addFilterValue = (filterId: string) => {
     const newValue: FilterValue = {
       id: generateId(),
-      name: "",
       value: ""
     }
     setFilters(filters.map(filter => 
@@ -123,14 +121,14 @@ export function CreateItemDialog({
     ))
   }
 
-  const updateFilterValue = (filterId: string, valueId: string, field: 'name' | 'value', newValue: string) => {
+  const updateFilterValue = (filterId: string, valueId: string, newValue: string) => {
     setFilters(filters.map(filter => 
       filter.id === filterId 
         ? { 
             ...filter, 
             values: filter.values.map(value => 
               value.id === valueId 
-                ? { ...value, [field]: newValue }
+                ? { ...value, value: newValue }
                 : value
             )
           }
@@ -228,7 +226,7 @@ export function CreateItemDialog({
 
     try {
       // First, get the pre-signed URL from our API
-      const getUrlResponse = await fetch((process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001") + "/api/assets/upload-url", {
+      const getUrlResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/assets/upload-url`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -294,13 +292,26 @@ export function CreateItemDialog({
         finalOnHoverImageUrl = await uploadImage(selectedOnHoverFile)
       }
 
+      // Transform filters to match API expected format (with both name and value fields)
+      const transformedFilters = filters
+        .filter(filter => filter.name.trim() !== "" && filter.values.length > 0)
+        .map(filter => ({
+          id: filter.id,
+          name: filter.name,
+          values: filter.values.map(value => ({
+            id: value.id,
+            name: value.value, // Use value as name for backward compatibility
+            value: value.value
+          }))
+        }))
+
       // Prepare the item data according to the API expectations
       const itemData = {
         title: formData.title,
         slug: formData.slug,
         description: formData.description,
         categoryId: categoryId,
-        filters: filters.filter(filter => filter.name.trim() !== "" && filter.values.length > 0),
+        filters: transformedFilters,
         image: finalImageUrl ? {
           filename: selectedFile?.name || "image.jpg",
           originalname: selectedFile?.name || "image.jpg",
@@ -324,7 +335,7 @@ export function CreateItemDialog({
       }
 
       // Make the API call to create the item
-      const response = await fetch((process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api") + "/menu/items", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"}/api/menu/items`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -682,15 +693,9 @@ export function CreateItemDialog({
                     {filter.values.map((value) => (
                       <div key={value.id} className="flex items-center gap-2">
                         <Input
-                          placeholder="Display name"
-                          value={value.name}
-                          onChange={(e) => updateFilterValue(filter.id, value.id, 'name', e.target.value)}
-                          className="flex-1"
-                        />
-                        <Input
-                          placeholder="Value"
+                          placeholder="Filter value (e.g., Red, Blue, Large, Small)"
                           value={value.value}
-                          onChange={(e) => updateFilterValue(filter.id, value.id, 'value', e.target.value)}
+                          onChange={(e) => updateFilterValue(filter.id, value.id, e.target.value)}
                           className="flex-1"
                         />
                         <Button

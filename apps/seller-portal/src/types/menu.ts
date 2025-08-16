@@ -1,6 +1,5 @@
 export interface FilterValue {
   id: string;
-  name: string;
   value: string;
 }
 

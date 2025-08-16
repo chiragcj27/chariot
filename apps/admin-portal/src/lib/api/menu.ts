@@ -43,7 +43,6 @@ export interface MenuStructure {
       name: string;
       values: Array<{
         id: string;
-        name: string;
         value: string;
       }>;
     }>;
@@ -114,7 +113,6 @@ export const menuApi = {
       name: string;
       values: Array<{
         id: string;
-        name: string;
         value: string;
       }>;
     }>;

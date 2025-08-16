@@ -689,7 +689,7 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
                                         : 'px-3 py-1 text-sm rounded-full border transition-colors bg-white text-gray-700 border-gray-300 hover:border-blue-300'
                                       }
                                     >
-                                      {value.name}
+                                      {value.value}
                                     </button>
                                   );
                                 })}

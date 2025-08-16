@@ -22,7 +22,6 @@ import Image from "next/image"
 
 interface FilterValue {
   id: string;
-  name: string;
   value: string;
 }
 
@@ -130,7 +129,6 @@ export function EditItemDialog({ item, children, onItemUpdated }: EditItemDialog
   const addFilterValue = (filterId: string) => {
     const newValue: FilterValue = {
       id: generateId(),
-      name: "",
       value: ""
     }
     setFilters(filters.map(filter => 
@@ -148,14 +146,14 @@ export function EditItemDialog({ item, children, onItemUpdated }: EditItemDialog
     ))
   }
 
-  const updateFilterValue = (filterId: string, valueId: string, field: 'name' | 'value', newValue: string) => {
+  const updateFilterValue = (filterId: string, valueId: string, newValue: string) => {
     setFilters(filters.map(filter => 
       filter.id === filterId 
         ? { 
             ...filter, 
             values: filter.values.map(value => 
               value.id === valueId 
-                ? { ...value, [field]: newValue }
+                ? { ...value, value: newValue }
                 : value
             )
           }
@@ -259,10 +257,29 @@ export function EditItemDialog({ item, children, onItemUpdated }: EditItemDialog
         hoverImageData = await uploadImage(hoverImageFile)
       }
 
+      // Transform filters to match API expected format (with both name and value fields)
+      const transformedFilters = filters.map(filter => ({
+        id: filter.id,
+        name: filter.name,
+        values: filter.values.map(value => ({
+          id: value.id,
+          name: value.value, // Use value as name for backward compatibility
+          value: value.value
+        }))
+      }))
+
       const updateData: {
         title: string
         description?: string
-        filters: Filter[]
+        filters: Array<{
+          id: string
+          name: string
+          values: Array<{
+            id: string
+            name: string
+            value: string
+          }>
+        }>
         image?: {
           url: string
           filename: string
@@ -286,7 +303,7 @@ export function EditItemDialog({ item, children, onItemUpdated }: EditItemDialog
       } = {
         title: title.trim(),
         description: description.trim() || undefined,
-        filters: filters, // Always send filters, even if empty array
+        filters: transformedFilters, // Send transformed filters
       }
 
       if (imageData) {
@@ -529,15 +546,9 @@ export function EditItemDialog({ item, children, onItemUpdated }: EditItemDialog
                         {filter.values.map((value) => (
                           <div key={value.id} className="flex items-center gap-2">
                             <Input
-                              placeholder="Value name"
-                              value={value.name}
-                              onChange={(e) => updateFilterValue(filter.id, value.id, 'name', e.target.value)}
-                              className="flex-1"
-                            />
-                            <Input
-                              placeholder="Value"
+                              placeholder="Filter value (e.g., Red, Blue, Large, Small)"
                               value={value.value}
-                              onChange={(e) => updateFilterValue(filter.id, value.id, 'value', e.target.value)}
+                              onChange={(e) => updateFilterValue(filter.id, value.id, e.target.value)}
                               className="flex-1"
                             />
                             <Button

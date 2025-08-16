@@ -12,7 +12,6 @@ export interface IItem {
         name: string;
         values: Array<{
             id: string;
-            name: string;
             value: string;
         }>;
     }>;
