@@ -58,6 +58,7 @@ interface Category {
   _id: string
   title: string
   slug: string
+  description?: string
   featuredItems?: FeaturedItem[]
   items?: Item[]
 }
@@ -300,6 +301,9 @@ export function MegaMenuManager() {
                         <div>
                           <CardTitle className="text-lg font-semibold text-gray-900">{category.title}</CardTitle>
                           <p className="text-sm text-muted-foreground font-mono">/{category.slug}</p>
+                          {category.description && (
+                            <p className="text-xs text-muted-foreground mt-1">{category.description}</p>
+                          )}
                         </div>
                       </div>
                     </div>

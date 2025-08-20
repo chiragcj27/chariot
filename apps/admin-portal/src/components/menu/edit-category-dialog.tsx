@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Edit, Loader2, Upload, X, Plus, Trash2 } from "lucide-react"
 import { menuApi } from "@/lib/api/menu"
@@ -33,6 +34,7 @@ interface EditCategoryDialogProps {
     _id: string
     title: string
     slug: string
+    description?: string
     featuredItems?: FeaturedItem[]
   }
   children: React.ReactNode
@@ -40,6 +42,7 @@ interface EditCategoryDialogProps {
     _id: string
     title: string
     slug: string
+    description?: string
     featuredItems?: FeaturedItem[]
   }) => void
 }
@@ -49,6 +52,7 @@ export function EditCategoryDialog({ category, children, onCategoryUpdated }: Ed
   const [loading, setLoading] = useState(false)
   const [title, setTitle] = useState(category.title)
   const [slug, setSlug] = useState(category.slug)
+  const [description, setDescription] = useState(category.description || "")
   const [titleError, setTitleError] = useState("")
   const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>(category.featuredItems || [])
   const [newFeaturedItem, setNewFeaturedItem] = useState({
@@ -134,6 +138,7 @@ export function EditCategoryDialog({ category, children, onCategoryUpdated }: Ed
   useEffect(() => {
     setTitle(category.title)
     setSlug(category.slug)
+    setDescription(category.description || "")
     setFeaturedItems(category.featuredItems || [])
   }, [category])
 
@@ -161,6 +166,7 @@ export function EditCategoryDialog({ category, children, onCategoryUpdated }: Ed
       const response = await menuApi.updateCategory(category._id, {
         title: title.trim(),
         slug: slug.trim(),
+        description: description.trim(),
         featuredItems: featuredItems.map(item => ({
           _id: item.id,
           title: item.title,
@@ -186,6 +192,7 @@ export function EditCategoryDialog({ category, children, onCategoryUpdated }: Ed
           _id: response.category._id,
           title: response.category.title,
           slug: response.category.slug,
+          description: response.category.description,
           featuredItems: response.category.featuredItems?.map(item => ({
             id: item._id,
             title: item.title,
@@ -249,6 +256,19 @@ export function EditCategoryDialog({ category, children, onCategoryUpdated }: Ed
                   onChange={(e) => setSlug(e.target.value)}
                   className="col-span-3"
                   placeholder="category-slug"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-start gap-4">
+                <Label htmlFor="description" className="text-right">
+                  Description
+                </Label>
+                <Textarea
+                  id="description"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Enter a short description for this category"
+                  rows={3}
                 />
               </div>
             </TabsContent>

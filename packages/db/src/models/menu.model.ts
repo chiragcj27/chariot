@@ -35,6 +35,7 @@ interface IFeaturedItem {
 interface ICategory {
     title: string;
     slug: string;
+    description?: string;
     featuredItems: IFeaturedItem[];
 }
 
@@ -133,6 +134,10 @@ const categorySchema = new mongoose.Schema<ICategory>({
     slug: {
         type: String,
         required: true,
+    },
+    description: {
+        type: String,
+        required: false,
     },
     featuredItems: {
         type: [featuredItemSchema],

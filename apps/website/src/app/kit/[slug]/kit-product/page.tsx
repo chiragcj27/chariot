@@ -1,10 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import Image from 'next/image'
-import router from 'next/router'
+import { useRouter } from 'next/navigation'
+import { notFound } from 'next/navigation'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+interface KitImage {
+  _id: string;
+  url: string;
+  originalname: string;
+  filename: string;
+}
+
+interface Kit {
+  _id: string;
+  title: string;
+  slug: string;
+  description: string;
+  thumbnail?: KitImage;
+  onHoverImage?: KitImage;
+  mainImage?: KitImage;
+  carouselImages?: KitImage[];
+  testimonials?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface KitProductPageProps {
+  params: Promise<{ slug: string }>;
+}
 
 // Flipbook Embed Component
 const FlipbookEmbed = ({ 
@@ -64,12 +92,44 @@ const productData = {
   flipbookUrl: "https://heyzine.com/flip-book/9ed613b90d.html", // "https://heyzine.com/flip-book/9ed613b90d.html"
 }
 
-export default function KitProductPage() {
+export default function KitProductPage({ params }: KitProductPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [openFaq, setOpenFaq] = useState<number | null>(null); // For FAQ accordion
+  const [kit, setKit] = useState<Kit | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  
   // Check if we should show flipbook or images
   const showFlipbook = !!productData.flipbookUrl
   const images = productData.images
+
+  useEffect(() => {
+    const fetchKit = async () => {
+      try {
+        setLoading(true);
+        const { slug } = await params;
+        const response = await fetch(`${API_URL}/api/kits/slug/${slug}`);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            notFound();
+          }
+          throw new Error('Failed to fetch kit');
+        }
+        
+        const data = await response.json();
+        setKit(data);
+      } catch (err) {
+        console.error('Error fetching kit:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch kit');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchKit();
+  }, [params]);
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => 
@@ -81,6 +141,22 @@ export default function KitProductPage() {
     setCurrentImageIndex((prev) => 
       prev === 0 ? images.length - 1 : prev - 1
     )
+  }
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sunrise"></div>
+      </div>
+    );
+  }
+
+  if (error || !kit) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-red-500">Error: {error || 'Kit not found'}</p>
+      </div>
+    );
   }
 
   return (
@@ -201,29 +277,24 @@ export default function KitProductPage() {
             </div>
           </div>
         </div>
-                 <section className="relative px-5 md:px-10 lg:px-18 pb-16 mt-20">
+
+      </div>
+      <section className="relative px-5 md:px-10 lg:px-18 pb-16 mt-20">
            {/* Background Image with Overlay */}
-           <div className="absolute inset-0 bg-gradient-to-br from-gray-100 via-white to-orange-50">
-             {/* Background Pattern - Wireframes and Mockups */}
-             <div className="absolute inset-0 opacity-10">
-               {/* Mobile phone outlines */}
-               <div className="absolute top-20 left-10 w-32 h-48 border-2 border-gray-300 rounded-3xl"></div>
-               <div className="absolute top-32 right-20 w-28 h-40 border-2 border-orange-200 rounded-3xl"></div>
-               <div className="absolute bottom-20 left-1/4 w-24 h-36 border-2 border-gray-300 rounded-2xl"></div>
-               
-               {/* Studio text */}
-               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-8xl font-bold text-gray-200 opacity-20">
-                 CO™ STUDIO
-               </div>
-               <div className="absolute bottom-1/4 right-1/4 text-6xl font-bold text-gray-200 opacity-20">
-                 STUDIO
-               </div>
-             </div>
+           <div 
+             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+             style={{
+               backgroundImage: kit.mainImage ? `url(${kit.mainImage.url})` : 'none',
+               backgroundColor: kit.mainImage ? 'transparent' : '#FA7035'
+             }}
+           >
+             {/* Overlay for better text readability */}
+             <div className="absolute inset-0"></div>
            </div>
            
            {/* Content */}
            <div className="relative z-10">
-             <h2 className="text-4xl font-bold text-black mb-8">What&apos;s Included?</h2>
+             <h2 className="text-4xl font-bold text-white mb-8">What&apos;s Included?</h2>
              <div className="w-full max-w-4xl">
                {faqs.map((faq, idx) => (
                  <div key={idx} className="mb-1">
@@ -237,14 +308,14 @@ export default function KitProductPage() {
                      </span>
                      
                      {/* Question Text */}
-                     <span className="text-lg font-medium text-black flex-1">
+                     <span className="text-lg font-medium text-white flex-1">
                        {faq.question}
                      </span>
                    </div>
                    
                    {/* Answer */}
                    {openFaq === idx && (
-                     <div className="pl-10 pb-4 text-gray-700 font-medium">
+                     <div className="pl-10 pb-4 text-gray-200 font-medium">
                        {faq.answer}
                      </div>
                    )}
@@ -257,7 +328,7 @@ export default function KitProductPage() {
              
              <div className="flex mt-12">
                <button
-                 className="border-2 border-[#D94506] rounded-full bg-[#FFC1A0] text-black font-semibold px-8 py-3 transition-colors shadow-lg text-lg hover:bg-[#FA7035] hover:text-white"
+                 className="border-2 border-white rounded-full bg-transparent text-white font-semibold px-8 py-3 transition-colors shadow-lg text-lg hover:bg-white hover:text-black"
                  onClick={() => router.push('/')}
                >
                  Back to Home
@@ -265,7 +336,6 @@ export default function KitProductPage() {
              </div>
            </div>
          </section>
-      </div>
     </div>
   )
 }

@@ -92,12 +92,12 @@ export default function ProductListPage() {
       </div>
     </section>
     <div className="w-full bg-[#5E5D5D] p-8">
-         <h1 className="text-white text-left text-4xl font-bold">
-          Sub Headline
-         </h1> 
-        <div className="bg-[#D9D9D9] mt-10 mb-20 px-50 py-10">
-         <p className="text-left text-xl font-secondary">
-         Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s.
+         <h1 className="text-white text-left font-balgin-regular text-4xl">
+          Tailor It to Your Brand
+         </h1>  
+        <div className="bg-[#D9D9D9] mt-10 mb-20 px-30 py-10 rounded-lg">
+         <p className="text-left text-[24px] font-secondary">
+         Personalize any design to match your brand, from logo placement and color palette to layout and size. Whether it&apos;s packaging, print, or digital, we&apos;ll adapt it for your store so you stand out with marketing that&apos;s distinctly yours.
          </p>
          </div>
     </div>

@@ -177,10 +177,9 @@ export async function loginBuyer(req: Request, res: Response) {
   }
 }
 
-// Update buyer profile
-export async function updateBuyerProfile(req: Request, res: Response) {
+// Get buyer profile
+export async function getBuyerProfile(req: Request, res: Response) {
   try {
-    const { name, email } = req.body;
     const userId = req.user?.userId;
 
     if (!userId) {
@@ -189,27 +188,75 @@ export async function updateBuyerProfile(req: Request, res: Response) {
       });
     }
 
-    // Validate required fields
-    if (!name || !email) {
-      return res.status(400).json({
-        message: 'Name and email are required.',
+    const buyer = await Buyer.findById(userId).select('-password -refreshToken');
+    if (!buyer) {
+      return res.status(404).json({
+        message: 'Buyer not found.',
       });
     }
 
-    // Check if email is already taken by another user
-    const existingUser = await User.findOne({ email, _id: { $ne: userId } });
-    if (existingUser) {
-      return res.status(409).json({
-        message: 'Email is already taken by another user.',
+    res.json({
+      buyer,
+    });
+  } catch (error) {
+    console.error('Get buyer profile error:', error);
+    res.status(500).json({
+      message: 'Internal server error.',
+    });
+  }
+}
+
+// Update buyer profile
+export async function updateBuyerProfile(req: Request, res: Response) {
+  try {
+    const {
+      companyInformation,
+      contactInformation,
+      otherInformation
+    } = req.body;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: 'Authentication required.',
       });
+    }
+
+    // Build update object - allow partial updates
+    const updateData: any = {};
+    
+    if (companyInformation) {
+      // Ensure arrays are properly formatted
+      if (companyInformation.telephone && Array.isArray(companyInformation.telephone)) {
+        companyInformation.telephone = companyInformation.telephone.filter((tel: string) => tel && tel.trim() !== '');
+      }
+      if (companyInformation.fax && Array.isArray(companyInformation.fax)) {
+        companyInformation.fax = companyInformation.fax.filter((fax: string) => fax && fax.trim() !== '');
+      }
+      updateData.companyInformation = companyInformation;
+    }
+    
+    if (contactInformation) {
+      // Ensure arrays are properly formatted
+      if (contactInformation.telephone && Array.isArray(contactInformation.telephone)) {
+        contactInformation.telephone = contactInformation.telephone.filter((tel: string) => tel && tel.trim() !== '');
+      }
+      if (contactInformation.fax && Array.isArray(contactInformation.fax)) {
+        contactInformation.fax = contactInformation.fax.filter((fax: string) => fax && fax.trim() !== '');
+      }
+      updateData.contactInformation = contactInformation;
+    }
+    
+    if (otherInformation) {
+      updateData.otherInformation = otherInformation;
     }
 
     // Update buyer profile
-    const updatedBuyer = await User.findByIdAndUpdate(
+    const updatedBuyer = await Buyer.findByIdAndUpdate(
       userId,
-      { name, email },
+      updateData,
       { new: true }
-    );
+    ).select('-password -refreshToken');
 
     if (!updatedBuyer) {
       return res.status(404).json({
@@ -219,13 +266,7 @@ export async function updateBuyerProfile(req: Request, res: Response) {
 
     res.json({
       message: 'Profile updated successfully.',
-      user: {
-        id: updatedBuyer._id,
-        email: updatedBuyer.email,
-        name: updatedBuyer.name,
-        role: updatedBuyer.role,
-        credits: updatedBuyer.credits,
-      },
+      buyer: updatedBuyer,
     });
   } catch (error) {
     console.error('Buyer profile update error:', error);

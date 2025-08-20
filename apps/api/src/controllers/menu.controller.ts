@@ -137,6 +137,7 @@ export const menuController = {
         _id: category._id,
         title: category.title,
         slug: category.slug,
+        description: category.description,
         featuredItems: category.featuredItems || [],
         items: category.items || [],
       }));
@@ -155,7 +156,7 @@ export const menuController = {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-      const { title, slug } = req.body;
+      const { title, slug, description } = req.body;
 
       if (!title || !slug) {
         return res.status(400).json({ message: "Title and slug are required" });
@@ -166,6 +167,7 @@ export const menuController = {
           {
             title,
             slug,
+            description,
             featuredItems: [],
           },
         ],
@@ -181,6 +183,7 @@ export const menuController = {
         message: "Category created successfully",
         category: {
           ...category[0].toObject(),
+          description: description || category[0].description,
           featuredItems: [],
           items: [],
         },
@@ -321,7 +324,7 @@ export const menuController = {
   async updateCategory(req: Request, res: Response) {
     try {
       const { categoryId } = req.params;
-      const { title, slug, featuredItems } = req.body;
+      const { title, slug, description, featuredItems } = req.body;
 
       if (!categoryId) {
         return res.status(400).json({ message: "Category ID is required" });
@@ -330,6 +333,7 @@ export const menuController = {
       const updateData: any = {};
       if (title !== undefined) updateData.title = title;
       if (slug !== undefined) updateData.slug = slug;
+      if (description !== undefined) updateData.description = description;
       if (featuredItems !== undefined) updateData.featuredItems = featuredItems;
 
       const result = await Menu.findByIdAndUpdate(categoryId, updateData, {

@@ -4,6 +4,7 @@ export interface MenuStructure {
   _id: string;
   title: string;
   slug: string;
+  description?: string;
   featuredItems?: Array<{
     _id: string;
     title: string;
@@ -61,6 +62,7 @@ export const menuApi = {
   async createCategory(data: {
     title: string;
     slug: string;
+    description?: string;
     featuredItems?: Array<{
       _id: string;
       title: string;
@@ -153,6 +155,7 @@ export const menuApi = {
   async updateCategory(categoryId: string, data: {
     title?: string;
     slug?: string;
+    description?: string;
     featuredItems?: Array<{
       _id: string;
       title: string;

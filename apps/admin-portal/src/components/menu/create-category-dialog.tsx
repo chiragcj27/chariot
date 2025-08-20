@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { menuApi } from "@/lib/api/menu"
 
 interface CreateCategoryDialogProps {
@@ -26,6 +27,7 @@ export function CreateCategoryDialog({ children }: CreateCategoryDialogProps) {
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
+    description: "",
   })
 
   const generateSlug = (title: string) => {
@@ -36,10 +38,11 @@ export function CreateCategoryDialog({ children }: CreateCategoryDialogProps) {
   }
 
   const handleTitleChange = (title: string) => {
-    setFormData({
+    setFormData((prev) => ({
+      ...prev,
       title,
       slug: generateSlug(title),
-    })
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -50,13 +53,14 @@ export function CreateCategoryDialog({ children }: CreateCategoryDialogProps) {
       const response = await menuApi.createCategory({
         title: formData.title,
         slug: formData.slug,
+        description: formData.description || undefined,
       })
 
       // Dispatch custom event with the category from the response
       const event = new CustomEvent('categoryCreated', { detail: response.category })
       window.dispatchEvent(event)
       
-      setFormData({ title: "", slug: "" })
+      setFormData({ title: "", slug: "", description: "" })
       setOpen(false)
     } catch (error) {
       console.error("Error creating category:", error)
@@ -95,6 +99,16 @@ export function CreateCategoryDialog({ children }: CreateCategoryDialogProps) {
                 required
               />
               <p className="text-xs text-muted-foreground">URL-friendly version of the title</p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Enter a short description for this category"
+                rows={3}
+              />
             </div>
           </div>
           <DialogFooter>
