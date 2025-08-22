@@ -220,3 +220,13 @@ body::-webkit-scrollbar-thumb:hover {
 html, body {
   scrollbar-gutter: stable;
 }
+
+/* Hide scrollbar for specific elements */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
+}
