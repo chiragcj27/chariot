@@ -53,6 +53,7 @@ export interface IProduct {
     adminRejectedAt: Date;
     sellerId: Types.ObjectId;
     relatedProductsId: Types.ObjectId[];
+    flipbookUrl?: string;
 }
 export declare const Product: mongoose.Model<IProduct, {}, {}, {}, mongoose.Document<unknown, {}, IProduct, {}> & IProduct & {
     _id: Types.ObjectId;

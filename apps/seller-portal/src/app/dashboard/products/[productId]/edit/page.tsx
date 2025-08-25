@@ -324,6 +324,8 @@ export default function EditProductPage() {
   };
 
   const uploadKitFiles = async (kitFiles: KitFile[], productId: string) => {
+    const uploadedFileIds: string[] = [];
+    
     for (let i = 0; i < kitFiles.length; i++) {
       const kitFile = kitFiles[i];
       if (!kitFile.url.startsWith('blob:')) {
@@ -394,7 +396,13 @@ export default function EditProductPage() {
         }),
       });
       if (!fileResponse.ok) throw new Error('Failed to store kit preview file metadata');
+      
+      // Get the uploaded file ID
+      const { file: uploadedFile } = await fileResponse.json();
+      uploadedFileIds.push(uploadedFile._id);
     }
+    
+    return uploadedFileIds;
   };
 
   const uploadKitMainFile = async (kitMainFile: KitMainFile, productId: string) => {
@@ -475,22 +483,8 @@ export default function EditProductPage() {
     setSuccess(null);
 
     try {
-      // Update core fields first
-      const response = await fetch(`/api/products/${productId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to update product');
-      }
-
+      // Upload new files FIRST, before updating the product
+      
       // Upload newly added product images (blob URLs only)
       const imageUrls = formData.images
         .filter((img): img is string => typeof img === 'string');
@@ -506,12 +500,38 @@ export default function EditProductPage() {
         }
       }
 
-      // Upload newly added kit preview files
+      // Upload new kit preview files FIRST
+      let apiPayload: Omit<ProductFormData, 'kitFiles'> & { kitFiles: string[] } | null = null;
+      
       if (formData.isKitProduct && formData.kitFiles && formData.kitFiles.length > 0) {
-        const newKitFiles = formData.kitFiles.filter(file => file.url.startsWith('blob:'));
+        // Separate existing files (have _id) from new files (blob URLs)
+        const existingKitFiles = formData.kitFiles.filter((file): file is KitFile => 
+          typeof file === 'object' && file._id !== undefined && !file.url.startsWith('blob:')
+        );
+        const newKitFiles = formData.kitFiles.filter((file): file is KitFile => 
+          typeof file === 'object' && file.url.startsWith('blob:')
+        );
+        
+        
+        
+        // Upload new files first and get their IDs
+        let uploadedFileIds: string[] = [];
         if (newKitFiles.length > 0) {
-          await uploadKitFiles(newKitFiles as KitFile[], productId);
+          uploadedFileIds = await uploadKitFiles(newKitFiles as KitFile[], productId);
+          
         }
+        
+        // Update formData to include existing file IDs and new file IDs
+        const existingFileIds = existingKitFiles.map(file => file._id).filter((id): id is string => id !== undefined);
+        // For the API call, we need to send the file IDs as strings
+        apiPayload = {
+          ...formData,
+          kitFiles: [
+            ...existingFileIds,
+            ...uploadedFileIds
+          ]
+        };
+        
       }
 
       // Upload or set kit main file
@@ -520,6 +540,24 @@ export default function EditProductPage() {
         if (isNewMain) {
           await uploadKitMainFile(formData.kitMainFile, productId);
         }
+      }
+
+      // NOW update the product with all the form data
+      // The kitFiles array will now include both existing and newly uploaded files
+      const payloadToSend = formData.isKitProduct && formData.kitFiles && formData.kitFiles.length > 0 ? apiPayload : formData;
+      const response = await fetch(`/api/products/${productId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(payloadToSend),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update product');
       }
 
       // Success messaging

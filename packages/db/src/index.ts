@@ -8,6 +8,7 @@ import { IFile, IPdfFile, IDocumentFile, IZipFile } from './models/file.model.d'
 import { PromotionalStrip } from './models/promotionalStrip.model';
 import { IUser, ISeller, IBuyer, User, Seller, Admin, Buyer} from './models/user.model';
 import { Kit, IKit } from './models/kits.model';
+import { Order, IOrder, OrderStatus, PaymentMethod, PaymentStatus } from './models/order.model';
 import SubscriptionCard from './models/subscriptionCard.model';
 import { IUserSubscription, UserSubscription } from './models/userSubscription.model';
 import { OTP, IOTP } from './models/otp.model';
@@ -35,6 +36,7 @@ export {
   Kit,
   SubscriptionCard,
   UserSubscription,
+  Order,
   File,
   PdfFile,
   DocumentFile,
@@ -58,9 +60,10 @@ export type {
   IDocumentFile,
   IZipFile,
   IOTP,
+  IOrder,
 };
 
-export { ProductType };
+export { ProductType, OrderStatus, PaymentMethod, PaymentStatus };
 
 export const hello = (): string => {
     return 'Hello from db package!';

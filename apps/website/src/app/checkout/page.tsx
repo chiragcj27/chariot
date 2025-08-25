@@ -1,35 +1,221 @@
 'use client'
 
-
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, FileText, Calendar, CreditCard, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAuth } from '@/contexts/AuthContext'
+import { useCart } from '@/contexts/CartContext'
+
+interface OrderItem {
+  productId: string;
+  productName: string;
+  productSlug: string;
+  quantity: number;
+  unitPrice: number;
+  unitCreditsCost: number;
+  totalPrice: number;
+  totalCreditsCost: number;
+  imageUrl?: string;
+}
+
+interface CheckoutInfo {
+  orderItems: OrderItem[];
+  subtotal: number;
+  tax: number;
+  total: number;
+  userCredits: number;
+  paymentBreakdown: {
+    creditsUsed: number;
+    creditsAmount: number;
+    paypalAmount: number;
+    totalAmount: number;
+  };
+  canPayWithCredits: boolean;
+  requiresPayPalPayment: boolean;
+}
 
 export default function CheckoutPage() {
-  const paymentMethod = 'Credit Card/Debit Card'
+  const { user } = useAuth();
+  const { items: cartItems, clearCart } = useCart();
+  const [paymentMethod, setPaymentMethod] = useState<'credits' | 'paypal'>('paypal');
+  const [checkoutInfo, setCheckoutInfo] = useState<CheckoutInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showPaymentMethods, setShowPaymentMethods] = useState(false);
+  const [showCreditConfirmation, setShowCreditConfirmation] = useState(false);
 
-  // Mock data - in real app this would come from cart/order context
-  const orderData = {
-    orderNumber: 'ORD-2025-001',
-    orderDate: '1 Aug 2025',
-    status: 'Payment Pending',
-    items: [
-      { id: 1, name: 'Product Name', category: 'Product Category', price: 80, image: 'https://placehold.co/80x80' },
-      { id: 2, name: 'Product Name', category: 'Product Category', price: 80, image: 'https://placehold.co/80x80' },
-      { id: 3, name: 'Product Name', category: 'Product Category', price: 80, image: 'https://placehold.co/80x80' },
-      { id: 4, name: 'Product Name', category: 'Product Category', price: 80, image: 'https://placehold.co/80x80' },
-    ],
-    subtotal: 80,
-    tax: 10,
-    total: 90
+  useEffect(() => {
+    if (!user) {
+      setLoading(false);
+      setError('Please log in to continue with checkout');
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      setLoading(false);
+      setError('Your cart is empty. Please add items before checkout.');
+      return;
+    }
+
+    fetchCheckoutInfo();
+  }, [user, cartItems]);
+
+  const fetchCheckoutInfo = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        setError('Authentication required. Please log in.');
+        return;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/orders/checkout/info`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ items: cartItems }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch checkout info' }));
+        throw new Error(errorData.message || 'Failed to load checkout information');
+      }
+
+      const data = await response.json();
+      setCheckoutInfo(data);
+    } catch (err) {
+      console.error('Error fetching checkout info:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load checkout information');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePaymentMethodChange = (method: 'credits' | 'paypal') => {
+    setPaymentMethod(method);
+    setShowPaymentMethods(false);
+  };
+
+  const handleCreateOrder = async () => {
+    // If credits are selected and user has enough credits, show confirmation
+    if (paymentMethod === 'credits' && checkoutInfo && checkoutInfo.userCredits >= checkoutInfo.total) {
+      setShowCreditConfirmation(true);
+      return;
+    }
+
+    await processOrder();
+  };
+
+  const processOrder = async () => {
+    try {
+      setProcessing(true);
+      setError(null);
+      setShowCreditConfirmation(false);
+
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setError('Authentication required. Please log in.');
+        return;
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/orders/checkout/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          items: cartItems,
+          paymentMethod,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to create order' }));
+        throw new Error(errorData.message || 'Failed to create order');
+      }
+
+      const orderData = await response.json();
+      
+      if (orderData.requiresPayPalPayment) {
+        alert(`Order created! PayPal payment required: $${orderData.paymentBreakdown.paypalAmount}`);
+        window.location.href = `/order-confirmation?orderId=${orderData.order._id}`;
+      } else {
+        clearCart();
+        window.location.href = `/order-confirmation?orderId=${orderData.order._id}`;
+      }
+    } catch (err) {
+      console.error('Error creating order:', err);
+      setError(err instanceof Error ? err.message : 'Failed to create order');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const getPaymentMethodDisplay = () => {
+    switch (paymentMethod) {
+      case 'credits':
+        return 'Credits';
+      case 'paypal':
+        return 'Credit Card/Debit Card';
+      default:
+        return 'Credit Card/Debit Card';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading checkout information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !checkoutInfo) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <p className="text-red-600 mb-4">{error}</p>
+          <div className="space-y-2">
+            <Button onClick={fetchCheckoutInfo} variant="outline" className="w-full">
+              Try Again
+            </Button>
+            <Link href="/" className="block">
+              <Button variant="outline" className="w-full">
+                Back To Home
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!checkoutInfo) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">No checkout information available</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-white">
+      {/* Top Navigation Bar */}
+      <div className="border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center text-gray-600 hover:text-gray-900">
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back
@@ -42,105 +228,185 @@ export default function CheckoutPage() {
             </div>
             <div className="flex items-center text-sm text-gray-600">
               <Calendar className="w-4 h-4 mr-2" />
-              {orderData.orderDate}
+              {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
             </div>
             <div className="px-3 py-1 bg-orange-100 text-orange-600 rounded-full text-sm font-medium">
-              {orderData.status}
+              Payment Pending
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-2xl mx-auto px-6 py-8">
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
+
+        {/* Payment Section */}
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Payment</h2>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-700">Total Payment</span>
+              <span className="font-semibold text-lg">${checkoutInfo.total}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <span className="text-gray-700">Payment Method</span>
+              <div className="flex items-center space-x-2">
+                <CreditCard className="w-4 h-4 text-gray-600" />
+                <span className="text-gray-900">{getPaymentMethodDisplay()}</span>
+                <button
+                  onClick={() => setShowPaymentMethods(!showPaymentMethods)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showPaymentMethods ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Payment Method Dropdown */}
+            {showPaymentMethods && (
+              <div className="border border-gray-200 rounded-lg p-3 space-y-2">
+                <button
+                  onClick={() => handlePaymentMethodChange('paypal')}
+                  className={`w-full text-left p-2 rounded ${paymentMethod === 'paypal' ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <CreditCard className="w-4 h-4" />
+                    <span>Credit Card/Debit Card</span>
+                  </div>
+                </button>
+                
+                {checkoutInfo.userCredits > 0 && (
+                  <button
+                    onClick={() => handlePaymentMethodChange('credits')}
+                    className={`w-full text-left p-2 rounded ${paymentMethod === 'credits' ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span className="text-green-600">💰</span>
+                      <span>Credits ({checkoutInfo.userCredits} available)</span>
+                    </div>
+                  </button>
+                )}
+
+
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2">
+              <Button 
+                className="bg-orange-500 hover:bg-orange-600 text-white border-orange-500 rounded-lg"
+                onClick={handleCreateOrder}
+                disabled={processing}
+              >
+                {processing ? 'Processing...' : 'Continue with Payment'}
+              </Button>
             </div>
           </div>
         </div>
 
-        {/* Payment Section */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Payment</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-700">Total Payment</span>
-              <span className="font-semibold text-lg">${orderData.total}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-gray-700">Payment Method</span>
-              <div className="flex items-center space-x-2">
-                <CreditCard className="w-4 h-4 text-gray-500" />
-                <span className="text-gray-900">{paymentMethod}</span>
-                <ChevronDown className="w-4 h-4 text-gray-500" />
-              </div>
-            </div>
-            <div className="flex justify-end pt-2">
-              <Button 
-                className="bg-orange-500 hover:bg-orange-600 text-white border-orange-500"
-                size="lg"
-              >
-                Continue with Payment
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Order Section */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold">Order</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {orderData.items.map((item) => (
-                <div key={item.id} className="flex items-center space-x-4">
-                  <div className="w-20 h-20 bg-gray-200 rounded-lg flex-shrink-0">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Order</h2>
+          
+          <div className="space-y-4">
+            {checkoutInfo.orderItems.map((item, index) => (
+              <div key={index} className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                  {item.imageUrl ? (
                     <img 
-                      src={item.image} 
-                      alt={item.name}
-                      className="w-full h-full object-cover rounded-lg"
+                      src={item.imageUrl} 
+                      alt={item.productName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = 'https://placehold.co/64x64';
+                      }}
                     />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                    <p className="text-gray-600">{item.category}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-semibold text-gray-900">${item.price}</span>
-                  </div>
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+                      No Image
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900">{item.productName}</h3>
+                  <p className="text-gray-600">Product Category</p>
+                </div>
+                <div className="text-right">
+                  <span className="font-semibold text-gray-900">${item.totalPrice}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* Summary Section */}
-        <Card className="mb-8">
-          <CardContent className="pt-6">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Subtotal</span>
-                <span className="text-gray-900">${orderData.subtotal}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Tax</span>
-                <span className="text-gray-900">${orderData.tax}</span>
-              </div>
-              <div className="border-t pt-3 flex items-center justify-between">
-                <span className="font-semibold text-gray-900">Total</span>
-                <span className="font-semibold text-lg text-gray-900">${orderData.total}</span>
-              </div>
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-700">Subtotal</span>
+              <span className="text-gray-900">${checkoutInfo.subtotal}</span>
             </div>
-          </CardContent>
-        </Card>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-700">Tax</span>
+              <span className="text-gray-900">${checkoutInfo.tax}</span>
+            </div>
+            <div className="border-t pt-3 flex items-center justify-between">
+              <span className="font-semibold text-gray-900">Total</span>
+              <span className="font-semibold text-lg text-gray-900">${checkoutInfo.total}</span>
+            </div>
+          </div>
+        </div>
 
         {/* Footer */}
         <div className="flex justify-center">
           <Link href="/">
             <Button 
               variant="outline" 
-              className="border-orange-500 text-orange-500 hover:bg-orange-50"
-              size="lg"
+              className="border-orange-500 text-orange-500 hover:bg-orange-50 rounded-lg"
             >
               Back To Home
             </Button>
           </Link>
         </div>
       </div>
+
+      {/* Credit Confirmation Dialog */}
+      {showCreditConfirmation && checkoutInfo && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Credit Payment</h3>
+            <p className="text-gray-600 mb-4">
+              You are about to use <strong>{checkoutInfo.total} credits</strong> from your account to complete this purchase.
+            </p>
+            <p className="text-gray-600 mb-6">
+              Your remaining credits after this purchase: <strong>{checkoutInfo.userCredits - checkoutInfo.total} credits</strong>
+            </p>
+            <div className="flex space-x-3">
+              <Button
+                onClick={() => setShowCreditConfirmation(false)}
+                variant="outline"
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={processOrder}
+                className="flex-1 bg-orange-500 hover:bg-orange-600"
+                disabled={processing}
+              >
+                {processing ? 'Processing...' : 'Confirm Payment'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

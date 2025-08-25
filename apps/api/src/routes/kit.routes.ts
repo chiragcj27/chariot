@@ -21,5 +21,7 @@ router.put("/:kitId", kitController.updateKit);
 // Delete kit
 router.delete("/:kitId", kitController.deleteKit);
 
+// Get kit by ID
+router.get("/:kitId", kitController.getKitById);
 
 export default router; 

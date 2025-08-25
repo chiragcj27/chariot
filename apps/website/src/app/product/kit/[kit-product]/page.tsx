@@ -95,7 +95,7 @@ const productData = {
     "https://placehold.co/600x400/87CEEB/FFFFFF?text=Product+Image+4",
   ],
   // For flipbook (set this to enable flipbook instead of images)
-  flipbookUrl: "https://heyzine.com/flip-book/c2b753fb9f.html", // "https://heyzine.com/flip-book/9ed613b90d.html"
+  flipbookUrl: "https://heyzine.com/flip-book/9ed613b90d.html", // "https://heyzine.com/flip-book/9ed613b90d.html"
 };
 
 // Sample products data - replace with actual data from your API
@@ -125,7 +125,7 @@ const sampleProducts = [
     id: 4,
     name: "Product Photography Guide",
     type: "pdf",
-    flipbookUrl: "https://heyzine.com/flip-book/c2b753fb9f.html",
+    flipbookUrl: "https://heyzine.com/flip-book/9ed613b90d.html",
     description: "Complete guide to product photography setup",
   },
   {
@@ -144,7 +144,7 @@ const sampleProducts = [
   },
 ];
 
-export default function KitPage({ params }: KitProductPageProps) {
+export default function KitProductPage({ params }: KitProductPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(null); // For FAQ accordion
   const [kit, setKit] = useState<Kit | null>(null);

@@ -298,7 +298,7 @@ export const fileController = {
   getKitMainFileDownloadUrl: async (req: Request, res: Response) => {
     try {
       const { productId } = req.params;
-      const userId = req.user?.id; // From auth middleware
+      const userId = req.user?.userId; // From auth middleware
 
       if (!userId) {
         return res.status(401).json({

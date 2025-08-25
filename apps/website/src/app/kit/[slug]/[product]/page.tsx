@@ -1,0 +1,537 @@
+"use client";
+
+import { useState, useEffect, useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { notFound } from "next/navigation";
+import { useCart } from "@/contexts/CartContext";
+import Footer from "@/components/Footer";
+
+interface ProductImage {
+  _id: string;
+  url: string;
+  originalname?: string;
+  filename?: string;
+}
+
+interface ProductFile {
+  _id: string;
+  url: string;
+  originalname?: string;
+  filename?: string;
+  fileType?: string;
+}
+
+interface KitImageMetadataItem {
+  imageId: string;
+  title: string;
+  description?: string;
+}
+
+interface KitFileMetadataItem {
+  fileId: string;
+  title: string;
+  description?: string;
+}
+
+interface FlipbookUrlItem {
+  fileId: string;
+  url: string;
+  fileName: string;
+}
+
+interface ProductDoc {
+  _id: string;
+  name: string;
+  description: string;
+  slug: string;
+  price?: {
+    amount: number;
+    currency: string;
+  };
+  creditsCost?: number;
+  images: ProductImage[];
+  kitImages?: ProductImage[];
+  kitFiles?: ProductFile[];
+  kitImageMetadata?: KitImageMetadataItem[];
+  kitFileMetadata?: KitFileMetadataItem[];
+  flipbookUrls?: FlipbookUrlItem[];
+}
+
+interface Kit {
+  _id: string;
+  title: string;
+  slug: string;
+  description: string;
+  thumbnail?: ProductImage;
+  onHoverImage?: ProductImage;
+  mainImage?: ProductImage;
+  carouselImages?: ProductImage[];
+  testimonials?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface PageProps {
+  params: Promise<{ slug: string; product: string }>;
+}
+
+// Flipbook Embed Component
+const FlipbookEmbed = ({
+  flipbookUrl,
+  title = "Product Catalog",
+}: {
+  flipbookUrl: string;
+  title?: string;
+}) => {
+  return (
+    <div className="w-full h-full">
+      <iframe
+        src={flipbookUrl}
+        width="100%"
+        height="100%"
+        allowFullScreen
+        className="w-full h-full rounded-lg"
+        title={title}
+      />
+    </div>
+  );
+};
+
+const faqs = [
+  {
+    question: "What is included in a brand kit?",
+    answer:
+      "A brand kit typically includes logos, color palettes, typography, brand guidelines, templates, and more, depending on your needs.",
+  },
+  {
+    question: "Can I request custom assets?",
+    answer:
+      "Absolutely! We offer full customization, including new assets, templates, and brand elements tailored to your requirements.",
+  },
+  {
+    question: "How long does it take to deliver a custom kit?",
+    answer:
+      "Delivery time depends on the scope of customization, but most kits are ready within 1-2 weeks.",
+  },
+  {
+    question: "Do you offer support after delivery?",
+    answer:
+      "Yes, we provide post-delivery support to ensure your brand kit is implemented smoothly.",
+  },
+  {
+    question: "Can I update my kit later?",
+    answer: "Of course! You can request updates or new assets at any time.",
+  },
+];
+
+export default function KitProductDetailPage({ params }: PageProps) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [product, setProduct] = useState<ProductDoc | null>(null);
+  const [kit, setKit] = useState<Kit | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const router = useRouter();
+  const { addItem } = useCart();
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const { slug, product: productSlug } = await params;
+
+        // Fetch kit data for background image
+        const kitRes = await fetch(`/api/kits/slug/${slug}`);
+        if (kitRes.ok) {
+          const kitData = await kitRes.json();
+          setKit(kitData);
+        }
+
+        // Fetch kit products via website API proxy, then find product by slug
+        const res = await fetch(`/api/products/kit/${slug}`);
+        if (!res.ok) {
+          if (res.status === 404) notFound();
+          throw new Error("Failed to fetch kit products");
+        }
+        const data = await res.json();
+        const products: ProductDoc[] = data.products || [];
+        const found = products.find((p) => p.slug === productSlug);
+        if (!found) {
+          notFound();
+        }
+        setProduct(found || null);
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch product");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [params]);
+
+  const images = useMemo(() => (product?.images || []).map((img) => img.url), [product]);
+  const imageUrls = useMemo(() => images.filter((u) => !!u), [images]);
+  const imageKey = useMemo(() => imageUrls.join("|"), [imageUrls]);
+
+  useEffect(() => {
+    // reset index when the image set changes
+    setCurrentImageIndex(0);
+  }, [imageKey]);
+
+  const kitImageMetaMap = useMemo(() => {
+    const map = new Map<string, KitImageMetadataItem>();
+    (product?.kitImageMetadata || []).forEach((m) => {
+      map.set(String(m.imageId), m);
+    });
+    return map;
+  }, [product]);
+
+  const kitFileMetaMap = useMemo(() => {
+    const map = new Map<string, KitFileMetadataItem>();
+    (product?.kitFileMetadata || []).forEach((m) => {
+      map.set(String(m.fileId), m);
+    });
+    return map;
+  }, [product]);
+
+  const flipbookUrlMap = useMemo(() => {
+    const map = new Map<string, string>();
+    (product?.flipbookUrls || []).forEach((f) => {
+      map.set(String(f.fileId), f.url);
+    });
+    return map;
+  }, [product]);
+
+  // Build alternating sequence: one kitImage, then one kitFile (as flipbook)
+  const alternatingMedia = useMemo(() => {
+    const imgs = product?.kitImages || [];
+    const files = product?.kitFiles || [];
+    const maxLen = Math.max(imgs.length, files.length);
+    const seq: Array<
+      | { kind: "image"; image: ProductImage; meta?: KitImageMetadataItem }
+      | { kind: "file"; file: ProductFile; meta?: KitFileMetadataItem; flipbookUrl?: string }
+    > = [];
+    for (let i = 0; i < maxLen; i++) {
+      if (imgs[i]) {
+        const img = imgs[i];
+        seq.push({ kind: "image", image: img, meta: kitImageMetaMap.get(String(img._id)) });
+      }
+      if (files[i]) {
+        const file = files[i];
+        seq.push({
+          kind: "file",
+          file,
+          meta: kitFileMetaMap.get(String(file._id)),
+          flipbookUrl: flipbookUrlMap.get(String(file._id)),
+        });
+      }
+    }
+    return seq;
+  }, [product, kitImageMetaMap, kitFileMetaMap, flipbookUrlMap]);
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev === imageUrls.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev === 0 ? imageUrls.length - 1 : prev - 1));
+  };
+
+  const handleAddToCart = async () => {
+    if (!product) return;
+    try {
+      setAddingToCart(true);
+      addItem({
+        productId: product._id,
+        productName: product.name,
+        productSlug: product.slug,
+        price: product.price?.amount || 0,
+        creditsCost: product.creditsCost || 0,
+        imageUrl: product.images?.[0]?.url,
+      });
+      alert("Added to cart!");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Failed to add to cart. Please try again.");
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sunrise"></div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-red-500">Error: {error || "Product not found"}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#FEFCFB]">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mt-30 mx-15 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Left Section - Image Carousel */}
+          <div className="relative">
+            <div
+              className="relative overflow-hidden rounded-lg bg-gray-100"
+              style={{ aspectRatio: "3/2" }}
+            >
+              {/* Image Container */}
+              {imageUrls.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center text-gray-500">
+                  No images available
+                </div>
+              ) : (
+                <div
+                  className="flex transition-transform duration-500 ease-in-out h-full"
+                  style={{
+                    transform: `translateX(-${currentImageIndex * 100}%)`,
+                  }}
+                >
+                  {imageUrls.map((image: string, index: number) => (
+                    <div
+                      key={index}
+                      className="relative w-full h-full flex-none"
+                    >
+                      <Image
+                        src={image}
+                        alt={`Product image ${index + 1}`}
+                        className="object-cover"
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Navigation Arrows */}
+              {imageUrls.length > 1 && (
+                <>
+                  <button
+                    onClick={prevImage}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft
+                      className="w-10 h-10 text-orange-500 font-bold"
+                      strokeWidth={3}
+                    />
+                  </button>
+
+                  <button
+                    onClick={nextImage}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight
+                      className="w-10 h-10 text-orange-500 font-bold"
+                      strokeWidth={3}
+                    />
+                  </button>
+
+                  {/* Image Indicators */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+                    {imageUrls.map((_: string, index: number) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                          index === currentImageIndex
+                            ? "bg-orange-500 w-6"
+                            : "bg-white/60 hover:bg-white"
+                        }`}
+                        aria-label={`Go to image ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Right Section - Product Information */}
+          <div className="flex flex-col justify-center">
+            <h1 className="text-4xl font-balgin-regular lg:text-[32px] text-[#FA7035]">
+              {product.name}
+            </h1>
+            <div className="text-[24px] text-gray-900">
+              {product.price?.amount ? `$${product.price.amount}` : ""}
+            </div>
+            <p className="text-lg mt-5 text-gray-700 leading-relaxed">
+              {product.description}
+            </p>
+            <div className="flex mr-150 mt-10 flex-col gap-4 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1 border-[#D94506] border-3 text-gray-900 font-avenir text-[16px] w-[150] hover:bg-orange-50 hover:border-orange-600 transition-all duration-200"
+              >
+                Buy Now
+              </Button>
+
+              <Button 
+                className="flex-1 border-[#D94506] border-3 bg-[#FFC1A0] text-black font-avenir text-[16px] w-[150] hover:bg-orange-600 transition-all duration-200"
+                onClick={handleAddToCart}
+                disabled={addingToCart}
+              >
+                {addingToCart ? 'Adding...' : 'Add To Cart'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* What's Included FAQ Section */}
+      <section className="relative px-5 md:px-10 lg:px-18 pb-16 mt-20">
+        {/* Background Image with Overlay */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
+          style={{
+            backgroundImage: kit?.mainImage
+              ? `url(${kit.mainImage.url})`
+              : "none",
+            backgroundColor: kit?.mainImage ? "transparent" : "#FA7035",
+          }}
+        >
+          {/* Overlay for better text readability */}
+          <div className="absolute inset-0"></div>
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10">
+          <h2 className="text-4xl pt-10 font-bold mb-5 text-black">
+            What&apos;s Included?
+          </h2>
+          <div className="w-full">
+            {faqs.map((faq, idx) => (
+              <div key={idx} className="mb-1">
+                <div
+                  className="flex items-center cursor-pointer py-4 group"
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                >
+                  {/* Orange Plus/Minus Icon */}
+                  <span
+                    className="text-2xl text-[#FA7035] font-bold mr-6 select-none transition-transform duration-200 group-hover:scale-110"
+                    style={{ minWidth: "24px", textAlign: "center" }}
+                  >
+                    {openFaq === idx ? "−" : "+"}
+                  </span>
+
+                  {/* Question Text */}
+                  <span className="text-lg font-semibold text-black flex-1">
+                    {faq.question}
+                  </span>
+                </div>
+
+                {/* Answer */}
+                {openFaq === idx && (
+                  <div className="pl-10 pb-4 text-black font-medium">
+                    {faq.answer}
+                  </div>
+                )}
+
+                {/* Orange Separator Line */}
+                <div className="border-1 border-[#FA7035] w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Alternating kit media section */}
+      <section>
+        <h2 className="text-4xl px-5 md:px-10 lg:px-18 pt-10 font-balgin-regular mb-5 text-black">
+          Products
+        </h2>
+        <div className="flex overflow-x-auto gap-4 md:gap-6 pb-4 px-5 md:px-10 lg:px-18 scrollbar-hide">
+          {alternatingMedia.length === 0 && (
+            <div className="text-gray-500 py-8">No kit media available.</div>
+          )}
+          {alternatingMedia.map((entry, idx) => (
+            <div
+              key={idx}
+              className="flex-shrink-0 w-48 sm:w-56 md:w-70 h-64 sm:h-72 md:h-100 bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl"
+              style={{ aspectRatio: "2/3" }}
+            >
+              <div className="relative w-full h-full group">
+                {entry.kind === "image" ? (
+                  <>
+                    <Image
+                      src={entry.image.url}
+                      alt={entry.meta?.title || entry.image.originalname || "Kit Image"}
+                      fill
+                      className="object-cover transition-all duration-300 group-hover:scale-105"
+                    />
+                    {(entry.meta?.title || entry.meta?.description) && (
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/70 transition-all duration-300 flex items-center justify-center">
+                        <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0 px-4">
+                          {entry.meta?.title && (
+                            <h3 className="text-lg sm:text-xl font-semibold mb-2 leading-tight">
+                              {entry.meta.title}
+                            </h3>
+                          )}
+                          {entry.meta?.description && (
+                            <p className="text-xs sm:text-sm leading-relaxed">
+                              {entry.meta.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="w-full h-full">
+                    {entry.flipbookUrl ? (
+                      <FlipbookEmbed
+                        flipbookUrl={entry.flipbookUrl}
+                        title={entry.meta?.title || entry.file.originalname || "Flipbook"}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">
+                        No flipbook available
+                      </div>
+                    )}
+                    {(entry.meta?.title || entry.meta?.description) && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white p-2 text-center">
+                        {entry.meta?.title && (
+                          <div className="text-sm font-semibold">{entry.meta.title}</div>
+                        )}
+                        {entry.meta?.description && (
+                          <div className="text-xs">{entry.meta.description}</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="flex mt-12 mb-12 px-18">
+        <button
+          className="border-2 border-[#D94506] rounded-xl bg-transparent text-black font-semibold px-8 py-3 transition-colors shadow-lg text-lg hover:bg-white hover:text-black"
+          onClick={() => router.push("/")}
+        >
+          Back to Home
+        </button>
+      </div>
+      <Footer/>
+    </div>
+  );
+}

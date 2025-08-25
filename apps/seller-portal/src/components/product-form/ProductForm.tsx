@@ -29,6 +29,8 @@ interface KitImage {
   originalname?: string;
   size?: number;
   mimetype?: string;
+  title?: string;
+  description?: string;
 }
 
 interface KitFile {
@@ -43,6 +45,8 @@ interface KitFile {
   documentType?: string;
   containsFiles?: number;
   isPreview?: boolean;
+  title?: string;
+  description?: string;
 }
 
 interface KitMainFile {
@@ -132,6 +136,18 @@ interface ProductFormData {
   // Images
   images: (string | { _id: string; url: string })[];
   previewFile?: { name: string; url: string; key: string } | null;
+  
+  // Kit metadata for backend
+  kitImageMetadata?: {
+    imageId: string;
+    title: string;
+    description?: string;
+  }[];
+  kitFileMetadata?: {
+    fileId: string;
+    title: string;
+    description?: string;
+  }[];
   
   // Filter values
   filterValues?: Record<string, string[]>;
@@ -288,6 +304,22 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
       newErrors.typeOfKit = 'Kit type is required for kit products';
     }
 
+    // Validate kit images have titles (description is optional)
+    if (formData.isKitProduct && formData.kitImages && formData.kitImages.length > 0) {
+      const imagesWithoutTitle = formData.kitImages.filter(image => !image.title?.trim());
+      if (imagesWithoutTitle.length > 0) {
+        newErrors.kitImages = `${imagesWithoutTitle.length} kit image(s) are missing title. Please add titles for all kit images.`;
+      }
+    }
+
+    // Validate kit files have titles (description is optional)
+    if (formData.isKitProduct && formData.kitFiles && formData.kitFiles.length > 0) {
+      const filesWithoutTitle = formData.kitFiles.filter(file => !file.title?.trim());
+      if (filesWithoutTitle.length > 0) {
+        newErrors.kitFiles = `${filesWithoutTitle.length} kit preview file(s) are missing title. Please add titles for all kit preview files.`;
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -370,7 +402,34 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      await onSubmit(formData);
+      // Construct metadata arrays for kit products before submitting
+      const submissionData = { ...formData };
+      
+      if (formData.isKitProduct) {
+        // Build kit image metadata array (description is optional)
+        if (formData.kitImages && formData.kitImages.length > 0) {
+          submissionData.kitImageMetadata = formData.kitImages
+            .filter(image => image._id && image.title)
+            .map(image => ({
+              imageId: image._id!,
+              title: image.title!,
+              description: image.description || ''
+            }));
+        }
+        
+        // Build kit file metadata array (description is optional)
+        if (formData.kitFiles && formData.kitFiles.length > 0) {
+          submissionData.kitFileMetadata = formData.kitFiles
+            .filter(file => file._id && file.title)
+            .map(file => ({
+              fileId: file._id!,
+              title: file.title!,
+              description: file.description || ''
+            }));
+        }
+      }
+      
+      await onSubmit(submissionData);
     }
   };
 
@@ -1348,6 +1407,11 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
             onImagesChange={(kitImages) => setFormData(prev => ({ ...prev, kitImages }))}
             maxImages={5}
           />
+          {errors.kitImages && (
+            <Alert variant="destructive">
+              <AlertDescription>{errors.kitImages}</AlertDescription>
+            </Alert>
+          )}
 
           {/* Kit Files */}
           <KitFileUpload
@@ -1356,6 +1420,11 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
             maxFiles={10}
             maxSize={50}
           />
+          {errors.kitFiles && (
+            <Alert variant="destructive">
+              <AlertDescription>{errors.kitFiles}</AlertDescription>
+            </Alert>
+          )}
 
           {/* Main Kit File */}
           <KitMainFileUpload

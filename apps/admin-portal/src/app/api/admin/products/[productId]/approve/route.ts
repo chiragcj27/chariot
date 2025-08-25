@@ -16,7 +16,7 @@ export async function PATCH(
     const backendUrl = `${process.env.API_BASE_URL || 'http://localhost:3001'}/api/admin/products/${productId}/approve`;
 
     const res = await fetch(backendUrl, {
-      method: 'POST',
+      method: 'PATCH',
       headers: { 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${accessToken}`,

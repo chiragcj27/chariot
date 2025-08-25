@@ -72,12 +72,24 @@ export interface IProduct {
   sellerId: Types.ObjectId;
   relatedProductsId: Types.ObjectId[]; // Added field for related products
   filterValues?: Record<string, string[]>; // Filter values for product categorization
+  flipbookUrl?: string; // Heyzine flipbook URL for PDF preview files (legacy, single file)
+  flipbookUrls?: { fileId: string; url: string; fileName: string }[]; // Multiple flipbook URLs for multiple preview files
 }
 
 // Kit Product interface for products that are kits
 export interface IKitProduct extends IProduct {
   kitImages: Types.ObjectId[]; // Images specific to the kit
   kitFiles: Types.ObjectId[]; // PDFs and other files specific to the kit (preview files)
+  kitImageMetadata?: {
+    imageId: Types.ObjectId;
+    title: string;
+    description?: string;
+  }[]; // Metadata for kit images with titles and optional descriptions
+  kitFileMetadata?: {
+    fileId: Types.ObjectId;
+    title: string;
+    description?: string;
+  }[]; // Metadata for kit preview files with titles and optional descriptions
   kitMainFile?: {
     name: string;
     url: string;
@@ -224,6 +236,26 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
       type: Schema.Types.Mixed,
       default: {},
     },
+    flipbookUrl: {
+      type: String,
+    },
+    flipbookUrls: {
+      type: [{
+        fileId: {
+          type: String,
+          required: true,
+        },
+        url: {
+          type: String,
+          required: true,
+        },
+        fileName: {
+          type: String,
+          required: true,
+        },
+      }],
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -241,6 +273,42 @@ const kitProductSchema = new mongoose.Schema<IKitProduct>({
   kitFiles: {
     type: [Schema.Types.ObjectId],
     ref: "File",
+    default: [],
+  },
+  kitImageMetadata: {
+    type: [{
+      imageId: {
+        type: Schema.Types.ObjectId,
+        ref: "Image",
+        required: true,
+      },
+      title: {
+        type: String,
+        required: true,
+      },
+      description: {
+        type: String,
+        required: false,
+      },
+    }],
+    default: [],
+  },
+  kitFileMetadata: {
+    type: [{
+      fileId: {
+        type: Schema.Types.ObjectId,
+        ref: "File",
+        required: true,
+      },
+      title: {
+        type: String,
+        required: true,
+      },
+      description: {
+        type: String,
+        required: false,
+      },
+    }],
     default: [],
   },
   kitMainFile: {

@@ -4,7 +4,10 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { X, Upload, FileText, FileArchive, File } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { X, Upload, FileText, FileArchive, File, Edit3 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 interface KitFile {
@@ -19,6 +22,8 @@ interface KitFile {
   documentType?: string;
   containsFiles?: number;
   isPreview?: boolean;
+  title?: string;
+  description?: string;
 }
 
 interface KitFileUploadProps {
@@ -37,6 +42,7 @@ export default function KitFileUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,8 +161,27 @@ export default function KitFileUpload({
     }
   };
 
+  const updateFileMetadata = (index: number, title: string, description: string) => {
+    const newFiles = [...files];
+    newFiles[index] = {
+      ...newFiles[index],
+      title,
+      description
+    };
+    onFilesChange(newFiles);
+  };
+
+  const toggleEdit = (index: number) => {
+    setEditingIndex(editingIndex === index ? null : index);
+  };
+
   const removeFile = async (fileId: string, index: number) => {
     setIsDeleting(fileId);
+    
+    // Close edit mode if we're editing this file
+    if (editingIndex === index) {
+      setEditingIndex(null);
+    }
     
     try {
       const fileToRemove = files[index];
@@ -201,7 +226,7 @@ export default function KitFileUpload({
         }
       }
 
-      // Remove from local state
+      // Remove from local state (this automatically removes title and description)
       const newFiles = files.filter((_, i) => i !== index);
       onFilesChange(newFiles);
       toast.success('File removed successfully');
@@ -311,51 +336,139 @@ export default function KitFileUpload({
           </div>
         )}
 
-        {/* Files List */}
+        {/* Files List with Metadata */}
         {files.length > 0 && (
-          <div className="space-y-3">
-            <h4 className="font-medium text-sm text-gray-700">Uploaded Files ({files.length})</h4>
+          <div className="space-y-6">
+            <h4 className="font-medium text-sm text-gray-700">Uploaded Preview Files ({files.length})</h4>
             {files.map((file, index) => (
-              <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg bg-gray-50">
-                <div className="flex items-center space-x-3">
-                  {getFileIcon(file.fileType)}
-                  <div>
-                    <p className="font-medium text-sm text-gray-900">{file.originalname}</p>
-                    <div className="flex items-center space-x-2 text-xs text-gray-500">
-                      <span>{getFileTypeLabel(file.fileType)}</span>
-                      <span>•</span>
-                      <span>{formatFileSize(file.size)}</span>
-                      {file._id && (
-                        <>
+              <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* File Info */}
+                  <div className="space-y-2">
+                    <div className="flex items-start space-x-3">
+                      {getFileIcon(file.fileType)}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-gray-900 truncate">{file.originalname}</p>
+                        <div className="flex items-center space-x-2 text-xs text-gray-500">
+                          <span>{getFileTypeLabel(file.fileType)}</span>
                           <span>•</span>
-                          <span className="text-green-600">Saved</span>
-                        </>
-                      )}
+                          <span>{formatFileSize(file.size)}</span>
+                          {file._id && (
+                            <>
+                              <span>•</span>
+                              <span className="text-green-600">Saved</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Action buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(file.url, '_blank')}
+                      >
+                        Preview
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => toggleEdit(index)}
+                      >
+                        <Edit3 className="h-4 w-4 mr-1" />
+                        Edit Info
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeFile(file._id || `temp-${index}`, index)}
+                        disabled={isDeleting === (file._id || `temp-${index}`)}
+                      >
+                        {isDeleting === (file._id || `temp-${index}`) ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+                        ) : (
+                          <X className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open(file.url, '_blank')}
-                  >
-                    Preview
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeFile(file._id || `temp-${index}`, index)}
-                    disabled={isDeleting === (file._id || `temp-${index}`)}
-                  >
-                    {isDeleting === (file._id || `temp-${index}`) ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+
+                  {/* Metadata Section */}
+                  <div className="md:col-span-2 space-y-3">
+                    {editingIndex === index ? (
+                      /* Edit Mode */
+                      <div className="space-y-3">
+                        <div>
+                          <Label htmlFor={`file-title-${index}`} className="text-sm font-medium">
+                            File Title *
+                          </Label>
+                          <Input
+                            id={`file-title-${index}`}
+                            value={file.title || ''}
+                            onChange={(e) => updateFileMetadata(index, e.target.value, file.description || '')}
+                            placeholder="Enter a descriptive title for this preview file"
+                            className="mt-1"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor={`file-description-${index}`} className="text-sm font-medium">
+                            File Description (Optional)
+                          </Label>
+                          <Textarea
+                            id={`file-description-${index}`}
+                            value={file.description || ''}
+                            onChange={(e) => updateFileMetadata(index, file.title || '', e.target.value)}
+                            placeholder="Describe what this preview file contains and what customers can expect to see (optional)"
+                            rows={3}
+                            className="mt-1"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => setEditingIndex(null)}
+                            disabled={!file.title?.trim()}
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setEditingIndex(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
                     ) : (
-                      <X className="h-4 w-4" />
+                      /* Display Mode */
+                      <div className="space-y-2">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Title:</Label>
+                          <p className="text-sm text-gray-900 mt-1">
+                            {file.title || (
+                              <span className="text-red-500 italic">Title required - click edit to add</span>
+                            )}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Description:</Label>
+                          <p className="text-sm text-gray-900 mt-1">
+                            {file.description || (
+                              <span className="text-gray-500 italic">No description provided</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
                     )}
-                  </Button>
+                  </div>
                 </div>
               </div>
             ))}

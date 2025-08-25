@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { Product } from "@chariot/db";
+import { Product, KitProduct, DigitalProduct, PdfFile } from "@chariot/db";
+import { heyzineService } from "../../services/heyzine.service";
 
 export const adminProductController = {
   // Get all pending products
@@ -29,18 +30,17 @@ export const adminProductController = {
     try {
       const { productId } = req.params; 
 
-      const product = await Product.findByIdAndUpdate(
-        productId,
-        {
-          status: 'active',
-          isAdminApproved: true,
-          isAdminRejected: false,
-          adminApprovedAt: new Date(),
-          adminRejectedAt: null,
-          adminRejectionReason: null
-        },
-        { new: true }
-      );
+      // Validate ObjectId format
+      if (!productId || productId.length !== 24) {
+        return res.status(400).json({
+          message: "Invalid product ID format",
+        });
+      }
+
+      // First, get the product with all its data
+      const product = await Product.findById(productId)
+        .populate('kitFiles')
+        .populate('kitMainFile');
 
       if (!product) {
         return res.status(404).json({
@@ -48,11 +48,126 @@ export const adminProductController = {
         });
       }
 
+      // Check if product has PDF preview files for flipbook generation
+      let flipbookUrl: string | undefined; // Legacy single URL
+      let flipbookGenerated = false;
+      let flipbookUrls: { fileId: string; url: string; fileName: string }[] = []; // Multiple URLs
+
+      // Type assertion to handle product properties
+      const productData = product as any; // Using any for now to handle the populated fields
+
+      // Check for kit products with PDF preview files
+      if (productData.isKitProduct && productData.kitFiles && productData.kitFiles.length > 0) {
+        // Find PDF preview files
+        const pdfPreviewFiles = productData.kitFiles.filter((file: any) => 
+          file.fileType === 'pdf' && file.isPreview === true
+        );
+
+        if (pdfPreviewFiles.length > 0) {
+          console.log(`Generating flipbooks for kit product ${productId} with ${pdfPreviewFiles.length} PDF preview files`);
+          
+          // Generate flipbook for each PDF preview file
+          for (const pdfFile of pdfPreviewFiles) {
+            try {
+                             console.log(`Generating flipbook for PDF file: ${pdfFile.originalname || pdfFile.filename} (${pdfFile.url})`);
+
+              // Generate flipbook using Heyzine service
+              const heyzineResponse = await heyzineService.generateFlipbook(pdfFile.url);
+              
+              if (heyzineResponse.success && heyzineResponse.url) {
+                                 flipbookUrls.push({
+                   fileId: pdfFile._id?.toString() || '',
+                   url: heyzineResponse.url,
+                   fileName: pdfFile.originalname || pdfFile.filename || 'Unknown file'
+                 });
+                flipbookGenerated = true;
+                                 console.log(`Flipbook generated successfully for ${pdfFile.originalname || pdfFile.filename}: ${heyzineResponse.url}`);
+                             } else {
+                 console.warn(`Heyzine service failed for file ${pdfFile.originalname || pdfFile.filename}:`, heyzineResponse.error);
+               }
+                         } catch (flipbookError) {
+               console.error(`Error generating flipbook for file ${pdfFile.originalname || pdfFile.filename}:`, flipbookError);
+              // Continue with other files even if one fails
+            }
+          }
+
+          // Set the first flipbook URL as the legacy single URL for backward compatibility
+          if (flipbookUrls.length > 0) {
+            flipbookUrl = flipbookUrls[0]?.url;
+          }
+        } else {
+          console.log(`No PDF preview files found for kit product ${productId}`);
+        }
+      }
+      // Check for digital products with PDF preview files
+      else if (productData.type === 'digital' && productData.previewFile) {
+        try {
+          console.log(`Generating flipbook for digital product ${productId} with preview file`);
+          console.log(`Using PDF file: ${productData.previewFile.name} (${productData.previewFile.url})`);
+
+          // Generate flipbook using Heyzine service
+          const heyzineResponse = await heyzineService.generateFlipbook(productData.previewFile.url);
+          
+          if (heyzineResponse.success && heyzineResponse.url) {
+            flipbookUrl = heyzineResponse.url;
+            flipbookGenerated = true;
+            // Add to flipbookUrls array for consistency
+            flipbookUrls.push({
+              fileId: 'preview-file',
+              url: heyzineResponse.url,
+              fileName: productData.previewFile.name
+            });
+            console.log(`Flipbook generated successfully: ${flipbookUrl}`);
+          } else {
+            console.warn(`Heyzine service failed for product ${productId}:`, heyzineResponse.error);
+          }
+        } catch (flipbookError) {
+          console.error(`Error generating flipbook for product ${productId}:`, flipbookError);
+          // Continue with product approval even if flipbook generation fails
+        }
+      } else {
+        console.log(`No PDF preview files found for product ${productId}`);
+      }
+
+      // Update product with approval and flipbook URL if generated
+      const updateData: any = {
+        status: 'active',
+        isAdminApproved: true,
+        isAdminRejected: false,
+        adminApprovedAt: new Date(),
+        adminRejectedAt: null,
+        adminRejectionReason: null,
+      };
+
+      // Add flipbook URLs if generated
+      if (flipbookUrl) {
+        updateData.flipbookUrl = flipbookUrl; // Legacy single URL
+      }
+      if (flipbookUrls.length > 0) {
+        updateData.flipbookUrls = flipbookUrls; // Multiple URLs
+      }
+
+      const updatedProduct = await Product.findByIdAndUpdate(
+        productId,
+        updateData,
+        { new: true }
+      );
+
+      if (!updatedProduct) {
+        return res.status(404).json({
+          message: "Product not found during update",
+        });
+      }
+
       res.status(200).json({
         message: "Product approved successfully",
-        product,
+        product: updatedProduct,
+        flipbookGenerated,
+        flipbookUrl: flipbookUrl || null, // Legacy single URL
+        flipbookUrls: flipbookUrls, // Multiple URLs
       });
     } catch (error: unknown) {
+      console.error("Error in approveProduct:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
       res.status(500).json({
         message: "Error approving product",
@@ -145,7 +260,8 @@ export const adminProductController = {
         .populate('itemId', 'title slug description filters')
         .populate('images')
         .populate('kitImages')
-        .populate('kitFiles');
+        .populate('kitFiles')
+        .populate('kitMainFile');
 
       if (!product) {
         return res.status(404).json({

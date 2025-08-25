@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { s3Service } from "../services/s3.service";
+import { purchaseVerificationService } from "../services/purchaseVerification.service";
 
 export const assetController = {
   async getUploadUrl(req: Request, res: Response) {
@@ -92,7 +93,8 @@ export const assetController = {
   async getDigitalProductDownloadUrl(req: Request, res: Response) {
     try {
       const { productId } = req.params;
-      const userId = req.user?.id; // From auth middleware
+      const userId = req.user?.userId; // From auth middleware
+      const ipAddress = req.ip || req.connection.remoteAddress;
 
       if (!userId) {
         return res.status(401).json({
@@ -106,9 +108,25 @@ export const assetController = {
         });
       }
 
-      // Get the product to find the ZIP file key
-      const { DigitalProduct } = await import("@chariot/db");
-      const product = await DigitalProduct.findById(productId) as any;
+      // Get the product to find the ZIP file key (check both digital and kit products)
+      const { Product, DigitalProduct, KitProduct } = await import("@chariot/db");
+      let product = await DigitalProduct.findById(productId) as any;
+      let productType = 'digital';
+      let zipFileKey = null;
+      let productName = null;
+
+      // If not found as digital product, check if it's a kit product
+      if (!product) {
+        product = await KitProduct.findById(productId) as any;
+        if (product) {
+          productType = 'kit';
+          zipFileKey = product.kitMainFile?.key;
+          productName = product.name;
+        }
+      } else {
+        zipFileKey = product.zipFile?.key;
+        productName = product.name;
+      }
       
       if (!product) {
         return res.status(404).json({
@@ -117,18 +135,39 @@ export const assetController = {
       }
 
       // Check if product has a ZIP file
-      if (!product.zipFile?.key) {
+      if (!zipFileKey) {
         return res.status(404).json({
-          message: "Digital product file not found"
+          message: `${productType === 'digital' ? 'Digital product' : 'Kit'} file not found`
         });
       }
 
-      // TODO: Check if user has purchased this product
-      // This will be implemented when we create the order system
-      // For now, we'll just check if the user is authenticated
+      // Verify purchase using the purchase verification service
+      const purchaseVerification = await purchaseVerificationService.verifyPurchase(userId, productId);
+
+      if (!purchaseVerification.hasPurchased) {
+        return res.status(403).json({
+          message: "You need to purchase this product to download it"
+        });
+      }
+
+      // Log the download attempt for security
+      if (purchaseVerification.orderId) {
+        await purchaseVerificationService.logDownload(userId, productId, purchaseVerification.orderId, ipAddress);
+      }
       
-      const downloadData = await s3Service.getDigitalProductDownloadUrl(productId, userId, product.zipFile.key);
-      res.status(200).json(downloadData);
+      const downloadData = await s3Service.getDigitalProductDownloadUrl(productId, userId, zipFileKey);
+      
+      // Add purchase information to the response
+      res.status(200).json({
+        ...downloadData,
+        productType,
+        productName,
+        purchaseInfo: {
+          orderNumber: purchaseVerification.orderNumber,
+          purchaseDate: purchaseVerification.purchaseDate,
+          downloadCount: purchaseVerification.downloadCount
+        }
+      });
     } catch (error) {
       console.error('Error in getDigitalProductDownloadUrl:', error);
       res.status(500).json({

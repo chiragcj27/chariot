@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { Product, PhysicalProduct, DigitalProduct, ServiceProduct, Image, ProductImage, KitProductImage, Menu, Item, File } from "@chariot/db";
+import { Product, PhysicalProduct, DigitalProduct, ServiceProduct, Image, ProductImage, KitProductImage, Menu, Item, File, Kit } from "@chariot/db";
 import { ProductStatus } from "@chariot/db";
+import { purchaseVerificationService } from "../services/purchaseVerification.service";
 import mongoose from "mongoose";
 import { s3Service } from "../services/s3.service";
 
@@ -430,6 +431,57 @@ export const productController = {
     }
   },
 
+  getProductsByKit: async (req: Request, res: Response) => {
+    try {
+      const { kitSlug } = req.params;
+      const { typeOfKit, page = 1, limit = 12 } = req.query;
+      const skip = (Number(page) - 1) * Number(limit);
+      
+      const kit = await Kit.findOne({ slug: kitSlug });
+      if (!kit) {
+        return res.status(404).json({ message: "Kit not found" });
+      }
+
+      // Build filter for products
+      const filter: any = { 
+        kitId: kit._id,
+        status: 'active',
+        isAdminApproved: true
+      };
+
+      // Filter by kit type if specified
+      if (typeOfKit) {
+        filter.typeOfKit = typeOfKit;
+      }
+
+      const [products, total] = await Promise.all([
+        Product.find(filter)
+          .populate('images')
+          .populate('kitImages')
+          .populate('kitFiles')
+          .skip(skip)
+          .limit(Number(limit))
+          .sort({ createdAt: -1 }),
+        Product.countDocuments(filter)
+      ]);
+      
+      res.status(200).json({
+        message: "Kit products retrieved successfully",
+        products,
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        hasMore: skip + products.length < total
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      res.status(500).json({
+        message: "Error retrieving kit products",
+        error: errorMessage,
+      });
+    }
+  },
+
   getProductsByCategoryAndItem: async (req: Request, res: Response) => {
     try {
       const { categorySlug, itemSlug } = req.params;
@@ -678,7 +730,9 @@ export const productController = {
         'occasion', 'tags', 'featured', 'stock', 'deliverables', 'requirements', 
         'consultationRequired', 'seo', 'dimensions', 'weight', 
         'kind', 'deliveryTime', 'revisions', 'isKitProduct', 
-        'kitId', 'typeOfKit', 'zipFile', 'previewFile'
+        'kitId', 'typeOfKit', 'zipFile', 'previewFile', 'kitDescription', 
+        'kitInstructions', 'kitContents', 'kitImageMetadata', 'kitFileMetadata',
+        'kitFiles', 'kitImages'
       ];
       
       fieldsToUpdate.forEach(field => {
@@ -686,6 +740,69 @@ export const productController = {
           (product as any)[field] = updateData[field];
         }
       });
+
+      // Handle kit image metadata updates for kit products
+      if ((product as any).isKitProduct && updateData.kitImageMetadata) {
+        // Update kit image metadata by creating mappings between image IDs and their metadata
+        const imageMetadataMap = new Map();
+        updateData.kitImageMetadata.forEach((metadata: any) => {
+          if (metadata.imageId) {
+            imageMetadataMap.set(metadata.imageId.toString(), {
+              title: metadata.title,
+              description: metadata.description
+            });
+          }
+        });
+
+        // Update the kitImageMetadata array with proper ObjectId references
+        (product as any).kitImageMetadata = updateData.kitImageMetadata.map((metadata: any) => ({
+          imageId: new mongoose.Types.ObjectId(metadata.imageId),
+          title: metadata.title,
+          description: metadata.description
+        }));
+      }
+
+      // Handle kit file metadata updates for kit products
+      if ((product as any).isKitProduct && updateData.kitFileMetadata) {
+        // Update kit file metadata by creating mappings between file IDs and their metadata
+        const fileMetadataMap = new Map();
+        updateData.kitFileMetadata.forEach((metadata: any) => {
+          if (metadata.fileId) {
+            fileMetadataMap.set(metadata.fileId.toString(), {
+              title: metadata.title,
+              description: metadata.description
+            });
+          }
+        });
+
+        // Update the kitFileMetadata array with proper ObjectId references
+        (product as any).kitFileMetadata = updateData.kitFileMetadata.map((metadata: any) => ({
+          fileId: new mongoose.Types.ObjectId(metadata.fileId),
+          title: metadata.title,
+          description: metadata.description
+        }));
+      }
+
+      // Handle kit files array updates for kit products
+      if ((product as any).isKitProduct && updateData.kitFiles) {
+        
+        // Convert string IDs to ObjectIds
+        const kitFileIds = updateData.kitFiles
+          .map((file: any) => {
+            if (typeof file === 'string') {
+              return new mongoose.Types.ObjectId(file);
+            } else if (file._id) {
+              return new mongoose.Types.ObjectId(file._id);
+            } else if (file.url && file.url.startsWith('blob:')) {
+              // Skip blob URLs - these should have been uploaded already
+              return null;
+            }
+            return null;
+          })
+          .filter((id: any) => id !== null);
+
+        (product as any).kitFiles = kitFileIds;
+      }
 
       // Handle digital preview file cleanup if previewFile is being updated
       if (product.type === 'digital' && updateData.previewFile) {
@@ -885,4 +1002,67 @@ export const productController = {
       });
     }
   },
+
+  async checkPurchaseStatus(req: Request, res: Response) {
+    try {
+      const { productId } = req.params;
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({
+          message: "Authentication required"
+        });
+      }
+
+      if (!productId) {
+        return res.status(400).json({
+          message: "Product ID is required"
+        });
+      }
+
+      // Verify purchase using the purchase verification service
+      const purchaseVerification = await purchaseVerificationService.verifyPurchase(userId, productId);
+
+      res.status(200).json({
+        isPurchased: purchaseVerification.hasPurchased,
+        purchaseInfo: purchaseVerification.hasPurchased ? {
+          orderNumber: purchaseVerification.orderNumber,
+          purchaseDate: purchaseVerification.purchaseDate,
+          downloadCount: purchaseVerification.downloadCount,
+          lastDownloadDate: purchaseVerification.lastDownloadDate
+        } : null
+      });
+    } catch (error) {
+      console.error('Error checking purchase status:', error);
+      res.status(500).json({
+        message: "Error checking purchase status",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  },
+
+  async getUserDigitalProducts(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        return res.status(401).json({
+          message: "Authentication required"
+        });
+      }
+
+      // Get all digital products and kit products purchased by the user
+      const downloadableProducts = await purchaseVerificationService.getUserDigitalProducts(userId);
+
+      res.status(200).json({
+        downloadableProducts
+      });
+    } catch (error) {
+      console.error('Error getting user downloadable products:', error);
+      res.status(500).json({
+        message: "Error getting user downloadable products",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  }
 };

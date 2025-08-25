@@ -38,6 +38,40 @@ export async function PUT(
   }
 }
 
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ kitId: string }> }
+) {
+  try {
+    const { kitId } = await params;
+    const accessToken = request.cookies.get('accessToken')?.value;
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/api/kits/${kitId}`, {
+      headers,
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      return NextResponse.json(errorData, { status: response.status });
+    }
+    
+    const kit = await response.json();
+    return NextResponse.json(kit);
+  } catch (error) {
+    console.error('Error fetching kit:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch kit' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ kitId: string }> }

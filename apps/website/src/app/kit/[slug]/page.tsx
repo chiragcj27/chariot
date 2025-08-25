@@ -32,15 +32,37 @@ interface Kit {
   updatedAt: string;
 }
 
+interface KitProduct {
+  _id: string;
+  name: string;
+  description: string;
+  slug: string;
+  typeOfKit?: 'premium' | 'basic';
+  images: KitImage[];
+  kitImages: KitImage[];
+  kitFiles: KitImage[];
+  price?: {
+    amount: number;
+    currency: string;
+  };
+  creditsCost?: number;
+  discountedCreditsCost?: number;
+  kitDescription?: string;
+  kitInstructions?: string;
+  kitContents?: string[];
+}
+
 interface KitPageProps {
   params: Promise<{ slug: string }>;
 }
 
 export default function KitPage({ params }: KitPageProps) {
   const [kit, setKit] = useState<Kit | null>(null);
+  const [kitProducts, setKitProducts] = useState<KitProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null); // For FAQ accordion
+  const [selectedPack, setSelectedPack] = useState<'premium' | 'basic'>('premium');
   const router = useRouter(); // Removed as per edit hint
 
   const faqs = [
@@ -67,31 +89,41 @@ export default function KitPage({ params }: KitPageProps) {
   ];
 
   useEffect(() => {
-    const fetchKit = async () => {
+    const fetchKitAndProducts = async () => {
       try {
         setLoading(true);
         const { slug } = await params;
-        const response = await fetch(`${API_URL}/api/kits/slug/${slug}`);
         
-        if (!response.ok) {
-          if (response.status === 404) {
+        // Fetch kit data
+        const kitResponse = await fetch(`${API_URL}/api/kits/slug/${slug}`);
+        
+        if (!kitResponse.ok) {
+          if (kitResponse.status === 404) {
             notFound();
           }
           throw new Error('Failed to fetch kit');
         }
         
-        const data = await response.json();
-        setKit(data);
+        const kitData = await kitResponse.json();
+        setKit(kitData);
+
+        // Fetch kit products
+        const productsResponse = await fetch(`${API_URL}/api/products/kit/${slug}?typeOfKit=${selectedPack}`);
+        
+        if (productsResponse.ok) {
+          const productsData = await productsResponse.json();
+          setKitProducts(productsData.products || []);
+        }
       } catch (err) {
-        console.error('Error fetching kit:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch kit');
+        console.error('Error fetching kit and products:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch kit and products');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchKit();
-  }, [params]);
+    fetchKitAndProducts();
+  }, [params, selectedPack]);
 
   if (loading) {
     return (
@@ -172,51 +204,40 @@ export default function KitPage({ params }: KitPageProps) {
       </div>
     </div>
     <div className="flex flex-row py-5 mt-20 items-center justify-start px-5 md:px-10 lg:px-18">
-      <button className="border-2 border-[#D94506] rounded-4xl  text-black font-semibold px-4 py-1 transition-colors shadow mb-2 text-lg">
+      <button 
+        className={`border-2 border-[#D94506] rounded-4xl font-semibold px-4 py-1 transition-colors shadow mb-2 text-lg ${
+          selectedPack === 'premium' ? 'bg-[#FFC1A0]' : 'text-black'
+        }`}
+        onClick={() => setSelectedPack('premium')}
+      >
         Premium Pack
       </button>
-      <button className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] font-semibold mx-4 px-8 py-1 transition-colors shadow mb-2 text-lg font-secondary">
+      <button 
+        className={`border-2 border-[#D94506] rounded-4xl font-semibold mx-4 px-8 py-1 transition-colors shadow mb-2 text-lg font-secondary ${
+          selectedPack === 'basic' ? 'bg-[#FFC1A0]' : 'text-black'
+        }`}
+        onClick={() => setSelectedPack('basic')}
+      >
         Basic Pack
       </button>
     </div>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-10 lg:px-18 py-6">
-      <ProductCard
-        title="Logos"
-        image="https://placehold.co/400x500/CFDAE9/000000?text=Logos"
-        onHoverImage="https://placehold.co/400x500/4ECDC4/FFFFFF?text=Logos+Hover"
-        aspectRatio={4/3}
-        onClick={() => router.push(`/kit/${kit.slug}/kit-product`)}
-      />
-      <ProductCard
-        title="Brand Tone"
-        image="https://placehold.co/400x500/CFDAE9/000000?text=Brand+Tone"
-        onHoverImage="https://placehold.co/400x500/96CEB4/FFFFFF?text=Brand+Tone+Hover"
-        aspectRatio={4/3}
-      />
-      <ProductCard
-        title="Photography"
-        image="https://placehold.co/400x500/CFDAE9/000000?text=Photography"
-        onHoverImage="https://placehold.co/400x500/DDA0DD/FFFFFF?text=Photography+Hover"
-        aspectRatio={4/3}
-      />
-      <ProductCard
-        title="Stationary"
-        image="https://placehold.co/400x500/CFDAE9/000000?text=Stationary"
-        onHoverImage="https://placehold.co/400x500/FFB6C1/FFFFFF?text=Stationary+Hover"
-        aspectRatio={4/3}
-      />
-      <ProductCard
-        title="Brand Guide"
-        image="https://placehold.co/400x500/CFDAE9/000000?text=Brand+Guide"
-        onHoverImage="https://placehold.co/400x500/87CEEB/000000?text=Brand+Guide+Hover"
-        aspectRatio={4/3}
-      />
-      <ProductCard
-        title="Instagram Starter Kit"
-        image="https://placehold.co/400x500/CFDAE9/000000?text=Instagram+Kit"
-        onHoverImage="https://placehold.co/400x500/B8E6B8/000000?text=Instagram+Kit+Hover"
-        aspectRatio={4/3}
-      />
+      {kitProducts.length > 0 ? (
+        kitProducts.map((product) => (
+          <ProductCard
+            key={product._id}
+            title={product.name}
+            image={product.images[0]?.url || "https://placehold.co/400x500/CFDAE9/000000?text=Product"}
+            onHoverImage={product.kitImages[0]?.url || product.images[0]?.url || "https://placehold.co/400x500/4ECDC4/FFFFFF?text=Product+Hover"}
+            aspectRatio={4/3}
+            onClick={() => router.push(`/kit/${kit?.slug}/${product.slug}`)}
+          />
+        ))
+      ) : (
+        <div className="col-span-full text-center py-10">
+          <p className="text-gray-500">No products available for {selectedPack} pack.</p>
+        </div>
+      )}
     </div>
     {/* Customise Section */}
     <section className="px-5 md:px-10 lg:px-18 py-18 pb-16">

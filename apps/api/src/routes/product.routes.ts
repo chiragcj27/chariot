@@ -26,6 +26,9 @@ router.get("/category/:categorySlug", productController.getProductsByCategory);
 // Get products by item slug
 router.get("/item/:itemSlug", productController.getProductsByItem);
 
+// Get products by kit slug
+router.get("/kit/:kitSlug", productController.getProductsByKit);
+
 // Get products by category and item slugs
 router.get("/category/:categorySlug/item/:itemSlug", productController.getProductsByCategoryAndItem);
 
@@ -40,6 +43,12 @@ router.put("/:productId", isSeller, productController.updateProduct);
 
 // Delete product
 router.delete("/:productId", isSeller, productController.deleteProduct);
+
+// Check if user has purchased a specific product (for digital products)
+router.get("/:productId/purchase-status", productController.checkPurchaseStatus);
+
+// Get all digital products purchased by the user
+router.get("/user/digital-products", productController.getUserDigitalProducts);
 
 // Admin approval/rejection routes
 router.put("/:productId/approve", productController.approveProduct);

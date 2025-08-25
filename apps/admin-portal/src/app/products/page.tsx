@@ -33,6 +33,8 @@ interface Product {
   updatedAt: string;
   isAdminApproved: boolean;
   isAdminRejected: boolean;
+  isKitProduct?: boolean;
+  flipbookUrl?: string;
 }
 
 interface Seller {
@@ -332,6 +334,22 @@ export default function ProductsPage() {
                     </span>
                     <span>Created: {formatDate(product.createdAt)}</span>
                   </div>
+                  
+                  {/* Flipbook Status */}
+                  {(product.isKitProduct || product.type === 'digital') && (
+                    <div className="flex items-center gap-2 text-xs">
+                      <span className="text-gray-500">Flipbook:</span>
+                      {product.flipbookUrl ? (
+                        <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
+                          Generated
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">
+                          Pending
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                   
                   {product.status.toLowerCase() === 'rejected' && product.adminRejectionReason && (
                     <div className="bg-red-50 border border-red-200 rounded-md p-3">

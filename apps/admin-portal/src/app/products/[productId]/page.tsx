@@ -159,6 +159,9 @@ interface Product {
     metaDescription: string;
     metaKeywords: string[];
   };
+  
+  // Flipbook
+  flipbookUrl?: string;
 }
 
 export default function ProductDetailsPage() {
@@ -619,11 +622,22 @@ export default function ProductDetailsPage() {
                   {product.previewFile && (
                     <div>
                       <label className="text-sm font-medium text-gray-500">Preview File</label>
-                      <p className="text-lg">
-                        <a href={product.previewFile.url} target="_blank" rel="noopener noreferrer" className="underline text-blue-600 hover:text-blue-800">
-                          View Preview
-                        </a>
-                      </p>
+                      <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded">
+                        <p className="text-sm font-medium text-blue-900">{product.previewFile.name}</p>
+                        <p className="text-xs text-blue-600 mb-2">
+                          This file will be converted to flipbook upon approval
+                        </p>
+                        <div className="flex gap-2">
+                          <a href={product.previewFile.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 text-sm">
+                            View PDF
+                          </a>
+                          {product.flipbookUrl && (
+                            <a href={product.flipbookUrl} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-800 text-sm">
+                              View Flipbook
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -692,6 +706,40 @@ export default function ProductDetailsPage() {
                             </a>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* PDF Preview Files for Flipbook Generation */}
+                  {product.kitFiles && product.kitFiles.length > 0 && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">PDF Preview Files (Flipbook Generation)</label>
+                      <div className="space-y-2 mt-2">
+                        {product.kitFiles
+                          .filter((file) => file.fileType === 'pdf')
+                          .map((file, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded">
+                              <div>
+                                <p className="text-sm font-medium text-blue-900">{file.name}</p>
+                                <p className="text-xs text-blue-600">
+                                  PDF • {(file.size / 1024 / 1024).toFixed(2)} MB • Preview File
+                                </p>
+                                <p className="text-xs text-blue-500 mt-1">
+                                  This file will be converted to flipbook upon approval
+                                </p>
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 text-sm">
+                                  View PDF
+                                </a>
+                                {product.flipbookUrl && (
+                                  <a href={product.flipbookUrl} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-800 text-sm">
+                                    View Flipbook
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          ))}
                       </div>
                     </div>
                   )}
@@ -901,6 +949,34 @@ export default function ProductDetailsPage() {
               </CardContent>
             </Card>
 
+            {/* Flipbook */}
+            {product.flipbookUrl && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <LinkIcon className="w-5 h-5" />
+                    Flipbook
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600">
+                      PDF has been converted to interactive flipbook
+                    </p>
+                    <a 
+                      href={product.flipbookUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                      <LinkIcon className="w-4 h-4" />
+                      View Flipbook
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Related Products */}
             <Card>
               <CardHeader>
@@ -936,6 +1012,24 @@ export default function ProductDetailsPage() {
                   <CardTitle>Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
+                  {/* Flipbook Status */}
+                  {(product.isKitProduct || product.type === 'digital') && (
+                    <div className="p-3 bg-gray-50 rounded-md">
+                      <p className="text-sm font-medium text-gray-700 mb-1">Flipbook Status</p>
+                      {product.flipbookUrl ? (
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span className="text-sm text-green-600">Flipbook Generated</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-yellow-600" />
+                          <span className="text-sm text-yellow-600">Will generate on approval</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
                   <Button 
                     onClick={approveProduct}
                     className="w-full bg-green-600 hover:bg-green-700"

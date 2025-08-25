@@ -230,6 +230,25 @@ export const kitController = {
         }
     },
 
+    async getKitById(req: Request, res: Response) {
+        try {
+            const { kitId } = req.params;
+            const kit = await Kit.findById(kitId!);
+            if (!kit) {
+                return res.status(404).json({
+                    message: "Kit not found"
+                });
+            }
+            res.status(200).json(kit);
+        } catch (error) {
+            console.error('Error in getKitById:', error);
+            res.status(500).json({
+                message: "Error fetching kit",
+                error: error instanceof Error ? error.message : "Unknown error"
+            });
+        }
+    },
+
     async deleteKit(req: Request, res: Response) {
         try {
             const { kitId } = req.params;

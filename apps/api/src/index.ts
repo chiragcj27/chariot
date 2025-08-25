@@ -19,6 +19,7 @@ import subscriptionCardRoutes from './routes/subscriptionCard.routes';
 import adminSubscriptionCardRoutes from './routes/admin/subscriptionCard.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import buyerRoutes from './routes/buyer.routes';
+import orderRoutes from './routes/order.routes';
 import passwordResetRoutes from './routes/password-reset.routes';
 
 
@@ -68,6 +69,7 @@ app.use('/api/subscription-cards', subscriptionCardRoutes);
 app.use('/api/admin/subscription-cards', adminSubscriptionCardRoutes);
 app.use('/api/subscribe', subscriptionRoutes);
 app.use('/api/buyers', buyerRoutes);
+app.use('/api/orders', orderRoutes);
 app.use('/api/password-reset', passwordResetRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)

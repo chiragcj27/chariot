@@ -21,10 +21,6 @@ export function useProductPurchase(productId: string): PurchaseStatus {
       }
 
       try {
-        // TODO: Replace with actual API call to check purchase status
-        // This will be implemented when we create the order system
-        // For now, we'll just check if the user is authenticated
-        
         const response = await fetch(`${API_URL}/api/products/${productId}/purchase-status`, {
           method: 'GET',
           credentials: 'include',

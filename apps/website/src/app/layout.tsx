@@ -4,6 +4,7 @@ import "./globals.css";
 import NavBar from "@/components/NavBar";
 import CustomScrollbar from "@/components/CustomScrollbar";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,9 +32,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <CustomScrollbar />
-          <NavBar />
-          {children}
+          <CartProvider>
+            <CustomScrollbar />
+            <NavBar />
+            {children}
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

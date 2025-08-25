@@ -16,10 +16,10 @@ router.get("/pending", isAdmin, adminProductController.getPendingProducts);
 router.get("/", adminProductController.listProducts);
 
 // Approve a product
-router.post("/:productId/approve", isAdmin, adminProductController.approveProduct);
+router.patch("/:productId/approve", isAdmin, adminProductController.approveProduct);
 
 // Reject a product
-router.post("/:productId/reject", isAdmin, adminProductController.rejectProduct);
+router.patch("/:productId/reject", isAdmin, adminProductController.rejectProduct);
 
 // Update related products for a product
 router.patch("/:productId/related-products", isAdmin, adminProductController.updateRelatedProducts);

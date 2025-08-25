@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState, Fragment } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from "@/contexts/CartContext";
 import UserProfileDropdown from './UserProfileDropdown';
 
 interface Category {
@@ -24,6 +25,7 @@ export default function NavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+  const { getTotalItems } = useCart();
 
   useEffect(() => {
     async function fetchCategories() {
@@ -98,16 +100,18 @@ export default function NavBar() {
               </svg>
             </button> */}
             {/* Cart Icon */}
-            {/* <button
-              className="text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200"
-              aria-label="Shopping cart"
-            >
+            <Link href="/checkout" className="relative text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200">
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="21" r="1"/>
                 <circle cx="20" cy="21" r="1"/>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
               </svg>
-            </button> */}
+              {getTotalItems() > 0 && (
+                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {getTotalItems()}
+                </span>
+              )}
+            </Link>
           </div>
           {/* Say Hi! Button (no fade) */}
           <button

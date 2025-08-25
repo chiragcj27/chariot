@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import ProtectedRoute from '../../components/ProtectedRoute';
 
 const MARKET_SEGMENTS = [
@@ -32,7 +33,6 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState('');
-  const [userAccountId, setUserAccountId] = useState('');
   const [formData, setFormData] = useState({
     companyInformation: {
       name: '',
@@ -77,7 +77,6 @@ export default function ProfilePage() {
 
       if (response.ok) {
         const data = await response.json();
-        setUserAccountId(data.buyer.userAccountId || 'N/A');
         setFormData({
           companyInformation: {
             name: data.buyer.companyInformation?.name || '',
@@ -192,25 +191,25 @@ export default function ProfilePage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex gap-8">
-            {/* Left Sidebar */}
-            <div className="w-64 bg-gray-100 p-6 rounded-lg">
-              <h2 className="font-bold text-gray-900 mb-4">Account ID: {userAccountId}</h2>
-              <hr className="border-gray-300 mb-4" />
-              <nav className="space-y-2">
-                <a href="#" className="block text-gray-700 hover:text-orange-600 font-medium">Account</a>
-                <a href="/orders" className="block text-gray-600 hover:text-orange-600">Orders</a>
-                <button 
-                  onClick={() => {
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
-                    window.location.href = '/login';
-                  }}
-                  className="block text-gray-600 hover:text-orange-600"
-                >
-                  Log Out
-                </button>
-              </nav>
-            </div>
+                      {/* Left Sidebar */}
+          <div className="w-64 bg-gray-100 p-6 rounded-lg">
+            <h2 className="font-bold text-gray-900 mb-4">Account Name</h2>
+            <hr className="border-gray-300 mb-4" />
+            <nav className="space-y-2">
+              <a href="#" className="block text-gray-700 hover:text-orange-600 font-medium">Account</a>
+              <Link href="/orders" className="block text-gray-600 hover:text-orange-600">Orders</Link>
+              <button 
+                onClick={() => {
+                  localStorage.removeItem('accessToken');
+                  localStorage.removeItem('refreshToken');
+                  window.location.href = '/login';
+                }}
+                className="block text-gray-600 hover:text-orange-600"
+              >
+                Log Out
+              </button>
+            </nav>
+          </div>
 
             {/* Main Content */}
             <div className="flex-1 bg-white p-8 rounded-lg shadow-sm">
