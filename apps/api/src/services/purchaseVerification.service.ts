@@ -44,7 +44,7 @@ export const purchaseVerificationService = {
 
       return {
         hasPurchased: true,
-        orderId: order._id.toString(),
+        orderId: (order._id as unknown as mongoose.Types.ObjectId).toString(),
         orderNumber: order.orderNumber,
         purchaseDate: order.createdAt,
         downloadCount: 0, // TODO: Implement download tracking
@@ -97,7 +97,7 @@ export const purchaseVerificationService = {
                 productId: product._id.toString(),
                 productName: item.productName,
                 productType: product.type,
-                orderId: order._id.toString(),
+                orderId: (order._id as unknown as mongoose.Types.ObjectId).toString(),
                 orderNumber: order.orderNumber,
                 purchaseDate: order.createdAt,
                 downloadCount: 0, // TODO: Implement download tracking
