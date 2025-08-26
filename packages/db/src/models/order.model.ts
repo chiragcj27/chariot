@@ -126,12 +126,21 @@ const paymentBreakdownSchema = new Schema<IPaymentBreakdown>({
   },
 });
 
+function generateOrderNumber(): string {
+  const date = new Date();
+  const datePart = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+  const timePart = `${String(date.getHours()).padStart(2, "0")}${String(date.getMinutes()).padStart(2, "0")}${String(date.getSeconds()).padStart(2, "0")}${String(date.getMilliseconds()).padStart(3, "0")}`;
+  const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `ORD-${datePart}-${timePart}-${randomPart}`;
+}
+
 const orderSchema = new Schema<IOrder>(
   {
     orderNumber: {
       type: String,
       required: true,
       unique: true,
+      default: generateOrderNumber,
     },
     userId: {
       type: Schema.Types.ObjectId,
@@ -184,18 +193,6 @@ const orderSchema = new Schema<IOrder>(
     timestamps: true,
   }
 );
-
-// Generate order number
-orderSchema.pre("save", async function (next) {
-  if (this.isNew && !this.orderNumber) {
-    const date = new Date();
-    const datePart = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
-    const timePart = `${String(date.getHours()).padStart(2, "0")}${String(date.getMinutes()).padStart(2, "0")}${String(date.getSeconds()).padStart(2, "0")}${String(date.getMilliseconds()).padStart(3, "0")}`;
-    const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
-    this.orderNumber = `ORD-${datePart}-${timePart}-${randomPart}`;
-  }
-  next();
-});
 
 if (mongoose.models.Order) {
   delete mongoose.models.Order;
