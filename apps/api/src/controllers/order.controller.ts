@@ -280,30 +280,8 @@ export const createOrder = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate order number
-    const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    
-    // Get count of orders for today
-    const todayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const todayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
-    
-    let orderCount = 0;
-    try {
-      orderCount = await Order.countDocuments({
-        createdAt: { $gte: todayStart, $lt: todayEnd }
-      });
-    } catch (error) {
-      console.error('Error counting orders:', error);
-    }
-    
-    const orderNumber = `ORD-${year}${month}${day}-${String(orderCount + 1).padStart(3, "0")}`;
-
     // Create the order
     const order = new Order({
-      orderNumber,
       userId,
       items: orderItems,
       subtotal,

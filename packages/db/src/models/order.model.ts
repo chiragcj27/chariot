@@ -189,24 +189,10 @@ const orderSchema = new Schema<IOrder>(
 orderSchema.pre("save", async function (next) {
   if (this.isNew && !this.orderNumber) {
     const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    
-    // Get count of orders for today
-    const todayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const todayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
-    
-    try {
-      const count = await mongoose.model("Order").countDocuments({
-        createdAt: { $gte: todayStart, $lt: todayEnd }
-      });
-      
-      this.orderNumber = `ORD-${year}${month}${day}-${String(count + 1).padStart(3, "0")}`;
-    } catch (error) {
-      // Fallback if count fails
-      this.orderNumber = `ORD-${year}${month}${day}-${Date.now()}`;
-    }
+    const datePart = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+    const timePart = `${String(date.getHours()).padStart(2, "0")}${String(date.getMinutes()).padStart(2, "0")}${String(date.getSeconds()).padStart(2, "0")}${String(date.getMilliseconds()).padStart(3, "0")}`;
+    const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+    this.orderNumber = `ORD-${datePart}-${timePart}-${randomPart}`;
   }
   next();
 });
