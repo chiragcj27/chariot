@@ -32,6 +32,19 @@ export const getCheckoutInfo = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
+    // Basic request validation
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: 'Invalid request: items must be a non-empty array' });
+    }
+    for (const item of items) {
+      if (!item || typeof item.productId !== 'string' || item.productId.trim().length === 0) {
+        return res.status(400).json({ message: 'Invalid request: each item must include a valid productId' });
+      }
+      if (typeof item.quantity !== 'number' || !Number.isFinite(item.quantity) || item.quantity <= 0) {
+        return res.status(400).json({ message: 'Invalid request: each item must include a positive quantity' });
+      }
+    }
+
     // Get user and their credits
     const user = await User.findById(userId);
     if (!user) {
@@ -142,6 +155,22 @@ export const createOrder = async (req: Request, res: Response) => {
 
     if (!userId) {
       return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // Basic request validation
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: 'Invalid request: items must be a non-empty array' });
+    }
+    if (paymentMethod !== 'credits' && paymentMethod !== 'paypal') {
+      return res.status(400).json({ message: 'Invalid request: paymentMethod must be "credits" or "paypal"' });
+    }
+    for (const item of items) {
+      if (!item || typeof item.productId !== 'string' || item.productId.trim().length === 0) {
+        return res.status(400).json({ message: 'Invalid request: each item must include a valid productId' });
+      }
+      if (typeof item.quantity !== 'number' || !Number.isFinite(item.quantity) || item.quantity <= 0) {
+        return res.status(400).json({ message: 'Invalid request: each item must include a positive quantity' });
+      }
     }
 
     // Get user and their credits
