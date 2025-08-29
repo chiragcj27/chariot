@@ -244,7 +244,7 @@ export default function Settings() {
               </div>
               <div>
                 <Label htmlFor="payoutSchedule">Payout Schedule</Label>
-                <Select value={settings.payoutSchedule} onValueChange={(value: any) => setSettings({ ...settings, payoutSchedule: value })}>
+                <Select value={settings.payoutSchedule} onValueChange={(value: 'weekly' | 'monthly' | 'on-demand') => setSettings({ ...settings, payoutSchedule: value })}>
                   <SelectTrigger className="mt-1">
                     <SelectValue />
                   </SelectTrigger>

@@ -3,9 +3,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const UserProfileDropdown: React.FC = () => {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -28,19 +30,21 @@ const UserProfileDropdown: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center gap-2">
-        <Link
-          href="/login"
-          className="text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200 px-3 py-1 rounded-md hover:bg-gray-100"
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          onClick={() => router.push('/login')}
+          className="text-gray-700 text-sm border-3 border-[#D94506] focus:outline-none transition-colors duration-200 px-4 py-1 rounded-md hover:bg-[#FFC1A0]"
         >
-          Sign In
-        </Link>
-        <Link
-          href="/signup"
-          className="bg-orange-400 text-white px-4 py-2 rounded-md hover:bg-orange-500 focus:outline-none transition-colors duration-200"
+          LOG IN
+        </button>
+        <button
+          type="button"
+          onClick={() => router.push('/signup')}
+          className="bg-[#FFC1A0] text-sm px-3 py-1 rounded-md border-3 border-[#D94506] hover:bg-gray-100 focus:outline-none transition-colors duration-200"
         >
-          Register
-        </Link>
+          SIGN UP
+        </button>
       </div>
     );
   }

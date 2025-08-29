@@ -34,6 +34,7 @@ interface Product {
   flipbookUrl?: string;
   category?: string;
   subcategory?: string;
+  relatedProducts?: RelatedProduct[];
 }
 
 interface RelatedProduct {
@@ -45,12 +46,13 @@ interface RelatedProduct {
     amount: number;
     currency: string;
   };
+  creditsCost?: number;
   images: ProductImage[];
   category?: string;
   subcategory?: string;
 }
 
-interface ApiProduct {
+interface ApiRelatedProduct {
   _id: string;
   name: string;
   description: string;
@@ -59,12 +61,15 @@ interface ApiProduct {
     amount: number;
     currency: string;
   };
+  creditsCost?: number;
   images?: ProductImage[];
   categoryId?: { slug: string };
   itemId?: { slug: string };
   category?: string;
   subcategory?: string;
 }
+
+
 
 interface ProductPageProps {
   params: Promise<{ "product-slug": string }>;
@@ -134,23 +139,14 @@ export default function ProductPage({ params }: ProductPageProps) {
     const fetchProductAndRelated = async () => {
       try {
         setLoading(true);
-        
-        // Debug: Log the params to see what we're getting
-        console.log("Raw params:", params);
-        
+
         const resolvedParams = await params;
-        console.log("Resolved params:", resolvedParams);
-        
         const slug = resolvedParams["product-slug"];
-        
-                if (!slug) {
+        if (!slug) {
           console.error("Slug is undefined or empty");
           throw new Error("Product slug is required");
         }
         
-        console.log("Fetching product with slug:", slug);
-        
-        // Fetch product data from the new API endpoint
         const productResponse = await fetch(`${API_URL}/api/products/slug/${slug}`);
         
         if (!productResponse.ok) {
@@ -162,6 +158,7 @@ export default function ProductPage({ params }: ProductPageProps) {
         
         const productData = await productResponse.json();
         const fetchedProduct = productData.product;
+        const fetchedRelatedProducts = productData.relatedProducts || [];
         
         // Transform the API response to match our interface
         const transformedProduct: Product = {
@@ -175,34 +172,26 @@ export default function ProductPage({ params }: ProductPageProps) {
           images: fetchedProduct.images || [],
           flipbookUrl: fetchedProduct.flipbookUrl,
           category: fetchedProduct.categoryId?.slug || fetchedProduct.category,
-          subcategory: fetchedProduct.itemId?.slug || fetchedProduct.subcategory
+          subcategory: fetchedProduct.itemId?.slug || fetchedProduct.subcategory,
+          relatedProducts: fetchedRelatedProducts
         };
         
         setProduct(transformedProduct);
 
-        // Fetch related products based on category
-        if (transformedProduct.category) {
-          try {
-            const relatedResponse = await fetch(`${API_URL}/api/products/category/${transformedProduct.category}?limit=4&exclude=${transformedProduct._id}`);
-            if (relatedResponse.ok) {
-              const relatedData = await relatedResponse.json();
-                             const relatedProducts = (relatedData.products || []).map((p: ApiProduct) => ({
-                _id: p._id,
-                name: p.name,
-                description: p.description,
-                slug: p.slug,
-                price: p.price,
-                images: p.images || [],
-                category: p.categoryId?.slug || p.category,
-                subcategory: p.itemId?.slug || p.subcategory
-              }));
-              setRelatedProducts(relatedProducts);
-            }
-          } catch (relatedError) {
-            console.error("Error fetching related products:", relatedError);
-            // Continue without related products if there's an error
-          }
-        }
+        // Transform related products from API response
+        const transformedRelatedProducts: RelatedProduct[] = fetchedRelatedProducts.map((p: ApiRelatedProduct) => ({
+          _id: p._id,
+          name: p.name,
+          description: p.description,
+          slug: p.slug,
+          price: p.price,
+          creditsCost: p.creditsCost,
+          images: p.images || [],
+          category: p.categoryId?.slug || p.category,
+          subcategory: p.itemId?.slug || p.subcategory
+        }));
+        
+        setRelatedProducts(transformedRelatedProducts);
       } catch (err) {
         console.error("Error fetching product:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch product");
@@ -374,13 +363,6 @@ export default function ProductPage({ params }: ProductPageProps) {
               {product.name}
             </h1>
 
-            {/* SKU */}
-            {product.sku && (
-              <p className="text-lg text-gray-700 mt-2">
-                SKU: {product.sku}
-              </p>
-            )}
-
             {/* Price */}
             <div className="text-[24px] text-gray-900">
               {product.price ? `$${product.price.amount}` : "Contact for pricing"}
@@ -458,39 +440,55 @@ export default function ProductPage({ params }: ProductPageProps) {
       {/* Related Products Section */}
       {relatedProducts.length > 0 && (
         <section className="w-full flex flex-col items-center py-10">
-          <div className="w-full max-w-5xl">
-            <div className="px-4 py-2 rounded mb-6 text-4xl text-sunrise font-bold text-center w-fit mx-auto">
-              Related Products
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+          <h2 className="text-4xl px-5 md:px-10 lg:px-18 pt-10 font-balgin-regular mb-8 text-black">
+            Related Products
+          </h2>
+          <div className="w-full max-w-6xl px-5 md:px-10 lg:px-18">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
-                <div key={relatedProduct._id} className="flex flex-col items-center">
+                <div key={relatedProduct._id} className="flex flex-col bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
                   <div 
-                    className="w-full cursor-pointer"
+                    className="w-full cursor-pointer relative"
                     onClick={() => handleRelatedProductClick(relatedProduct.slug)}
                   >
                     <ProductCard
                       image={relatedProduct.images?.[0]?.url || "https://placehold.co/400x500?text=Product"}
-                      title={relatedProduct.name}
                       className="w-full"
                     />
                   </div>
-                  <button 
-                    className="bg-sunrise/50 mt-2 py-3 w-full rounded text-center font-medium hover:bg-sunrise/70 transition-colors"
-                    onClick={() => {
-                      addItem({
-                        productId: relatedProduct._id,
-                        productName: relatedProduct.name,
-                        productSlug: relatedProduct.slug,
-                        price: relatedProduct.price?.amount || 0,
-                        creditsCost: 0,
-                        imageUrl: relatedProduct.images?.[0]?.url,
-                      });
-                      alert('Related product added to cart!');
-                    }}
-                  >
-                    Add To Cart
-                  </button>
+                  
+                  {/* Product Info */}
+                  <div className="p-4 flex-1 flex flex-col">
+                    <h3 
+                      className="text-lg font-semibold text-gray-900 mb-2 cursor-pointer hover:text-orange-600 transition-colors"
+                      onClick={() => handleRelatedProductClick(relatedProduct.slug)}
+                    >
+                      {relatedProduct.name}
+                    </h3>
+                    
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-lg font-bold text-gray-900">
+                        {relatedProduct.price ? `$${relatedProduct.price.amount}` : "Contact for pricing"}
+                      </span>
+                    </div>
+                    
+                    <button 
+                      className="w-full bg-[#FFC1A0] text-black py-2 px-4 rounded-md font-medium hover:bg-orange-600 transition-colors duration-200"
+                      onClick={() => {
+                        addItem({
+                          productId: relatedProduct._id,
+                          productName: relatedProduct.name,
+                          productSlug: relatedProduct.slug,
+                          price: relatedProduct.price?.amount || 0,
+                          creditsCost: relatedProduct.creditsCost || 0,
+                          imageUrl: relatedProduct.images?.[0]?.url,
+                        });
+                        alert('Related product added to cart!');
+                      }}
+                    >
+                      Add To Cart
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

@@ -66,7 +66,7 @@ export default function NavBar() {
 
   return (
     <Fragment>
-      <nav className="flex items-center bg-white px-8 py-2 shadow-md justify-between h-16">
+      <nav className="sticky top-0 z-50 flex items-center bg-white px-8 py-2 shadow-md justify-between h-16">
         {/* Left: Logo + Nav Links */}
         <div className="flex items-center gap-8">
           {/* Logo */}

@@ -230,6 +230,9 @@ importers:
       '@chariot/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@chariot/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@hello-pangea/dnd':
         specifier: ^18.0.1
         version: 18.0.1(@types/react@19.1.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)

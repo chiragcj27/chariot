@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent } from '@/components/ui/card';
 import ProductForm from '@/components/product-form/ProductForm';
+import { generateSku } from '@chariot/utils';
 
 // Type definitions for kit components
 interface KitImage {
@@ -508,7 +509,7 @@ export default function CreateProductPage() {
 
     try {
       // Generate SKU for the product
-      const sku = await generateSku(formData.name);
+      const sku = generateSku(formData.name);
       
       // Clean the form data before sending
       const cleanedFormData = { ...formData, images: [], sku };

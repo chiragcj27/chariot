@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { notificationId: string } }
+  { params }: { params: Promise<{ notificationId: string }> }
 ) {
+  const { notificationId } = await params;
   try {
     // Get the access token from cookies
     let accessToken = req.cookies.get('accessToken')?.value;
@@ -42,7 +43,7 @@ export async function PUT(
 
     // Forward the request to the backend API
     const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const backendUrl = `${baseBackendUrl}/api/marketplace/notifications/${params.notificationId}/read`;
+    const backendUrl = `${baseBackendUrl}/api/marketplace/notifications/${notificationId}/read`;
     
     const response = await fetch(backendUrl, {
       method: 'PUT',

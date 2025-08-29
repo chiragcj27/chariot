@@ -10,8 +10,8 @@ export default function Home() {
       <div className="px-5 md:px-10 lg:px-20">
       {/* Hero Section */}
       <div className="flex flex-col pt-20 pb-15">
-        <p className="text-[#FCA17A] font-balgin-regular font-medium leading-17 text-[64px]">
-          Hi, we are Chariot<br />Built for Jewelers,<br/>by Jewelers.
+        <p className="text-black font-balgin-regular font-medium leading-13 text-[48px]">
+          Hi, we are <span className="text-[#FCA17A]">Chariot</span><br />Built for Jewelers,<br/>by Jewelers.
         </p>
         <p className="py-8 text-[32px] font-secondary">Branding, websites, catalogs, campaigns — everything your jewelry business needs to grow, all in one place.</p>
       </div>

@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { sellerId: string } }
+  { params }: { params: Promise<{ sellerId: string }> }
 ) {
+  const { sellerId } = await params;
   try {
     // Get the access token from cookies
     let accessToken = req.cookies.get('accessToken')?.value;
@@ -46,7 +47,7 @@ export async function GET(
 
     // Forward the request to the backend API
     const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const backendUrl = `${baseBackendUrl}/api/marketplace/seller/notifications/${params.sellerId}?limit=${limit}`;
+    const backendUrl = `${baseBackendUrl}/api/marketplace/seller/notifications/${sellerId}?limit=${limit}`;
     
     const response = await fetch(backendUrl, {
       method: 'GET',

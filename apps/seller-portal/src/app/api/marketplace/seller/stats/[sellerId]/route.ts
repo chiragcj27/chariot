@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { sellerId: string } }
+  { params }: { params: Promise<{ sellerId: string }> }
 ) {
+  const { sellerId } = await params;
   try {
-    console.log('🔍 Seller stats API called for sellerId:', params.sellerId);
+    console.log('🔍 Seller stats API called for sellerId:', sellerId);
     
     // Get the access token from cookies
     let accessToken = req.cookies.get('accessToken')?.value;
@@ -50,7 +51,7 @@ export async function GET(
 
     // Forward the request to the backend API
     const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
-    const backendUrl = `${baseBackendUrl}/api/marketplace/seller/stats/${params.sellerId}?period=${period}`;
+    const backendUrl = `${baseBackendUrl}/api/marketplace/seller/stats/${sellerId}?period=${period}`;
     
     console.log('🌐 Making request to:', backendUrl);
     console.log('🔑 Using token:', accessToken ? 'Present' : 'Missing');

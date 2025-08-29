@@ -616,9 +616,33 @@ export const productController = {
         return res.status(404).json({ message: "Product not found" });
       }
 
+      // Get related products
+      const relatedProducts = product.relatedProductsId && product.relatedProductsId.length > 0 
+        ? await Product.find({
+            _id: { $in: product.relatedProductsId },
+            status: 'active',
+            isAdminApproved: true,
+            isAdminRejected: false
+          })
+          .populate('images')
+          .populate({
+            path: 'categoryId',
+            model: 'Menu',
+            select: 'title slug'
+          })
+          .populate({
+            path: 'itemId',
+            model: 'Item',
+            select: 'title slug'
+          })
+          .select('name description slug price creditsCost discountedCreditsCost discount images categoryId itemId')
+          .limit(6) // Limit to 6 related products
+        : [];
+
       res.status(200).json({
         message: "Product retrieved successfully",
         product,
+        relatedProducts,
       });
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";

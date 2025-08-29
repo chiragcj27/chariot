@@ -36,7 +36,7 @@ export default function ProductCard({
           src={image}
           alt={title || 'Product Image'}
           fill
-          className="object-cover transition-opacity duration-300 group-hover:opacity-0"
+          className={`object-cover transition-opacity duration-300 ${onHoverImage ? 'group-hover:opacity-0' : ''}`}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
         {onHoverImage && (
