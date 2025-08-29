@@ -507,8 +507,11 @@ export default function CreateProductPage() {
     setSuccess(null);
 
     try {
+      // Generate SKU for the product
+      const sku = await generateSku(formData.name);
+      
       // Clean the form data before sending
-      const cleanedFormData = { ...formData, images: [] };
+      const cleanedFormData = { ...formData, images: [], sku };
       
       // For kit products, remove categoryId and itemId
       if (cleanedFormData.isKitProduct) {

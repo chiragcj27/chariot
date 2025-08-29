@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { Order, PaymentMethod, PaymentStatus, OrderStatus, User, Product, Kit, IUser } from '@chariot/db';
+import { marketplaceService } from '../services/marketplace.service';
 
 interface CartItem {
   productId: string;
@@ -328,6 +329,16 @@ export const createOrder = async (req: Request, res: Response) => {
       await user.save();
     }
 
+    // Process marketplace sale if payment is completed
+    if (paypalAmount === 0) {
+      try {
+        await marketplaceService.processSale((order as any)._id.toString());
+      } catch (marketplaceError) {
+        console.error('Error processing marketplace sale:', marketplaceError);
+        // Don't fail the order creation if marketplace processing fails
+      }
+    }
+
     const response: CheckoutResponse = {
       order: {
         _id: order._id,
@@ -481,6 +492,16 @@ export const updateOrderPaymentStatus = async (req: Request, res: Response) => {
           (user as any).creditsPoints = Math.max(0, currentCredits - order.paymentBreakdown.creditsUsed);
           await user.save();
         }
+      }
+
+      // Process marketplace sale when payment is completed
+      try {
+        console.log('🔄 Processing marketplace sale for order:', order.orderNumber);
+        await marketplaceService.processSale((order as any)._id.toString());
+        console.log('✅ Marketplace sale processed successfully for order:', order.orderNumber);
+      } catch (marketplaceError) {
+        console.error('❌ Error processing marketplace sale:', marketplaceError);
+        // Don't fail the payment status update if marketplace processing fails
       }
     }
 

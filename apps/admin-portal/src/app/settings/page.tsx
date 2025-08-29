@@ -1,40 +1,102 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/layout/dashboard-layout';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 
-const settings = {
-  general: {
-    siteName: 'Chariot Marketplace',
-    siteDescription: 'Your trusted marketplace for buying and selling',
-    contactEmail: 'support@chariot.com',
-    supportPhone: '+1 (555) 123-4567',
-  },
-  payment: {
-    currency: 'USD',
-    paymentMethods: ['Credit Card', 'PayPal', 'Bank Transfer'],
-    commissionRate: '5%',
-    minimumPayout: '$100',
-  },
-  notifications: {
-    emailNotifications: true,
-    smsNotifications: false,
-    orderUpdates: true,
-    marketingEmails: false,
-  },
-  security: {
-    twoFactorAuth: true,
-    sessionTimeout: '30 minutes',
-    passwordExpiry: '90 days',
-    ipWhitelist: ['192.168.1.1', '10.0.0.1'],
-  },
+interface MarketplaceSettings {
+  defaultCommissionRate: number;
+  defaultTaxRate: number;
+  minimumPayoutAmount: number;
+  payoutSchedule: 'weekly' | 'monthly' | 'on-demand';
+  currency: string;
+  siteName: string;
+  contactEmail: string;
+  emailNotifications: boolean;
+  smsNotifications: boolean;
+}
+
+const defaultSettings: MarketplaceSettings = {
+  defaultCommissionRate: 5.0,
+  defaultTaxRate: 12.5,
+  minimumPayoutAmount: 100,
+  payoutSchedule: 'monthly',
+  currency: 'USD',
+  siteName: 'Chariot Marketplace',
+  contactEmail: 'support@chariot.com',
+  emailNotifications: true,
+  smsNotifications: false,
 };
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<
-    'general' | 'payment' | 'notifications' | 'security'
+    'general' | 'marketplace' | 'payment' | 'notifications' | 'security'
   >('general');
+  const [settings, setSettings] = useState<MarketplaceSettings>(defaultSettings);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/marketplace/settings');
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSettings(data.settings);
+      } else {
+        console.error('Failed to fetch settings');
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveSettings = async () => {
+    try {
+      setSaving(true);
+      const response = await fetch('/api/marketplace/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings),
+      });
+      
+      if (response.ok) {
+        toast.success('Settings saved successfully');
+      } else {
+        toast.error('Failed to save settings');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast.error('Error saving settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -51,6 +113,16 @@ export default function Settings() {
             }`}
           >
             General
+          </button>
+          <button
+            onClick={() => setActiveTab('marketplace')}
+            className={`px-4 py-2 text-sm font-medium border-b-2 ${
+              activeTab === 'marketplace'
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Marketplace
           </button>
           <button
             onClick={() => setActiveTab('payment')}
@@ -88,44 +160,100 @@ export default function Settings() {
           {activeTab === 'general' && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Site Name
-                </label>
-                <input
-                  type="text"
-                  value={settings.general.siteName}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                <Label htmlFor="siteName">Site Name</Label>
+                <Input
+                  id="siteName"
+                  value={settings.siteName}
+                  onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
+                  className="mt-1"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Site Description
-                </label>
-                <textarea
-                  value={settings.general.siteDescription}
-                  rows={3}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Contact Email
-                </label>
-                <input
+                <Label htmlFor="contactEmail">Contact Email</Label>
+                <Input
+                  id="contactEmail"
                   type="email"
-                  value={settings.general.contactEmail}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                  value={settings.contactEmail}
+                  onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
+                  className="mt-1"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Support Phone
-                </label>
-                <input
-                  type="tel"
-                  value={settings.general.supportPhone}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
+                <Label htmlFor="currency">Currency</Label>
+                <Select value={settings.currency} onValueChange={(value) => setSettings({ ...settings, currency: value })}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectItem value="GBP">GBP</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'marketplace' && (
+            <div className="space-y-6">
+              <div>
+                <Label htmlFor="commissionRate">Default Commission Rate (%)</Label>
+                <Input
+                  id="commissionRate"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  value={settings.defaultCommissionRate}
+                  onChange={(e) => setSettings({ ...settings, defaultCommissionRate: parseFloat(e.target.value) || 0 })}
+                  className="mt-1"
                 />
+                <p className="text-sm text-gray-500 mt-1">
+                  Default commission rate applied to all sellers unless overridden
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="taxRate">Default Tax Rate (%)</Label>
+                <Input
+                  id="taxRate"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  value={settings.defaultTaxRate}
+                  onChange={(e) => setSettings({ ...settings, defaultTaxRate: parseFloat(e.target.value) || 0 })}
+                  className="mt-1"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Default tax rate applied to all products unless category-specific rate is set
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="minimumPayout">Minimum Payout Amount ($)</Label>
+                <Input
+                  id="minimumPayout"
+                  type="number"
+                  min="0"
+                  value={settings.minimumPayoutAmount}
+                  onChange={(e) => setSettings({ ...settings, minimumPayoutAmount: parseFloat(e.target.value) || 0 })}
+                  className="mt-1"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Minimum amount required before sellers can request a payout
+                </p>
+              </div>
+              <div>
+                <Label htmlFor="payoutSchedule">Payout Schedule</Label>
+                <Select value={settings.payoutSchedule} onValueChange={(value: any) => setSettings({ ...settings, payoutSchedule: value })}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="on-demand">On Demand</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           )}
@@ -133,24 +261,9 @@ export default function Settings() {
           {activeTab === 'payment' && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Currency
-                </label>
-                <select
-                  value={settings.payment.currency}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Payment Methods
-                </label>
+                <Label>Payment Methods</Label>
                 <div className="mt-2 space-y-2">
-                  {settings.payment.paymentMethods.map((method) => (
+                  {['Credit Card', 'PayPal', 'Bank Transfer'].map((method) => (
                     <div key={method} className="flex items-center">
                       <input
                         type="checkbox"
@@ -164,26 +277,6 @@ export default function Settings() {
                   ))}
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Commission Rate
-                </label>
-                <input
-                  type="text"
-                  value={settings.payment.commissionRate}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Minimum Payout
-                </label>
-                <input
-                  type="text"
-                  value={settings.payment.minimumPayout}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
             </div>
           )}
 
@@ -191,62 +284,26 @@ export default function Settings() {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Email Notifications
-                  </label>
+                  <Label>Email Notifications</Label>
                   <p className="text-sm text-gray-500">
-                    Receive notifications via email
+                    Send notifications via email for sales and marketplace events
                   </p>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={settings.notifications.emailNotifications}
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                <Switch
+                  checked={settings.emailNotifications}
+                  onCheckedChange={(checked) => setSettings({ ...settings, emailNotifications: checked })}
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    SMS Notifications
-                  </label>
+                  <Label>SMS Notifications</Label>
                   <p className="text-sm text-gray-500">
-                    Receive notifications via SMS
+                    Send notifications via SMS (requires phone number setup)
                   </p>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={settings.notifications.smsNotifications}
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Order Updates
-                  </label>
-                  <p className="text-sm text-gray-500">
-                    Receive notifications for order updates
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.notifications.orderUpdates}
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Marketing Emails
-                  </label>
-                  <p className="text-sm text-gray-500">
-                    Receive marketing and promotional emails
-                  </p>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.notifications.marketingEmails}
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                <Switch
+                  checked={settings.smsNotifications}
+                  onCheckedChange={(checked) => setSettings({ ...settings, smsNotifications: checked })}
                 />
               </div>
             </div>
@@ -256,65 +313,33 @@ export default function Settings() {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
-                    Two-Factor Authentication
-                  </label>
+                  <Label>Two-Factor Authentication</Label>
                   <p className="text-sm text-gray-500">
                     Require 2FA for admin access
                   </p>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={settings.security.twoFactorAuth}
-                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                />
+                <Switch checked={true} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Session Timeout
-                </label>
-                <select
-                  value={settings.security.sessionTimeout}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                  <option value="15 minutes">15 minutes</option>
-                  <option value="30 minutes">30 minutes</option>
-                  <option value="1 hour">1 hour</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Password Expiry
-                </label>
-                <select
-                  value={settings.security.passwordExpiry}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                  <option value="30 days">30 days</option>
-                  <option value="60 days">60 days</option>
-                  <option value="90 days">90 days</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  IP Whitelist
-                </label>
-                <textarea
-                  value={settings.security.ipWhitelist.join('\n')}
-                  rows={3}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-indigo-500 focus:ring-indigo-500"
-                />
-                <p className="mt-1 text-sm text-gray-500">
-                  Enter one IP address per line
-                </p>
+                <Label>Session Timeout</Label>
+                <Select defaultValue="30 minutes">
+                  <SelectTrigger className="mt-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15 minutes">15 minutes</SelectItem>
+                    <SelectItem value="30 minutes">30 minutes</SelectItem>
+                    <SelectItem value="1 hour">1 hour</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           )}
 
           <div className="mt-6 flex justify-end">
-            <button className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
-              Save Changes
-            </button>
+            <Button onClick={saveSettings} disabled={saving}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
           </div>
         </Card>
       </div>

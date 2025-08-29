@@ -12,7 +12,9 @@
     "create-webhook": "ts-node src/create-paypal-webhook.ts",
     "check-env": "ts-node src/check-env.ts",
     "update-ids": "ts-node src/update-paypal-ids.ts",
-    "setup-paypal": "pnpm create-plans && pnpm create-webhook"
+    "setup-paypal": "pnpm create-plans && pnpm create-webhook",
+    "init-marketplace": "ts-node src/initialize-marketplace-settings.ts",
+    "migrate-products": "ts-node src/migrate-existing-products.ts"
   },
   "keywords": [],
   "author": "",

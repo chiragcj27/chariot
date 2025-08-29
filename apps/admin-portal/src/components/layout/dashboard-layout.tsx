@@ -14,12 +14,15 @@ import {
   XMarkIcon,
   AdjustmentsHorizontalIcon,
   ExclamationTriangleIcon,
-  ShoppingBagIcon
+  ShoppingBagIcon,
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
+  { name: 'Marketplace Analytics', href: '/marketplace', icon: ChartBarIcon },
+  { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
   { name: 'Pricing & Discounts', href: '/pricing', icon: CurrencyDollarIcon },
   { name: 'Marketing', href: '/marketing', icon: MegaphoneIcon },
   { name: 'Customers', href: '/customers', icon: UsersIcon },

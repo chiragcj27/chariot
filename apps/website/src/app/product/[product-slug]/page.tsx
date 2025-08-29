@@ -24,6 +24,7 @@ interface Product {
   name: string;
   description: string;
   slug: string;
+  sku: string; // Added SKU field
   price?: {
     amount: number;
     currency: string;
@@ -168,6 +169,7 @@ export default function ProductPage({ params }: ProductPageProps) {
           name: fetchedProduct.name,
           description: fetchedProduct.description,
           slug: fetchedProduct.slug,
+          sku: fetchedProduct.sku || "", // Ensure sku is included
           price: fetchedProduct.price,
           creditsCost: fetchedProduct.creditsCost,
           images: fetchedProduct.images || [],
@@ -371,6 +373,13 @@ export default function ProductPage({ params }: ProductPageProps) {
             <h1 className="text-4xl font-balgin-regular lg:text-[32px] text-[#FA7035]">
               {product.name}
             </h1>
+
+            {/* SKU */}
+            {product.sku && (
+              <p className="text-lg text-gray-700 mt-2">
+                SKU: {product.sku}
+              </p>
+            )}
 
             {/* Price */}
             <div className="text-[24px] text-gray-900">

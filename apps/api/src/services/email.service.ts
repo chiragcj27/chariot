@@ -106,26 +106,24 @@ export const emailService = {
 
   async sendSellerBlacklistEmail(sellerEmail: string, sellerName: string, reason: string, expiryDate: Date) {
     try {
-      const formattedExpiryDate = expiryDate.toLocaleDateString();
       const mailOptions = {
         from: process.env.SMTP_USER,
         to: sellerEmail,
-        subject: 'Your Seller Account Has Been Blacklisted',
+        subject: 'Your Seller Account Has Been Temporarily Suspended',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #dc2626;">Account Blacklist Notice</h2>
+            <h2 style="color: #dc2626;">Account Suspension Notice</h2>
             <p>Dear ${sellerName},</p>
-            <p>We regret to inform you that your seller account has been temporarily blacklisted due to a violation of our platform policies.</p>
+            <p>Your seller account has been temporarily suspended due to the following reason:</p>
             <p><strong>Reason:</strong> ${reason}</p>
-            <p><strong>Blacklist Expiry Date:</strong> ${formattedExpiryDate}</p>
-            <p>During this period:</p>
+            <p><strong>Suspension Expires:</strong> ${expiryDate.toLocaleDateString()}</p>
+            <p>During this suspension period, you will not be able to:</p>
             <ul>
-              <li>All your products have been temporarily deactivated</li>
-              <li>You cannot upload new products</li>
-              <li>You cannot process new orders</li>
+              <li>Add new products</li>
+              <li>Receive new orders</li>
+              <li>Access your seller dashboard</li>
             </ul>
-            <p>After the blacklist period expires, you may reapply for reactivation by contacting our support team.</p>
-            <p>If you believe this action was taken in error, please contact our support team immediately.</p>
+            <p>If you believe this suspension is in error, you may submit a reapplication through your dashboard.</p>
             <p>Best regards,<br>The Chariot Team</p>
           </div>
         `,
@@ -316,6 +314,133 @@ export const emailService = {
       return info;
     } catch (error) {
       console.error('Error sending password reset OTP email:', error);
+      throw error;
+    }
+  },
+
+  async sendSaleNotification(
+    sellerEmail: string,
+    sellerName: string,
+    productName: string,
+    productSku: string,
+    orderNumber: string,
+    saleAmount: number,
+    commissionAmount: number,
+    sellerEarnings: number
+  ) {
+    try {
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: sellerEmail,
+        subject: '🎉 New Sale Alert!',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #059669;">Congratulations! You have a new sale!</h2>
+            <p>Dear ${sellerName},</p>
+            <p>Great news! You've just made a sale on Chariot Marketplace.</p>
+            
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #374151; margin-top: 0;">Sale Details:</h3>
+              <p><strong>Product:</strong> ${productName}</p>
+              <p><strong>SKU:</strong> ${productSku}</p>
+              <p><strong>Order Number:</strong> ${orderNumber}</p>
+              <p><strong>Sale Amount:</strong> $${saleAmount.toFixed(2)}</p>
+              <p><strong>Commission:</strong> $${commissionAmount.toFixed(2)}</p>
+              <p><strong>Your Earnings:</strong> $${sellerEarnings.toFixed(2)}</p>
+            </div>
+            
+            <p>Your earnings will be processed according to your payout schedule. Keep up the great work!</p>
+            <p>Best regards,<br>The Chariot Team</p>
+          </div>
+        `,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      return info;
+    } catch (error) {
+      console.error('Error sending sale notification email:', error);
+      throw error;
+    }
+  },
+
+  async sendAdminSaleNotification(
+    adminEmail: string,
+    productName: string,
+    productSku: string,
+    sellerName: string,
+    orderNumber: string,
+    saleAmount: number,
+    commissionAmount: number
+  ) {
+    try {
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: adminEmail,
+        subject: 'New Marketplace Sale',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">New Marketplace Sale</h2>
+            <p>A new sale has been completed on the marketplace.</p>
+            
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #374151; margin-top: 0;">Sale Details:</h3>
+              <p><strong>Product:</strong> ${productName}</p>
+              <p><strong>SKU:</strong> ${productSku}</p>
+              <p><strong>Seller:</strong> ${sellerName}</p>
+              <p><strong>Order Number:</strong> ${orderNumber}</p>
+              <p><strong>Sale Amount:</strong> $${saleAmount.toFixed(2)}</p>
+              <p><strong>Platform Commission:</strong> $${commissionAmount.toFixed(2)}</p>
+            </div>
+            
+            <p>You can view detailed analytics in your admin dashboard.</p>
+            <p>Best regards,<br>The Chariot System</p>
+          </div>
+        `,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      return info;
+    } catch (error) {
+      console.error('Error sending admin sale notification email:', error);
+      throw error;
+    }
+  },
+
+  async sendCommissionEarnedNotification(
+    sellerEmail: string,
+    sellerName: string,
+    period: string,
+    totalEarnings: number,
+    commissionEarned: number
+  ) {
+    try {
+      const mailOptions = {
+        from: process.env.SMTP_USER,
+        to: sellerEmail,
+        subject: `Commission Summary - ${period}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #059669;">Commission Summary</h2>
+            <p>Dear ${sellerName},</p>
+            <p>Here's your commission summary for ${period}:</p>
+            
+            <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #374151; margin-top: 0;">Summary:</h3>
+              <p><strong>Period:</strong> ${period}</p>
+              <p><strong>Total Sales:</strong> $${totalEarnings.toFixed(2)}</p>
+              <p><strong>Commission Earned:</strong> $${commissionEarned.toFixed(2)}</p>
+            </div>
+            
+            <p>Your commission will be processed according to your payout schedule.</p>
+            <p>Best regards,<br>The Chariot Team</p>
+          </div>
+        `,
+      };
+
+      const info = await transporter.sendMail(mailOptions);
+      return info;
+    } catch (error) {
+      console.error('Error sending commission earned notification email:', error);
       throw error;
     }
   },
