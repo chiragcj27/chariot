@@ -1,9 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
+import Footer from '@/components/Footer'
+import { paypalService } from '@/lib/paypal'
+import { Button } from '@/components/ui/button'
+import { Clock, AlertTriangle, CheckCircle, XCircle, CreditCard } from 'lucide-react'
 
 interface Order {
   _id: string;
@@ -32,16 +36,30 @@ interface Order {
   };
 }
 
+interface PendingOrder extends Order {
+  timeRemaining: number; // seconds remaining
+  isExpired: boolean;
+}
+
 export default function OrdersPage() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userAccountId, setUserAccountId] = useState<string>('');
+  const [showPayPalPayment, setShowPayPalPayment] = useState(false);
+  const [currentPendingOrder, setCurrentPendingOrder] = useState<PendingOrder | null>(null);
+  const [processingPayment, setProcessingPayment] = useState(false);
+  const paypalButtonRef = useRef<HTMLDivElement>(null);
+  const countdownRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
+  const PAYMENT_TIMEOUT_MINUTES = 5;
+  const PAYMENT_TIMEOUT_SECONDS = PAYMENT_TIMEOUT_MINUTES * 60;
 
   useEffect(() => {
     if (user) {
-      fetchOrders();
+      fetchAllOrders();
       fetchUserAccountId();
     } else {
       setLoading(false);
@@ -49,7 +67,36 @@ export default function OrdersPage() {
     }
   }, [user]);
 
+  // Cleanup countdown timers on unmount
+  useEffect(() => {
+    return () => {
+      countdownRefs.current.forEach((timer) => clearInterval(timer));
+    };
+  }, []);
 
+  // Listen for PayPal payment success
+  useEffect(() => {
+    const handlePayPalPaymentSuccess = (event: CustomEvent) => {
+      const { orderId, paymentId, result } = event.detail;
+      console.log('PayPal payment successful:', { orderId, paymentId, result });
+      
+      // Close payment modal
+      setShowPayPalPayment(false);
+      setCurrentPendingOrder(null);
+      
+      // Refresh orders to update status
+      fetchAllOrders();
+      
+      // Show success message
+      alert('Payment completed successfully! Your order has been processed.');
+    };
+
+    window.addEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+
+    return () => {
+      window.removeEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+    };
+  }, []);
 
   const fetchUserAccountId = async () => {
     try {
@@ -72,7 +119,7 @@ export default function OrdersPage() {
     }
   };
 
-  const fetchOrders = async () => {
+  const fetchAllOrders = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -84,26 +131,187 @@ export default function OrdersPage() {
       }
 
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/api/orders/user/orders`, {
+      
+      // Fetch completed orders
+      const completedResponse = await fetch(`${API_URL}/api/orders/user/orders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch orders' }));
+      // Fetch all orders including pending ones
+      const allOrdersResponse = await fetch(`${API_URL}/api/orders/user/orders/all`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!completedResponse.ok || !allOrdersResponse.ok) {
+        const errorData = await completedResponse.json().catch(() => ({ message: 'Failed to fetch orders' }));
         throw new Error(errorData.message || 'Failed to load orders');
       }
 
-      const data = await response.json();
-      setOrders(data);
+      const completedData = await completedResponse.json();
+      const allOrdersData = await allOrdersResponse.json();
+
+      setOrders(completedData);
+
+      // Process pending orders and filter out already expired ones
+      const pending = allOrdersData.filter((order: Order) => 
+        order.status === 'pending' && order.paymentStatus === 'pending'
+      );
+
+      const processedPendingOrders = pending.map((order: Order): PendingOrder => {
+        const createdAt = new Date(order.createdAt).getTime();
+        const now = Date.now();
+        const elapsedSeconds = Math.floor((now - createdAt) / 1000);
+        const timeRemaining = Math.max(0, PAYMENT_TIMEOUT_SECONDS - elapsedSeconds);
+        const isExpired = timeRemaining <= 0;
+
+        return {
+          ...order,
+          timeRemaining,
+          isExpired
+        };
+      });
+
+      // Filter out already expired orders from pending display
+      const activePendingOrders = processedPendingOrders.filter((order: PendingOrder) => !order.isExpired);
+      setPendingOrders(activePendingOrders);
+
+      // Start countdown timers for non-expired pending orders
+      activePendingOrders.forEach((order: PendingOrder) => {
+        startCountdownTimer(order._id);
+      });
+
+      // Auto-cancel any expired orders that are still in the database
+      processedPendingOrders.forEach((order: PendingOrder) => {
+        if (order.isExpired) {
+          handleAutoCancelOrder(order._id);
+        }
+      });
+
     } catch (err) {
       console.error('Error fetching orders:', err);
       setError(err instanceof Error ? err.message : 'Failed to load orders');
     } finally {
       setLoading(false);
     }
+  };
+
+  const startCountdownTimer = (orderId: string) => {
+    // Clear existing timer if any
+    if (countdownRefs.current.has(orderId)) {
+      clearInterval(countdownRefs.current.get(orderId)!);
+    }
+
+    const timer = setInterval(() => {
+      setPendingOrders(prev => {
+        const updated = prev.map(order => {
+          if (order._id === orderId) {
+            const newTimeRemaining = order.timeRemaining - 1;
+            const isExpired = newTimeRemaining <= 0;
+            
+            if (isExpired) {
+              // Auto-cancel expired order
+              handleAutoCancelOrder(orderId);
+              clearInterval(timer);
+              countdownRefs.current.delete(orderId);
+            }
+            
+            return {
+              ...order,
+              timeRemaining: newTimeRemaining,
+              isExpired
+            };
+          }
+          return order;
+        });
+        return updated;
+      });
+    }, 1000);
+
+    countdownRefs.current.set(orderId, timer);
+  };
+
+  const handleAutoCancelOrder = async (orderId: string) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/orders/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Remove from pending orders and refresh
+        setPendingOrders(prev => prev.filter(order => order._id !== orderId));
+        fetchAllOrders(); // Refresh to update completed orders if any
+      }
+    } catch (error) {
+      console.error('Error auto-cancelling order:', error);
+    }
+  };
+
+  const handleCompletePayment = async (order: PendingOrder) => {
+    if (order.paymentBreakdown.paypalAmount <= 0) {
+      return; // No PayPal payment needed
+    }
+
+    setCurrentPendingOrder(order);
+    setShowPayPalPayment(true);
+    
+    // Render PayPal button after modal is shown
+    setTimeout(() => {
+      if (paypalButtonRef.current) {
+        paypalService.renderPayPalPaymentButton({
+          orderId: order._id,
+          amount: order.paymentBreakdown.paypalAmount,
+          currency: 'USD',
+          description: `Complete payment for order ${order.orderNumber}`
+        }, paypalButtonRef.current);
+      }
+    }, 100);
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    try {
+      setProcessingPayment(true);
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/orders/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Remove from pending orders and refresh
+        setPendingOrders(prev => prev.filter(order => order._id !== orderId));
+        fetchAllOrders(); // Refresh to update completed orders if any
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
+
+  const formatTimeRemaining = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   const handleLogout = () => {
@@ -197,121 +405,258 @@ export default function OrdersPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white mb-10">
         {/* Header */}
         <div className="text-center py-8">
           <h1 className="text-4xl font-bold text-orange-500">My Account</h1>
         </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex gap-8">
-          {/* Left Sidebar */}
-          <div className="w-64 bg-gray-100 p-6 rounded-lg">
-            <h2 className="font-bold text-gray-900 mb-4">Account ID: {userAccountId}</h2>
-            <hr className="border-gray-300 mb-4" />
-            <nav className="space-y-2">
-              <Link href="/profile" className="block text-gray-700 hover:text-orange-600 font-medium">
-                Account
-              </Link>
-              <Link href="/orders" className="block text-gray-600 hover:text-orange-600 font-medium">
-                Orders
-              </Link>
-              <button 
-                onClick={handleLogout}
-                className="block text-gray-600 hover:text-orange-600"
-              >
-                Log Out
-              </button>
-            </nav>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Orders History</h2>
-            
-            {orders.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600 mb-4">No orders found.</p>
-                <Link href="/" className="text-orange-500 hover:text-orange-600">
-                  Start Shopping
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-8">
+            {/* Left Sidebar */}
+            <div className="w-64 bg-gray-100 p-6 rounded-lg">
+              <h2 className="font-bold text-gray-900 mb-4">Account ID: {userAccountId}</h2>
+              <hr className="border-gray-300 mb-4" />
+              <nav className="space-y-2">
+                <Link href="/profile" className="block text-gray-700 hover:text-orange-600 font-medium">
+                  Account
                 </Link>
-              </div>
-            ) : (
-              <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Number ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Dates
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Price
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Product
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Invoice
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {orders.map((order) => (
-                      order.items.map((item, itemIndex) => (
-                        <tr key={`${order._id}-${itemIndex}`} className="hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            #{order.orderNumber}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {new Date(order.createdAt).toLocaleDateString('en-US', { 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
-                            })}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            ${item.totalPrice.toFixed(2)}
-                          </td>
-                                                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate" title={item.productName}>
-                                {item.productName}
-                              </p>
+                <Link href="/orders" className="block text-gray-600 hover:text-orange-600 font-medium">
+                  Orders
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="block text-gray-600 hover:text-orange-600"
+                >
+                  Log Out
+                </button>
+              </nav>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1">
+              {/* Pending Orders Section */}
+              {pendingOrders.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                    <AlertTriangle className="w-6 h-6 text-orange-500 mr-2" />
+                    Pending Orders
+                  </h2>
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+                    <p className="text-orange-800 text-sm">
+                      You have {pendingOrders.length} pending order{pendingOrders.length > 1 ? 's' : ''} that need payment completion within {PAYMENT_TIMEOUT_MINUTES} minutes.
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {pendingOrders.map((order) => (
+                      <div key={order._id} className="bg-white border border-orange-200 rounded-lg p-6 shadow-sm">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              Order #{order.orderNumber}
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Created: {new Date(order.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <div className={`text-lg font-bold ${order.isExpired ? 'text-red-600' : 'text-orange-600'}`}>
+                              ${order.total.toFixed(2)}
                             </div>
-                            {/* Only show download button for digital products or kit products */}
-                            {(item.productInfo?.type === 'digital' || item.productInfo?.isKitProduct) && (
-                              <button
-                                onClick={() => handleDownloadZip(order._id, item.productId, item.productName)}
-                                className="ml-3 inline-flex items-center px-3 py-1 border-2 border-[#D94506] text-xs font-medium rounded-md text-black bg-[#FFC1A0] hover:bg-[#FFB08A] focus:outline-none transition-colors duration-200"
-                              >
-                                Download
-                              </button>
+                            {!order.isExpired && (
+                              <div className="flex items-center text-sm text-orange-600">
+                                <Clock className="w-4 h-4 mr-1" />
+                                {formatTimeRemaining(order.timeRemaining)} remaining
+                              </div>
+                            )}
+                            {order.isExpired && (
+                              <div className="flex items-center text-sm text-red-600">
+                                <XCircle className="w-4 h-4 mr-1" />
+                                Expired
+                              </div>
                             )}
                           </div>
-                        </td>
-                                                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <button
-                            onClick={() => handleDownloadInvoice(order._id)}
-                            className="inline-flex items-center px-3 py-1 border-2 border-[#D94506] text-xs font-medium rounded-md text-black hover:bg-[#ffd9c7] focus:outline-none transition-colors duration-200"
+                        </div>
+
+                        <div className="mb-4">
+                          <div className="text-sm text-gray-600 mb-2">Items:</div>
+                          <div className="space-y-2">
+                            {order.items.map((item, index) => (
+                              <div key={index} className="flex justify-between text-sm">
+                                <span>{item.productName} (x{item.quantity})</span>
+                                <span>${item.totalPrice.toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="mb-4 p-3 bg-gray-50 rounded">
+                          <div className="text-sm text-gray-600 mb-2">Payment Breakdown:</div>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span>Credits Used:</span>
+                              <span className="text-green-600">-${order.paymentBreakdown.creditsUsed.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>PayPal Payment:</span>
+                              <span>${order.paymentBreakdown.paypalAmount.toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between font-semibold border-t pt-1">
+                              <span>Total:</span>
+                              <span>${order.paymentBreakdown.totalAmount.toFixed(2)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex gap-3">
+                          {!order.isExpired && order.paymentBreakdown.paypalAmount > 0 && (
+                            <Button
+                              onClick={() => handleCompletePayment(order)}
+                              className="bg-orange-500 hover:bg-orange-600 text-white"
+                              disabled={processingPayment}
+                            >
+                              <CreditCard className="w-4 h-4 mr-2" />
+                              Complete Payment
+                            </Button>
+                          )}
+                          <Button
+                            onClick={() => handleCancelOrder(order._id)}
+                            variant="outline"
+                            className="border-red-300 text-red-600 hover:bg-red-50"
+                            disabled={processingPayment}
                           >
-                            Invoice
-                          </button>
-                        </td>
-                        </tr>
-                      ))
+                            Cancel Order
+                          </Button>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Completed Orders Section */}
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                  <CheckCircle className="w-6 h-6 text-green-500 mr-2" />
+                  Order History
+                </h2>
+                
+                {orders.length === 0 ? (
+                  <div className="text-center py-12">
+                    <p className="text-gray-600 mb-4">No completed orders found.</p>
+                    <Link href="/" className="text-orange-500 hover:text-orange-600">
+                      Start Shopping
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[800px]">
+                        <thead>
+                          <tr className="bg-gray-50 border-b border-gray-200">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
+                              Number ID
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">
+                              Dates
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+                              Price
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
+                              Product
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+                              Invoice
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {orders.map((order) => (
+                            order.items.map((item, itemIndex) => (
+                              <tr key={`${order._id}-${itemIndex}`} className="hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  #{order.orderNumber}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                  })}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  ${item.totalPrice.toFixed(2)}
+                                </td>
+                                <td className="px-6 py-4 text-sm">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-gray-900 truncate" title={item.productName}>
+                                        {item.productName}
+                                      </p>
+                                    </div>
+                                    {/* Only show download button for digital products or kit products */}
+                                    {(item.productInfo?.type === 'digital' || item.productInfo?.isKitProduct) && (
+                                      <button
+                                        onClick={() => handleDownloadZip(order._id, item.productId, item.productName)}
+                                        className="ml-3 flex-shrink-0 inline-flex items-center px-3 py-1 border-2 border-[#D94506] text-xs font-medium rounded-md text-black bg-[#FFC1A0] hover:bg-[#FFB08A] focus:outline-none transition-colors duration-200"
+                                      >
+                                        Download
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <button
+                                    onClick={() => handleDownloadInvoice(order._id)}
+                                    className="inline-flex items-center px-3 py-1 border-2 border-[#D94506] text-xs font-medium rounded-md text-black hover:bg-[#ffd9c7] focus:outline-none transition-colors duration-200"
+                                  >
+                                    Invoice
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </div>
         </div>
+
+        {/* PayPal Payment Modal */}
+        {showPayPalPayment && currentPendingOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Complete Payment</h3>
+              <p className="text-gray-600 mb-4">
+                Order: <strong>#{currentPendingOrder.orderNumber}</strong>
+              </p>
+              <p className="text-gray-600 mb-6">
+                PayPal Amount: <strong>${currentPendingOrder.paymentBreakdown.paypalAmount.toFixed(2)}</strong>
+              </p>
+              
+              {/* PayPal Button Container */}
+              <div ref={paypalButtonRef} className="mb-4"></div>
+              
+              <div className="flex justify-center">
+                <Button
+                  onClick={() => setShowPayPalPayment(false)}
+                  variant="outline"
+                  className="w-full"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-    </div>
+      <Footer />
     </ProtectedRoute>
   );
 }

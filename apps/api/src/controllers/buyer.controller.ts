@@ -164,7 +164,7 @@ export async function loginBuyer(req: Request, res: Response) {
         email: buyer.email,
         name: buyer.name,
         role: buyer.role,
-        credits: buyer.credits,
+        credits: buyer.creditsPoints,
         userAccountId: buyer.userAccountId,
       },
       ...tokens,

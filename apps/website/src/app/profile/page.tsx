@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '../../components/ProtectedRoute';
+import Footer from '@/components/Footer'
 
 const MARKET_SEGMENTS = [
   'Single Store Retailer',
@@ -534,6 +535,7 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+      <Footer />
     </ProtectedRoute>
   );
 } 

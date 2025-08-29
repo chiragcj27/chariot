@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, FileText, Calendar, CreditCard, ChevronDown } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowLeft, FileText, Calendar, CreditCard, ChevronDown, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCart } from '@/contexts/CartContext'
+import { paypalService } from '@/lib/paypal'
 
 interface OrderItem {
   productId: string;
@@ -37,7 +39,7 @@ interface CheckoutInfo {
 
 export default function CheckoutPage() {
   const { user } = useAuth();
-  const { items: cartItems, clearCart } = useCart();
+  const { items: cartItems, clearCart, removeItem } = useCart();
   const [paymentMethod, setPaymentMethod] = useState<'credits' | 'paypal'>('paypal');
   const [checkoutInfo, setCheckoutInfo] = useState<CheckoutInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,6 +47,9 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [showPaymentMethods, setShowPaymentMethods] = useState(false);
   const [showCreditConfirmation, setShowCreditConfirmation] = useState(false);
+  const [showPayPalPayment, setShowPayPalPayment] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState<{ _id: string; orderNumber: string; total: number; paypalAmount?: number; items: unknown[] } | null>(null);
+  const paypalButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!user) {
@@ -56,11 +61,31 @@ export default function CheckoutPage() {
     if (cartItems.length === 0) {
       setLoading(false);
       setError('Your cart is empty. Please add items before checkout.');
+      // Clear any previous checkout info to avoid rendering stale items
+      setCheckoutInfo(null);
       return;
     }
 
     fetchCheckoutInfo();
   }, [user, cartItems]);
+
+  useEffect(() => {
+    // Listen for PayPal payment success
+    const handlePayPalPaymentSuccess = (event: CustomEvent) => {
+      const { orderId, paymentId, result } = event.detail;
+      console.log('PayPal payment successful:', { orderId, paymentId, result });
+      
+      // Clear cart and redirect to order confirmation
+      clearCart();
+      window.location.href = `/order-confirmation?orderId=${orderId}`;
+    };
+
+    window.addEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+
+    return () => {
+      window.removeEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+    };
+  }, [clearCart]);
 
   const fetchCheckoutInfo = async () => {
     try {
@@ -104,10 +129,18 @@ export default function CheckoutPage() {
   };
 
   const handleCreateOrder = async () => {
-    // If credits are selected and user has enough credits, show confirmation
-    if (paymentMethod === 'credits' && checkoutInfo && checkoutInfo.userCredits >= checkoutInfo.total) {
-      setShowCreditConfirmation(true);
-      return;
+    // If credits are selected, show confirmation for mixed payment
+    if (paymentMethod === 'credits' && checkoutInfo) {
+      const availableCredits = checkoutInfo.userCredits || 0;
+      
+      if (availableCredits > 0) {
+        // Show confirmation for credit usage
+        setShowCreditConfirmation(true);
+        return;
+      } else {
+        // No credits available, switch to PayPal
+        setPaymentMethod('paypal');
+      }
     }
 
     await processOrder();
@@ -145,8 +178,24 @@ export default function CheckoutPage() {
       const orderData = await response.json();
       
       if (orderData.requiresPayPalPayment) {
-        alert(`Order created! PayPal payment required: $${orderData.paymentBreakdown.paypalAmount}`);
-        window.location.href = `/order-confirmation?orderId=${orderData.order._id}`;
+        // Show PayPal payment modal
+        setCurrentOrder({
+          ...orderData.order,
+          paypalAmount: orderData.paymentBreakdown.paypalAmount
+        });
+        setShowPayPalPayment(true);
+        
+        // Render PayPal button after a short delay to ensure modal is rendered
+        setTimeout(() => {
+          if (paypalButtonRef.current && orderData.paymentBreakdown.paypalAmount > 0) {
+            paypalService.renderPayPalPaymentButton({
+              orderId: orderData.order._id,
+              amount: orderData.paymentBreakdown.paypalAmount,
+              currency: 'USD',
+              description: `Order ${orderData.order.orderNumber} - ${orderData.order.items.length} items`
+            }, paypalButtonRef.current);
+          }
+        }, 100);
       } else {
         clearCart();
         window.location.href = `/order-confirmation?orderId=${orderData.order._id}`;
@@ -159,14 +208,25 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleRemoveItem = (productId: string) => {
+    removeItem(productId);
+    // The useEffect above will automatically re-fetch checkout info when cartItems changes
+  };
+
   const getPaymentMethodDisplay = () => {
     switch (paymentMethod) {
       case 'credits':
-        return 'Credits';
+        const availableCredits = checkoutInfo?.userCredits || 0;
+        const totalAmount = checkoutInfo?.total || 0;
+        if (availableCredits >= totalAmount) {
+          return `Credits (${availableCredits} available)`;
+        } else {
+          return `Credits + PayPal (${availableCredits} credits + $${totalAmount - availableCredits} PayPal)`;
+        }
       case 'paypal':
-        return 'Credit Card/Debit Card';
+        return 'PayPal / Credit Card';
       default:
-        return 'Credit Card/Debit Card';
+        return 'PayPal / Credit Card';
     }
   };
 
@@ -278,21 +338,19 @@ export default function CheckoutPage() {
                 >
                   <div className="flex items-center space-x-2">
                     <CreditCard className="w-4 h-4" />
-                    <span>Credit Card/Debit Card</span>
+                    <span>PayPal / Credit Card</span>
                   </div>
                 </button>
                 
-                {checkoutInfo.userCredits > 0 && (
-                  <button
-                    onClick={() => handlePaymentMethodChange('credits')}
-                    className={`w-full text-left p-2 rounded ${paymentMethod === 'credits' ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <span className="text-green-600">💰</span>
-                      <span>Credits ({checkoutInfo.userCredits} available)</span>
-                    </div>
-                  </button>
-                )}
+                <button
+                  onClick={() => handlePaymentMethodChange('credits')}
+                  className={`w-full text-left p-2 rounded ${paymentMethod === 'credits' ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className="text-green-600">💰</span>
+                    <span>Credits ({checkoutInfo.userCredits || 0} available)</span>
+                  </div>
+                </button>
 
 
               </div>
@@ -319,13 +377,14 @@ export default function CheckoutPage() {
               <div key={index} className="flex items-center space-x-4">
                 <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
                   {item.imageUrl ? (
-                    <img 
+                    <Image 
                       src={item.imageUrl} 
                       alt={item.productName}
+                      width={64}
+                      height={64}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = 'https://placehold.co/64x64';
+                      onError={() => {
+                        // Fallback handled by Next.js Image component
                       }}
                     />
                   ) : (
@@ -337,10 +396,18 @@ export default function CheckoutPage() {
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900">{item.productName}</h3>
                   <p className="text-gray-600">Product Category</p>
+                  <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
                 </div>
                 <div className="text-right">
                   <span className="font-semibold text-gray-900">${item.totalPrice}</span>
                 </div>
+                <button
+                  onClick={() => handleRemoveItem(item.productId)}
+                  className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                  title="Remove item"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
             ))}
           </div>
@@ -382,12 +449,43 @@ export default function CheckoutPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Confirm Credit Payment</h3>
-            <p className="text-gray-600 mb-4">
-              You are about to use <strong>{checkoutInfo.total} credits</strong> from your account to complete this purchase.
-            </p>
-            <p className="text-gray-600 mb-6">
-              Your remaining credits after this purchase: <strong>{checkoutInfo.userCredits - checkoutInfo.total} credits</strong>
-            </p>
+            
+            {checkoutInfo.userCredits >= checkoutInfo.total ? (
+              // Full credit payment
+              <>
+                <p className="text-gray-600 mb-4">
+                  You are about to use <strong>{checkoutInfo.total} credits</strong> from your account to complete this purchase.
+                </p>
+                <p className="text-gray-600 mb-6">
+                  Your remaining credits after this purchase: <strong>{checkoutInfo.userCredits - checkoutInfo.total} credits</strong>
+                </p>
+              </>
+            ) : (
+              // Mixed payment (credits + PayPal)
+              <>
+                <p className="text-gray-600 mb-4">
+                  You will use <strong>{checkoutInfo.userCredits} credits</strong> and pay the remaining <strong>${checkoutInfo.total - checkoutInfo.userCredits}</strong> via PayPal.
+                </p>
+                <div className="bg-gray-50 p-3 rounded-lg mb-6">
+                  <div className="flex justify-between text-sm">
+                    <span>Total Amount:</span>
+                    <span>${checkoutInfo.total}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Credits Used:</span>
+                    <span>-{checkoutInfo.userCredits}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-semibold border-t pt-2 mt-2">
+                    <span>PayPal Payment:</span>
+                    <span>${checkoutInfo.total - checkoutInfo.userCredits}</span>
+                  </div>
+                </div>
+                <p className="text-gray-600 mb-6">
+                  Your remaining credits after this purchase: <strong>0 credits</strong>
+                </p>
+              </>
+            )}
+            
             <div className="flex space-x-3">
               <Button
                 onClick={() => setShowCreditConfirmation(false)}
@@ -402,6 +500,34 @@ export default function CheckoutPage() {
                 disabled={processing}
               >
                 {processing ? 'Processing...' : 'Confirm Payment'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PayPal Payment Dialog */}
+      {showPayPalPayment && currentOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Complete Payment</h3>
+            <p className="text-gray-600 mb-4">
+              Order: <strong>{currentOrder.orderNumber}</strong>
+            </p>
+            <p className="text-gray-600 mb-6">
+              PayPal Amount: <strong>${currentOrder.paypalAmount || currentOrder.total}</strong>
+            </p>
+            
+            {/* PayPal Button Container */}
+            <div ref={paypalButtonRef} className="mb-4"></div>
+            
+            <div className="flex justify-center">
+              <Button
+                onClick={() => setShowPayPalPayment(false)}
+                variant="outline"
+                className="w-full"
+              >
+                Cancel
               </Button>
             </div>
           </div>

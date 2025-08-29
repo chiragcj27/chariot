@@ -12,6 +12,9 @@ import { Order, IOrder, OrderStatus, PaymentMethod, PaymentStatus } from './mode
 import SubscriptionCard from './models/subscriptionCard.model';
 import { IUserSubscription, UserSubscription } from './models/userSubscription.model';
 import { OTP, IOTP } from './models/otp.model';
+import { MarketplaceSettings, IMarketplaceSettings } from './models/marketplaceSettings.model';
+import { Notification, INotification, NotificationType, NotificationStatus } from './models/notification.model';
+import { Sale, ISale, SaleStatus } from './models/sales.model';
 
 export {
   connectDB,
@@ -41,7 +44,10 @@ export {
   PdfFile,
   DocumentFile,
   ZipFile,
-  OTP
+  OTP,
+  MarketplaceSettings,
+  Notification,
+  Sale,
 };
 
 export type {
@@ -51,19 +57,29 @@ export type {
   IBuyer,
   IUser,
   IProduct,
-  IKitProduct,
   IKit,
-  ProductStatus,
-  IUserSubscription,
+  IOrder,
   IFile,
   IPdfFile,
   IDocumentFile,
   IZipFile,
   IOTP,
-  IOrder,
+  IUserSubscription,
+  IMarketplaceSettings,
+  INotification,
+  ISale,
 };
 
-export { ProductType, OrderStatus, PaymentMethod, PaymentStatus };
+export {
+  ProductType,
+  ProductStatus,
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+  NotificationType,
+  NotificationStatus,
+  SaleStatus,
+};
 
 export const hello = (): string => {
     return 'Hello from db package!';

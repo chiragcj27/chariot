@@ -1,98 +1,233 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, ShoppingCart, DollarSign, Star, Heart } from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useCart } from '@/contexts/CartContext'
-import { useAuth } from '@/contexts/AuthContext'
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+
+import { useCart } from "@/contexts/CartContext";
+import Footer from "@/components/Footer";
+import ProductCard from "@/components/ProductCard";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+interface ProductImage {
+  _id: string;
+  url: string;
+  originalname?: string;
+  filename?: string;
+}
 
 interface Product {
   _id: string;
   name: string;
-  slug: string;
   description: string;
-  price: {
+  slug: string;
+  price?: {
     amount: number;
     currency: string;
   };
-  creditsCost: number;
-  images: Array<{
-    url: string;
-    alt: string;
-  }>;
-  category: string;
-  rating: number;
-  reviews: number;
-  inStock: boolean;
+  creditsCost?: number;
+  images: ProductImage[];
+  flipbookUrl?: string;
+  category?: string;
+  subcategory?: string;
+}
+
+interface RelatedProduct {
+  _id: string;
+  name: string;
+  description: string;
+  slug: string;
+  price?: {
+    amount: number;
+    currency: string;
+  };
+  images: ProductImage[];
+  category?: string;
+  subcategory?: string;
+}
+
+interface ApiProduct {
+  _id: string;
+  name: string;
+  description: string;
+  slug: string;
+  price?: {
+    amount: number;
+    currency: string;
+  };
+  images?: ProductImage[];
+  categoryId?: { slug: string };
+  itemId?: { slug: string };
+  category?: string;
+  subcategory?: string;
 }
 
 interface ProductPageProps {
-  params: Promise<{ 'product-slug': string }>;
+  params: Promise<{ "product-slug": string }>;
 }
 
+// Flipbook Embed Component
+const FlipbookEmbed = ({
+  flipbookUrl,
+  title = "Product Catalog",
+}: {
+  flipbookUrl: string;
+  title?: string;
+}) => {
+  return (
+    <div className="w-full h-full">
+      <iframe
+        src={flipbookUrl}
+        width="100%"
+        height="100%"
+        allowFullScreen
+        className="w-full h-full rounded-lg"
+        title={title}
+      />
+    </div>
+  );
+};
+
+const faqs = [
+  {
+    question: "What is included in this product?",
+    answer:
+      "This product includes comprehensive features, detailed documentation, and full support to help you get started quickly.",
+  },
+  {
+    question: "Can I request custom modifications?",
+    answer:
+      "Absolutely! We offer full customization, including new features, modifications, and enhancements tailored to your requirements.",
+  },
+  {
+    question: "How long does it take to deliver?",
+    answer:
+      "Delivery time depends on the scope of customization, but most products are ready within 1-2 weeks.",
+  },
+  {
+    question: "Do you offer support after purchase?",
+    answer:
+      "Yes, we provide post-purchase support to ensure your product is implemented smoothly.",
+  },
+  {
+    question: "Can I update my product later?",
+    answer: "Of course! You can request updates or new features at any time.",
+  },
+];
+
 export default function ProductPage({ params }: ProductPageProps) {
-  const { user } = useAuth();
-  const { addItem, getTotalItems } = useCart();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [quantity, setQuantity] = useState(1);
+  const router = useRouter();
+  const { addItem } = useCart();
 
   useEffect(() => {
-    fetchProduct();
-  }, []);
-
-  const fetchProduct = async () => {
-    try {
-      setLoading(true);
-      const { 'product-slug': slug } = await params;
-      
-      // For now, create mock product data using real product ID from database
-      // In real implementation, fetch from API
-      const mockProduct: Product = {
-        _id: '68a09e3d02e200cf66399517', // Real product ID from database
-        name: 'Premium Brand Kit',
-        slug: slug,
-        description: 'A comprehensive brand kit that includes logos, color palettes, typography, brand guidelines, templates, and more. Perfect for businesses looking to establish a strong brand identity.',
-        price: {
-          amount: 232.99, // Real price from database
-          currency: 'USD'
-        },
-        creditsCost: 2443, // Real credits cost from database
-        images: [
-          {
-            url: 'https://placehold.co/600x400/87CEEB/FFFFFF?text=Product+Image+1',
-            alt: 'Product Image 1'
-          },
-          {
-            url: 'https://placehold.co/600x400/98D8C8/FFFFFF?text=Product+Image+2',
-            alt: 'Product Image 2'
-          },
-          {
-            url: 'https://placehold.co/600x400/F7DC6F/FFFFFF?text=Product+Image+3',
-            alt: 'Product Image 3'
-          },
-          {
-            url: 'https://placehold.co/600x400/BB8FCE/FFFFFF?text=Product+Image+4',
-            alt: 'Product Image 4'
+    const fetchProductAndRelated = async () => {
+      try {
+        setLoading(true);
+        
+        // Debug: Log the params to see what we're getting
+        console.log("Raw params:", params);
+        
+        const resolvedParams = await params;
+        console.log("Resolved params:", resolvedParams);
+        
+        const slug = resolvedParams["product-slug"];
+        
+                if (!slug) {
+          console.error("Slug is undefined or empty");
+          throw new Error("Product slug is required");
+        }
+        
+        console.log("Fetching product with slug:", slug);
+        
+        // Fetch product data from the new API endpoint
+        const productResponse = await fetch(`${API_URL}/api/products/slug/${slug}`);
+        
+        if (!productResponse.ok) {
+          if (productResponse.status === 404) {
+            throw new Error("Product not found");
           }
-        ],
-        category: 'Brand Kits',
-        rating: 4.8,
-        reviews: 127,
-        inStock: true
-      };
+          throw new Error("Failed to fetch product");
+        }
+        
+        const productData = await productResponse.json();
+        const fetchedProduct = productData.product;
+        
+        // Transform the API response to match our interface
+        const transformedProduct: Product = {
+          _id: fetchedProduct._id,
+          name: fetchedProduct.name,
+          description: fetchedProduct.description,
+          slug: fetchedProduct.slug,
+          price: fetchedProduct.price,
+          creditsCost: fetchedProduct.creditsCost,
+          images: fetchedProduct.images || [],
+          flipbookUrl: fetchedProduct.flipbookUrl,
+          category: fetchedProduct.categoryId?.slug || fetchedProduct.category,
+          subcategory: fetchedProduct.itemId?.slug || fetchedProduct.subcategory
+        };
+        
+        setProduct(transformedProduct);
 
-      setProduct(mockProduct);
-    } catch (error) {
-      console.error('Error fetching product:', error);
-    } finally {
-      setLoading(false);
-    }
+        // Fetch related products based on category
+        if (transformedProduct.category) {
+          try {
+            const relatedResponse = await fetch(`${API_URL}/api/products/category/${transformedProduct.category}?limit=4&exclude=${transformedProduct._id}`);
+            if (relatedResponse.ok) {
+              const relatedData = await relatedResponse.json();
+                             const relatedProducts = (relatedData.products || []).map((p: ApiProduct) => ({
+                _id: p._id,
+                name: p.name,
+                description: p.description,
+                slug: p.slug,
+                price: p.price,
+                images: p.images || [],
+                category: p.categoryId?.slug || p.category,
+                subcategory: p.itemId?.slug || p.subcategory
+              }));
+              setRelatedProducts(relatedProducts);
+            }
+          } catch (relatedError) {
+            console.error("Error fetching related products:", relatedError);
+            // Continue without related products if there's an error
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch product");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProductAndRelated();
+  }, [params]);
+
+  // Use product images or fallback to placeholder
+  const images = product?.images?.map(img => img.url) || [
+    "https://placehold.co/600x400/87CEEB/FFFFFF?text=Product+Image+1",
+    "https://placehold.co/600x400/87CEEB/FFFFFF?text=Product+Image+2",
+    "https://placehold.co/600x400/87CEEB/FFFFFF?text=Product+Image+3",
+  ];
+
+  // Check if we should show flipbook or images
+  const showFlipbook = !!product?.flipbookUrl;
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const handleAddToCart = async () => {
@@ -101,20 +236,16 @@ export default function ProductPage({ params }: ProductPageProps) {
     try {
       setAddingToCart(true);
       
-      // Add the product to cart multiple times based on quantity
-      for (let i = 0; i < quantity; i++) {
-        addItem({
-          productId: product._id,
-          productName: product.name,
-          productSlug: product.slug,
-          price: product.price.amount,
-          creditsCost: product.creditsCost,
-          imageUrl: product.images[0]?.url,
-        });
-      }
+      addItem({
+        productId: product._id,
+        productName: product.name,
+        productSlug: product.slug,
+        price: product.price?.amount || 0,
+        creditsCost: product.creditsCost || 0,
+        imageUrl: product.images?.[0]?.url,
+      });
       
-      // Show success message
-      alert(`${quantity} item${quantity > 1 ? 's' : ''} added to cart successfully!`);
+      alert('Product added to cart successfully!');
     } catch (error) {
       console.error('Error adding to cart:', error);
       alert('Failed to add product to cart. Please try again.');
@@ -123,251 +254,250 @@ export default function ProductPage({ params }: ProductPageProps) {
     }
   };
 
-  const handleQuantityChange = (newQuantity: number) => {
-    if (newQuantity >= 1 && newQuantity <= 10) {
-      setQuantity(newQuantity);
-    }
+  const handleRelatedProductClick = (productSlug: string) => {
+    router.push(`/product/${productSlug}`);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading product...</p>
-        </div>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sunrise"></div>
       </div>
     );
   }
 
-  if (!product) {
+  if (error || !product) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">Product not found</p>
-          <Link href="/">
-            <Button variant="outline">Back to Home</Button>
-          </Link>
-        </div>
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-red-500">Error: {error || "Product not found"}</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <Link href="/" className="flex items-center text-gray-600 hover:text-gray-900">
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Products
-          </Link>
-          
-          <div className="flex items-center space-x-4">
-            <Link href="/checkout" className="relative text-gray-600 hover:text-orange-500 transition-colors">
-              <ShoppingCart className="w-6 h-6" />
-              {getTotalItems() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {getTotalItems()}
-                </span>
-              )}
-            </Link>
-            {user && (
-              <div className="flex items-center space-x-2 text-sm">
-                <DollarSign className="w-4 h-4 text-green-600" />
-                <span className="text-green-600 font-medium">{user.credits} credits</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Product Images */}
-          <div className="space-y-4">
-            {/* Main Image */}
-            <div className="relative aspect-square bg-white rounded-lg overflow-hidden shadow-lg">
-              <Image
-                src={product.images[selectedImage]?.url || product.images[0]?.url || 'https://placehold.co/600x600'}
-                alt={product.images[selectedImage]?.alt || product.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-            </div>
-            
-            {/* Thumbnail Images */}
-            <div className="grid grid-cols-4 gap-2">
-              {product.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                    selectedImage === index 
-                      ? 'border-orange-500 shadow-md' 
-                      : 'border-gray-200 hover:border-orange-300'
-                  }`}
-                >
-                  <Image
-                    src={image.url}
-                    alt={image.alt}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 25vw, 12.5vw"
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Product Details */}
-          <div className="space-y-6">
-            {/* Product Info */}
-            <div>
-              <div className="flex items-center space-x-2 mb-2">
-                <span className="text-sm text-gray-500">{product.category}</span>
-                <span className="text-gray-300">•</span>
-                <div className="flex items-center space-x-1">
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <span className="text-sm font-medium">{product.rating}</span>
-                  <span className="text-sm text-gray-500">({product.reviews} reviews)</span>
-                </div>
-              </div>
-              
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">{product.name}</h1>
-              
-              <p className="text-gray-600 leading-relaxed mb-6">
-                {product.description}
-              </p>
-            </div>
-
-            {/* Pricing */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold text-gray-900">
-                      ${product.price.amount}
-                    </span>
-                    <div className="flex items-center space-x-2">
-                      <DollarSign className="w-4 h-4 text-green-600" />
-                      <span className="text-green-600 font-medium">
-                        {product.creditsCost} credits
-                      </span>
-                    </div>
+    <div className="min-h-screen bg-[#FEFCFB]">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mt-30 mx-15 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          {/* Left Section - Image Carousel or Flipbook */}
+          <div className="relative">
+            <div
+              className="relative overflow-hidden rounded-lg bg-gray-100"
+              style={{ aspectRatio: "3/2" }}
+            >
+              {showFlipbook ? (
+                // Flipbook Display
+                <FlipbookEmbed
+                  flipbookUrl={product.flipbookUrl!}
+                  title={product.name}
+                />
+              ) : (
+                // Image Carousel
+                <>
+                  {/* Image Container */}
+                  <div
+                    className="flex transition-transform duration-500 ease-in-out h-full"
+                    style={{
+                      transform: `translateX(-${currentImageIndex * 100}%)`,
+                      width: `${images.length * 100}%`,
+                    }}
+                  >
+                    {images.map((image: string, index: number) => (
+                      <div
+                        key={index}
+                        className="relative w-full h-full"
+                        style={{ width: `${100 / images.length}%` }}
+                      >
+                        <Image
+                          src={image}
+                          alt={`${product.name} image ${index + 1}`}
+                          className="object-cover"
+                          fill
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                      </div>
+                    ))}
                   </div>
-                  
-                  {user && (
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-700">Your Credits:</span>
-                        <span className="font-medium text-blue-600">{user.credits}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm mt-1">
-                        <span className="text-gray-700">Can pay with credits:</span>
-                        <span className={`font-medium ${user.credits >= product.creditsCost ? 'text-green-600' : 'text-red-600'}`}>
-                          {user.credits >= product.creditsCost ? 'Yes' : 'No'}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* Quantity and Add to Cart */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <label className="text-sm font-medium text-gray-700">Quantity:</label>
-                <div className="flex items-center border border-gray-300 rounded-lg">
-                  <button
-                    onClick={() => handleQuantityChange(quantity - 1)}
-                    className="px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                    disabled={quantity <= 1}
-                  >
-                    -
-                  </button>
-                  <span className="px-4 py-2 text-gray-900 font-medium">{quantity}</span>
-                  <button
-                    onClick={() => handleQuantityChange(quantity + 1)}
-                    className="px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                    disabled={quantity >= 10}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
+                  {/* Navigation Arrows - Only show for images */}
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevImage}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                        aria-label="Previous image"
+                      >
+                        <ChevronLeft
+                          className="w-10 h-10 text-orange-500 font-bold"
+                          strokeWidth={3}
+                        />
+                      </button>
 
-              <div className="flex space-x-4">
-                <Button
-                  onClick={handleAddToCart}
-                  disabled={addingToCart || !product.inStock}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
-                  size="lg"
-                >
-                  {addingToCart ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Adding...
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="w-4 h-4 mr-2" />
-                      Add to Cart
+                      <button
+                        onClick={nextImage}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                        aria-label="Next image"
+                      >
+                        <ChevronRight
+                          className="w-10 h-10 text-orange-500 font-bold"
+                          strokeWidth={3}
+                        />
+                      </button>
+
+                      {/* Image Indicators - Only show for images */}
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+                        {images.map((_: string, index: number) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentImageIndex(index)}
+                            className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                              index === currentImageIndex
+                                ? "bg-orange-500 w-6"
+                                : "bg-white/60 hover:bg-white"
+                            }`}
+                            aria-label={`Go to image ${index + 1}`}
+                          />
+                        ))}
+                      </div>
                     </>
                   )}
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="px-4"
-                >
-                  <Heart className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {!product.inStock && (
-                <p className="text-red-600 text-sm">This product is currently out of stock.</p>
+                </>
               )}
             </div>
+          </div>
 
-            {/* Product Features */}
-            <Card>
-              <CardHeader>
-                                 <CardTitle className="text-lg">What&apos;s Included</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2 text-sm text-gray-600">
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                    High-resolution logo files (PNG, SVG, AI)
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                    Complete color palette with hex codes
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                    Typography guidelines and font files
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                    Brand style guide and usage examples
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                    Social media templates and assets
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
-                    Business card and letterhead designs
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+          {/* Right Section - Product Information */}
+          <div className="flex flex-col justify-center">
+            {/* Product Title */}
+            <h1 className="text-4xl font-balgin-regular lg:text-[32px] text-[#FA7035]">
+              {product.name}
+            </h1>
+
+            {/* Price */}
+            <div className="text-[24px] text-gray-900">
+              {product.price ? `$${product.price.amount}` : "Contact for pricing"}
+            </div>
+
+            {/* Description */}
+            <p className="text-lg mt-5 text-gray-700 leading-relaxed">
+              {product.description}
+            </p>
+
+            {/* Call-to-Action Buttons */}
+            <div className="flex mr-150 mt-10 flex-col gap-4 pt-4">
+              <Button
+                variant="outline"
+                className="flex-1 border-[#D94506] border-3 text-gray-900 font-avenir text-[16px] w-[150] hover:bg-orange-50 hover:border-orange-600 transition-all duration-200"
+              >
+                Buy Now
+              </Button>
+
+              <Button 
+                className="flex-1 border-[#D94506] border-3 bg-[#FFC1A0] text-black font-avenir text-[16px] w-[150] hover:bg-orange-600 transition-all duration-200"
+                onClick={handleAddToCart}
+                disabled={addingToCart}
+              >
+                {addingToCart ? 'Adding...' : 'Add To Cart'}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* What's Included FAQ Section */}
+      <section className="relative px-5 md:px-10 lg:px-18 pb-16 mt-20 bg-orange-50">
+        {/* Content */}
+        <div className="relative z-10">
+          <h2 className="text-4xl pt-10 font-bold mb-5 text-black">
+            What&apos;s Included?
+          </h2>
+          <div className="w-full">
+            {faqs.map((faq, idx) => (
+              <div key={idx} className="mb-1">
+                <div
+                  className="flex items-center cursor-pointer py-4 group"
+                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                >
+                  {/* Orange Plus/Minus Icon */}
+                  <span
+                    className="text-2xl text-[#FA7035] font-bold mr-6 select-none transition-transform duration-200 group-hover:scale-110"
+                    style={{ minWidth: "24px", textAlign: "center" }}
+                  >
+                    {openFaq === idx ? "−" : "+"}
+                  </span>
+
+                  {/* Question Text */}
+                  <span className="text-lg font-semibold text-black flex-1">
+                    {faq.question}
+                  </span>
+                </div>
+
+                {/* Answer */}
+                {openFaq === idx && (
+                  <div className="pl-10 pb-4 text-black font-medium">
+                    {faq.answer}
+                  </div>
+                )}
+
+                {/* Orange Separator Line */}
+                <div className="border-1 border-[#FA7035] w-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <section className="w-full flex flex-col items-center py-10">
+          <div className="w-full max-w-5xl">
+            <div className="px-4 py-2 rounded mb-6 text-4xl text-sunrise font-bold text-center w-fit mx-auto">
+              Related Products
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+              {relatedProducts.map((relatedProduct) => (
+                <div key={relatedProduct._id} className="flex flex-col items-center">
+                  <div 
+                    className="w-full cursor-pointer"
+                    onClick={() => handleRelatedProductClick(relatedProduct.slug)}
+                  >
+                    <ProductCard
+                      image={relatedProduct.images?.[0]?.url || "https://placehold.co/400x500?text=Product"}
+                      title={relatedProduct.name}
+                      className="w-full"
+                    />
+                  </div>
+                  <button 
+                    className="bg-sunrise/50 mt-2 py-3 w-full rounded text-center font-medium hover:bg-sunrise/70 transition-colors"
+                    onClick={() => {
+                      addItem({
+                        productId: relatedProduct._id,
+                        productName: relatedProduct.name,
+                        productSlug: relatedProduct.slug,
+                        price: relatedProduct.price?.amount || 0,
+                        creditsCost: 0,
+                        imageUrl: relatedProduct.images?.[0]?.url,
+                      });
+                      alert('Related product added to cart!');
+                    }}
+                  >
+                    Add To Cart
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      <div className="flex mt-12 mb-12 px-18">
+        <button
+          className="border-2 border-[#D94506] rounded-xl bg-transparent text-black font-semibold px-8 py-3 transition-colors shadow-lg text-lg hover:bg-white hover:text-black"
+          onClick={() => router.push("/")}
+        >
+          Back to Home
+        </button>
+      </div>
+      <Footer/>
     </div>
   );
 }

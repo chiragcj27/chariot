@@ -2,7 +2,7 @@
 declare global {
   interface Window {
     paypal: {
-      Buttons: (config: PayPalButtonConfig) => { render: (container: string | HTMLElement) => void };
+      Buttons: (config: PayPalButtonConfig | PayPalPaymentButtonConfig) => { render: (container: string | HTMLElement) => void };
     };
   }
 }
@@ -18,16 +18,33 @@ interface PayPalSubscriptionData {
   credits: number;
 }
 
+interface PayPalPaymentData {
+  orderId: string;
+  amount: number;
+  currency: string;
+  description: string;
+}
+
 interface PayPalActions {
   subscription: {
     create: (params: { plan_id: string }) => Promise<string>;
     get: () => Promise<{ id: string; [key: string]: unknown }>;
+  };
+  order: {
+    create: (params: { purchase_units: Array<{ amount: { value: string; currency_code: string }; description?: string }> }) => Promise<string>;
+    capture: (orderId: string) => Promise<{ id: string; status: string; [key: string]: unknown }>;
   };
 }
 
 interface PayPalButtonConfig {
   createSubscription: (data: unknown, actions: PayPalActions) => Promise<string>;
   onApprove: (data: unknown, actions: PayPalActions) => Promise<void>;
+  onError: (err: unknown) => void;
+}
+
+interface PayPalPaymentButtonConfig {
+  createOrder: (data: unknown, actions: PayPalActions) => Promise<string>;
+  onApprove: (data: { orderID: string }, actions: PayPalActions) => Promise<void>;
   onError: (err: unknown) => void;
 }
 
@@ -62,6 +79,36 @@ export class PayPalService {
 
       const script = document.createElement('script');
       script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&vault=true&intent=subscription`;
+      script.onload = () => {
+        this.paypal = window.paypal;
+        resolve();
+      };
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
+  private loadPayPalPaymentScript(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      // Check if we're in a browser environment
+      if (typeof window === 'undefined') {
+        reject(new Error('PayPal script can only be loaded in browser environment'));
+        return;
+      }
+
+      // If PayPal is already loaded, check if it has the order functionality
+      if (window.paypal) {
+        // Check if the PayPal instance has order functionality
+        if (window.paypal.Buttons && typeof window.paypal.Buttons === 'function') {
+          this.paypal = window.paypal;
+          resolve();
+          return;
+        }
+      }
+
+      // Load PayPal script for one-time payments
+      const script = document.createElement('script');
+      script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&intent=capture`;
       script.onload = () => {
         this.paypal = window.paypal;
         resolve();
@@ -138,10 +185,10 @@ export class PayPalService {
                 margin-bottom: 10px;
               "
             >
-              🧪 Test Subscription (Development)
+              🧪 Test Subscription (Mock Plan)
             </button>
             <p style="font-size: 12px; color: #666; text-align: center;">
-              This is a test button. In production, you'll see the real PayPal button.
+              This is a test button for mock plans. Real PayPal plans will show the actual PayPal button.
             </p>
           `;
           resolve();
@@ -280,6 +327,117 @@ export class PayPalService {
             reject(err);
           },
         }).render('#paypal-button-container');
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  async renderPayPalPaymentButton(paymentData: PayPalPaymentData, container: HTMLElement): Promise<void> {
+    await this.loadPayPalPaymentScript();
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Check if button is already rendered
+        if (container.children.length > 0) {
+          resolve();
+          return;
+        }
+
+        // Only show test button if PayPal credentials are not properly configured
+        if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID === 'your_sandbox_paypal_client_id' || PAYPAL_CLIENT_ID === 'your_production_paypal_client_id') {
+          container.innerHTML = `
+            <button 
+              onclick="window.dispatchEvent(new CustomEvent('paypal-payment-success', {detail: {orderId: '${paymentData.orderId}', paymentId: 'pay_${Date.now()}', result: {}}}))"
+              style="
+                background: #0070ba;
+                color: white;
+                border: none;
+                padding: 12px 24px;
+                border-radius: 4px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                width: 100%;
+                margin-bottom: 10px;
+              "
+            >
+              🧪 Test Payment $${paymentData.amount} (No PayPal Credentials)
+            </button>
+            <p style="font-size: 12px; color: #666; text-align: center;">
+              Set up PayPal credentials to see the real PayPal button.
+            </p>
+          `;
+          resolve();
+          return;
+        }
+        
+        this.paypal.Buttons({
+          createOrder: (data: unknown, actions: PayPalActions) => {
+            return actions.order.create({
+              purchase_units: [{
+                amount: {
+                  value: paymentData.amount.toFixed(2),
+                  currency_code: paymentData.currency
+                },
+                description: paymentData.description
+              }]
+            });
+          },
+          onApprove: async (data: { orderID: string }, actions: PayPalActions) => {
+            try {
+              // Capture the payment
+              const captureResult = await actions.order.capture(data.orderID);
+              
+              // Update order payment status with our backend
+              const response = await fetch(`${API_URL}/api/orders/orders/${paymentData.orderId}/payment-status`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                },
+                body: JSON.stringify({
+                  paymentStatus: 'completed',
+                  paypalOrderId: data.orderID,
+                  paypalPaymentId: captureResult.id,
+                }),
+              });
+
+              if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to update payment status');
+              }
+
+              const result = await response.json();
+              
+              // Trigger success callback with payment details
+              const event = new CustomEvent('paypal-payment-success', {
+                detail: {
+                  orderId: paymentData.orderId,
+                  paymentId: captureResult.id,
+                  result: result
+                }
+              });
+              window.dispatchEvent(event);
+              
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          },
+
+          onError: (err: unknown) => {
+            // Handle payment errors
+            const event = new CustomEvent('paypal-payment-error', {
+              detail: {
+                orderId: paymentData.orderId,
+                error: err
+              }
+            });
+            window.dispatchEvent(event);
+            reject(err);
+          },
+        }).render(container);
       } catch (error) {
         reject(error);
       }

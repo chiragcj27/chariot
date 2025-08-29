@@ -87,7 +87,7 @@ export const webhookController = {
             if (plan) {
               const user = await User.findById(userSub.userId);
               if (user) {
-                user.credits = (user.credits || 0) + plan.credits;
+                (user as any).creditsPoints = ((user as any).creditsPoints || 0) + plan.credits;
                 await user.save();
                 
                 // Update subscription with payment info

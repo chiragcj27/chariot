@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Order, PaymentMethod, PaymentStatus, OrderStatus, User, Product, Kit } from '@chariot/db';
+import { Order, PaymentMethod, PaymentStatus, OrderStatus, User, Product, Kit, IUser } from '@chariot/db';
 
 interface CartItem {
   productId: string;
@@ -120,7 +120,7 @@ export const getCheckoutInfo = async (req: Request, res: Response) => {
     const total = subtotal + tax;
 
     // Calculate payment breakdown (1 credit = 1 dollar)
-    const availableCredits = user.credits;
+    const availableCredits = user.role === 'buyer' ? (user as any).creditsPoints || 0 : 0;
     const creditsToUse = Math.min(availableCredits, total);
     const creditsAmount = creditsToUse;
     const paypalAmount = total - creditsAmount;
@@ -254,7 +254,7 @@ export const createOrder = async (req: Request, res: Response) => {
     let finalPaymentMethod = PaymentMethod.PAYPAL;
 
     if (paymentMethod === 'credits') {
-      const availableCredits = user.credits;
+      const availableCredits = user.role === 'buyer' ? (user as any).creditsPoints || 0 : 0;
       
       // If user has enough credits, use all credits
       if (availableCredits >= total) {
@@ -269,19 +269,39 @@ export const createOrder = async (req: Request, res: Response) => {
         paypalAmount = total - availableCredits;
         finalPaymentMethod = PaymentMethod.MIXED;
       }
+    } else if (paymentMethod === 'paypal') {
+      // PayPal-only payment - no credits used
+      creditsUsed = 0;
+      creditsAmount = 0;
+      paypalAmount = total;
+      finalPaymentMethod = PaymentMethod.PAYPAL;
     }
 
     // Check if user has enough credits for credits-only payment
-    if (paymentMethod === 'credits' && user.credits < total && user.credits === 0) {
+    if (paymentMethod === 'credits' && (user.role === 'buyer' ? (user as any).creditsPoints || 0 : 0) < total && (user.role === 'buyer' ? (user as any).creditsPoints || 0 : 0) === 0) {
       return res.status(400).json({ 
         message: 'Insufficient credits. Please use PayPal payment.',
-        availableCredits: user.credits,
+        availableCredits: user.role === 'buyer' ? (user as any).creditsPoints || 0 : 0,
         requiredAmount: total
       });
     }
 
+    // Ensure credits are never negative
+    creditsUsed = Math.max(0, creditsUsed);
+    creditsAmount = Math.max(0, creditsAmount);
+
+    // Generate order number
+    const generateOrderNumber = (): string => {
+      const date = new Date();
+      const datePart = `${date.getFullYear()}${String(date.getMonth() + 1).padStart(2, "0")}${String(date.getDate()).padStart(2, "0")}`;
+      const timePart = `${String(date.getHours()).padStart(2, "0")}${String(date.getMinutes()).padStart(2, "0")}${String(date.getSeconds()).padStart(2, "0")}${String(date.getMilliseconds()).padStart(3, "0")}`;
+      const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+      return `ORD-${datePart}-${timePart}-${randomPart}`;
+    };
+
     // Create the order
     const order = new Order({
+      orderNumber: generateOrderNumber(),
       userId,
       items: orderItems,
       subtotal,
@@ -300,9 +320,11 @@ export const createOrder = async (req: Request, res: Response) => {
 
     await order.save();
 
-    // Update user credits if credits were used
-    if (creditsUsed > 0) {
-      user.credits -= creditsUsed;
+    // Update user credits if credits were used AND payment is completed (no PayPal payment required)
+    // For mixed payments, credits will be deducted only after PayPal payment is completed
+    if (creditsUsed > 0 && user.role === 'buyer' && paypalAmount === 0) {
+      const currentCredits = Number((user as any).creditsPoints) || 0;
+      (user as any).creditsPoints = Math.max(0, currentCredits - creditsUsed);
       await user.save();
     }
 
@@ -320,7 +342,7 @@ export const createOrder = async (req: Request, res: Response) => {
         createdAt: order.createdAt,
       },
       paymentBreakdown: order.paymentBreakdown,
-      userCreditsAfter: user.credits,
+      userCreditsAfter: user.role === 'buyer' ? (user as any).creditsPoints || 0 : 0,
       requiresPayPalPayment: paypalAmount > 0,
     };
 
@@ -339,7 +361,12 @@ export const getUserOrders = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'User not authenticated' });
     }
 
-    const orders = await Order.find({ userId })
+    // Only fetch successfully processed orders (PAID status and COMPLETED payment status)
+    const orders = await Order.find({ 
+      userId,
+      status: OrderStatus.PAID,
+      paymentStatus: PaymentStatus.COMPLETED
+    })
       .sort({ createdAt: -1 })
       .populate('items.productId', 'name slug images type isKitProduct');
 
@@ -445,6 +472,16 @@ export const updateOrderPaymentStatus = async (req: Request, res: Response) => {
 
     if (paymentStatus === PaymentStatus.COMPLETED) {
       order.status = OrderStatus.PAID;
+      
+      // For mixed payments, deduct credits only after PayPal payment is completed
+      if (order.paymentMethod === PaymentMethod.MIXED && order.paymentBreakdown.creditsUsed > 0) {
+        const user = await User.findById(order.userId);
+        if (user && user.role === 'buyer') {
+          const currentCredits = Number((user as any).creditsPoints) || 0;
+          (user as any).creditsPoints = Math.max(0, currentCredits - order.paymentBreakdown.creditsUsed);
+          await user.save();
+        }
+      }
     }
 
     await order.save();
@@ -452,6 +489,128 @@ export const updateOrderPaymentStatus = async (req: Request, res: Response) => {
     res.json(order);
   } catch (error) {
     console.error('Error updating order payment status:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const cancelOrder = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    const order = await Order.findOne({ _id: orderId, userId });
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Only allow cancellation of pending orders
+    if (order.status !== OrderStatus.PENDING) {
+      return res.status(400).json({ message: 'Order cannot be cancelled' });
+    }
+
+    // For mixed payments that haven't been completed, restore credits
+    if (order.paymentMethod === PaymentMethod.MIXED && 
+        order.paymentStatus === PaymentStatus.PENDING && 
+        order.paymentBreakdown.creditsUsed > 0) {
+      const user = await User.findById(userId);
+      if (user && user.role === 'buyer') {
+        (user as any).creditsPoints += order.paymentBreakdown.creditsUsed;
+        await user.save();
+      }
+    }
+
+    // Update order status
+    order.status = OrderStatus.CANCELLED;
+    order.paymentStatus = PaymentStatus.FAILED;
+    await order.save();
+
+    res.json({ 
+      message: 'Order cancelled successfully',
+      order: order,
+      creditsRestored: order.paymentMethod === PaymentMethod.MIXED ? order.paymentBreakdown.creditsUsed : 0
+    });
+  } catch (error) {
+    console.error('Error cancelling order:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+export const getAllUserOrders = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    // Fetch all orders including pending ones for order status tracking
+    const orders = await Order.find({ userId })
+      .sort({ createdAt: -1 })
+      .populate('items.productId', 'name slug images type isKitProduct');
+
+    // Get all product IDs that didn't get populated (likely kits)
+    const unpopulatedIds: string[] = [];
+    orders.forEach(order => {
+      order.items.forEach((item: any) => {
+        if (!item.productId || typeof item.productId === 'string') {
+          unpopulatedIds.push(item.productId);
+        }
+      });
+    });
+
+    // Fetch kits for unpopulated IDs
+    let kitMap = new Map<string, any>();
+    if (unpopulatedIds.length > 0) {
+      const kits = await Kit.find({ _id: { $in: unpopulatedIds } });
+      kitMap = new Map(kits.map(k => [k._id.toString(), k]));
+    }
+
+    // Transform the orders to ensure productId is a string and include productInfo
+    const transformedOrders = orders.map(order => {
+      const orderObj = order.toObject();
+      return {
+        ...orderObj,
+        items: orderObj.items.map((item: any) => {
+          const productId = item.productId._id || item.productId.toString();
+          
+          let productInfo = null;
+          if (item.productId && typeof item.productId === 'object') {
+            // This is a populated product
+            productInfo = {
+              type: item.productId.type,
+              isKitProduct: item.productId.isKitProduct,
+              name: item.productId.name,
+              slug: item.productId.slug
+            };
+          } else {
+            // This might be a kit - check if we have kit data
+            const kit = kitMap.get(productId);
+            if (kit) {
+              productInfo = {
+                type: 'digital', // Kits are downloadable
+                isKitProduct: true, // Kits are kit products
+                name: kit.title,
+                slug: kit.slug
+              };
+            }
+          }
+
+          return {
+            ...item,
+            productId,
+            productInfo
+          };
+        })
+      };
+    });
+
+    res.json(transformedOrders);
+  } catch (error) {
+    console.error('Error getting all user orders:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 };

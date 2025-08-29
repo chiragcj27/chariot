@@ -44,7 +44,7 @@ export const subscriptionController = {
       // 4. Update user credits
       const user = await User.findById(userId);
       if (user) {
-        user.credits = (user.credits || 0) + plan.credits;
+        (user as any).creditsPoints = ((user as any).creditsPoints || 0) + plan.credits;
         await user.save();
       }
 
@@ -56,7 +56,7 @@ export const subscriptionController = {
           startDate: userSub.startDate,
           nextBillingDate: userSub.nextBillingDate,
         },
-        credits: user?.credits,
+        credits: (user as any)?.creditsPoints || 0,
         plan: {
           title: plan.title,
           credits: plan.credits,

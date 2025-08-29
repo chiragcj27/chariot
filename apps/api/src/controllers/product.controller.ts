@@ -594,6 +594,41 @@ export const productController = {
     }
   },
 
+  // Get product by slug directly (for standalone product pages)
+  getProductBySlugDirect: async (req: Request, res: Response) => {
+    try {
+      const { productSlug } = req.params;
+      
+      const product = await Product.findOne({ slug: productSlug })
+        .populate({
+          path: 'categoryId',
+          model: 'Menu'
+        })
+        .populate({
+          path: 'itemId',
+          model: 'Item'
+        })
+        .populate('images')
+        .populate('kitImages')
+        .populate('kitFiles');
+
+      if (!product) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      res.status(200).json({
+        message: "Product retrieved successfully",
+        product,
+      });
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+      res.status(500).json({
+        message: "Error retrieving product",
+        error: errorMessage,
+      });
+    }
+  },
+
   // Get product by ID (for sellers to view their own products)
   getProductById: async (req: Request, res: Response) => {
     try {

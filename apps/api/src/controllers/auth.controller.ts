@@ -88,7 +88,7 @@ export async function verify(req: Request, res: Response) {
         email: user.email,
         name: user.name,
         role: user.role,
-        credits: user.credits,
+        credits: (user as any).creditsPoints || 0,
         approvalStatus: user.approvalStatus,
       }
     });

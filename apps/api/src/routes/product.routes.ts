@@ -35,6 +35,9 @@ router.get("/category/:categorySlug/item/:itemSlug", productController.getProduc
 // Get product by slug (requires category and item context)
 router.get("/category/:categorySlug/item/:itemSlug/product/:productSlug", productController.getProductBySlug);
 
+// Get product by slug directly (new endpoint for standalone product pages)
+router.get("/slug/:productSlug", productController.getProductBySlugDirect);
+
 // Get product by ID (for sellers)
 router.get("/:productId", isSeller, productController.getProductById);
 

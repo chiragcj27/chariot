@@ -7,7 +7,7 @@ interface User {
   email: string;
   name: string;
   role: string;
-  credits: number;
+  credits: number; // This will be creditsPoints from the backend
   userAccountId?: string;
   approvalStatus?: string;
 }

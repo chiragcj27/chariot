@@ -63,6 +63,7 @@ export interface IProduct {
   };
 
   slug: string;
+  sku: string;
 
   isAdminApproved: boolean;
   isAdminRejected: boolean;
@@ -201,6 +202,11 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
       },
     },
     slug: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    sku: {
       type: String,
       required: true,
       unique: true,
