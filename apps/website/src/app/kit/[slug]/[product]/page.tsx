@@ -378,13 +378,13 @@ export default function KitProductDetailPage({ params }: PageProps) {
             <div className="flex mr-150 mt-10 flex-col gap-4 pt-4">
               <Button
                 variant="outline"
-                className="flex-1 border-[#D94506] border-3 text-gray-900 font-avenir text-[16px] w-[150] hover:bg-orange-50 hover:border-orange-600 transition-all duration-200"
+                className="flex-1 border-[#FCA17A] border-3 text-gray-900 font-avenir text-[16px] w-[150] hover:bg-orange-50 hover:border-orange-600 transition-all duration-200"
               >
                 Buy Now
               </Button>
 
               <Button 
-                className="flex-1 border-[#D94506] border-3 bg-[#FFC1A0] text-black font-avenir text-[16px] w-[150] hover:bg-orange-600 transition-all duration-200"
+                className="flex-1 border-[#FCA17A] border-3 bg-[#FFC1A0] text-black font-avenir text-[16px] w-[150] hover:bg-orange-600 transition-all duration-200"
                 onClick={handleAddToCart}
                 disabled={addingToCart}
               >
