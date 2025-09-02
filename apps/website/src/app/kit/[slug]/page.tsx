@@ -58,12 +58,15 @@ interface KitPageProps {
 
 export default function KitPage({ params }: KitPageProps) {
   const [kit, setKit] = useState<Kit | null>(null);
-  const [kitProducts, setKitProducts] = useState<KitProduct[]>([]);
+  const [allKitProducts, setAllKitProducts] = useState<KitProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null); // For FAQ accordion
-  const [selectedPack, setSelectedPack] = useState<'premium' | 'basic'>('premium');
+  const [selectedPack, setSelectedPack] = useState<'premium' | 'basic'>('basic');
   const router = useRouter(); // Removed as per edit hint
+
+  // Filter products based on selected pack
+  const filteredProducts = allKitProducts.filter(product => product.typeOfKit === selectedPack);
 
   const faqs = [
     {
@@ -107,12 +110,12 @@ export default function KitPage({ params }: KitPageProps) {
         const kitData = await kitResponse.json();
         setKit(kitData);
 
-        // Fetch kit products
-        const productsResponse = await fetch(`${API_URL}/api/products/kit/${slug}?typeOfKit=${selectedPack}`);
+        // Fetch all kit products (both basic and premium)
+        const productsResponse = await fetch(`${API_URL}/api/products/kit/${slug}`);
         
         if (productsResponse.ok) {
           const productsData = await productsResponse.json();
-          setKitProducts(productsData.products || []);
+          setAllKitProducts(productsData.products || []);
         }
       } catch (err) {
         console.error('Error fetching kit and products:', err);
@@ -123,7 +126,7 @@ export default function KitPage({ params }: KitPageProps) {
     };
 
     fetchKitAndProducts();
-  }, [params, selectedPack]);
+  }, [params]);
 
   if (loading) {
     return (
@@ -222,8 +225,8 @@ export default function KitPage({ params }: KitPageProps) {
       </button>
     </div>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-5 md:px-10 lg:px-18 py-6">
-      {kitProducts.length > 0 ? (
-        kitProducts.map((product) => (
+      {filteredProducts.length > 0 ? (
+        filteredProducts.map((product: KitProduct) => (
           <ProductCard
             key={product._id}
             title={product.name}
