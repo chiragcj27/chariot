@@ -231,7 +231,7 @@ export default function KitPage({ params }: KitPageProps) {
             key={product._id}
             title={product.name}
             image={product.images[0]?.url || "https://placehold.co/400x500/CFDAE9/000000?text=Product"}
-            onHoverImage={product.kitImages[0]?.url || product.images[0]?.url || "https://placehold.co/400x500/4ECDC4/FFFFFF?text=Product+Hover"}
+            onHoverImage={product.images[0]?.url || "https://placehold.co/400x500/CFDAE9/000000?text=Product"}
             aspectRatio={4/3}
             onClick={() => router.push(`/kit/${kit?.slug}/${product.slug}`)}
           />

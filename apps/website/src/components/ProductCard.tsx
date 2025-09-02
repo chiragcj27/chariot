@@ -22,11 +22,11 @@ export default function ProductCard({
 }: ProductCardProps) {
   return (
     <div 
-      className={`flex flex-col items-center ${className} ${onClick ? 'cursor-pointer' : ''}`}
+      className={`flex flex-col items-center ${className} ${onClick ? 'cursor-pointer' : ''} transition-all duration-300`}
       onClick={onClick}
     >
       <div 
-        className="relative w-full rounded shadow-md overflow-hidden group"
+        className="relative w-full rounded shadow-md overflow-hidden group transition-all duration-300 hover:scale-105 hover:shadow-xl hover:-translate-y-1"
         style={{ 
           aspectRatio: aspectRatio,
           height: 'auto'
