@@ -134,6 +134,15 @@ export const productController = {
         };
       }
       
+      // Normalize kitColorHex: trim and lower-case, or remove if empty
+      if (productData.kitColorHex !== undefined) {
+        if (typeof productData.kitColorHex === 'string' && productData.kitColorHex.trim() !== '') {
+          productData.kitColorHex = productData.kitColorHex.trim();
+        } else {
+          delete productData.kitColorHex;
+        }
+      }
+
       let product;
 
       // Use the appropriate model based on product type and isKitProduct flag
@@ -791,9 +800,18 @@ export const productController = {
         'kind', 'deliveryTime', 'revisions', 'isKitProduct', 
         'kitId', 'typeOfKit', 'zipFile', 'previewFile', 'kitDescription', 
         'kitInstructions', 'kitContents', 'kitImageMetadata', 'kitFileMetadata',
-        'kitFiles', 'kitImages'
+        'kitFiles', 'kitImages', 'kitColorHex'
       ];
       
+      // Normalize kitColorHex if present
+      if (updateData.kitColorHex !== undefined) {
+        if (typeof updateData.kitColorHex === 'string' && updateData.kitColorHex.trim() !== '') {
+          updateData.kitColorHex = updateData.kitColorHex.trim();
+        } else {
+          updateData.kitColorHex = undefined;
+        }
+      }
+
       fieldsToUpdate.forEach(field => {
         if (updateData[field] !== undefined) {
           (product as any)[field] = updateData[field];

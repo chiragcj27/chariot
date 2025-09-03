@@ -125,6 +125,7 @@ interface ProductFormData {
   // Images
   images: (string | { _id: string; url: string })[];
   previewFile?: { name: string; url: string; key: string } | null;
+  kitColorHex?: string;
 }
 
 export default function EditProductPage() {
@@ -195,6 +196,7 @@ export default function EditProductPage() {
           })) : [],
           kitFiles: data.product.kitFiles || [],
           kitMainFile: data.product.kitMainFile || null,
+          kitColorHex: data.product.kitColorHex || '',
           previewFile: data.product.previewFile || null,
           zipFile: data.product.zipFile || null,
         };

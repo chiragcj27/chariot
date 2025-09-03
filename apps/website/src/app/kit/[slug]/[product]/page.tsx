@@ -58,21 +58,10 @@ interface ProductDoc {
   kitImageMetadata?: KitImageMetadataItem[];
   kitFileMetadata?: KitFileMetadataItem[];
   flipbookUrls?: FlipbookUrlItem[];
+  kitColorHex?: string;
 }
 
-interface Kit {
-  _id: string;
-  title: string;
-  slug: string;
-  description: string;
-  thumbnail?: ProductImage;
-  onHoverImage?: ProductImage;
-  mainImage?: ProductImage;
-  carouselImages?: ProductImage[];
-  testimonials?: string[];
-  createdAt: string;
-  updatedAt: string;
-}
+// Removed unused Kit interface
 
 interface PageProps {
   params: Promise<{ slug: string; product: string }>;
@@ -130,7 +119,6 @@ const faqs = [
 export default function KitProductDetailPage({ params }: PageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [product, setProduct] = useState<ProductDoc | null>(null);
-  const [kit, setKit] = useState<Kit | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
@@ -143,13 +131,6 @@ export default function KitProductDetailPage({ params }: PageProps) {
       try {
         setLoading(true);
         const { slug, product: productSlug } = await params;
-
-        // Fetch kit data for background image
-        const kitRes = await fetch(`/api/kits/slug/${slug}`);
-        if (kitRes.ok) {
-          const kitData = await kitRes.json();
-          setKit(kitData);
-        }
 
         // Fetch kit products via website API proxy, then find product by slug
         const res = await fetch(`/api/products/kit/${slug}`);
@@ -397,19 +378,13 @@ export default function KitProductDetailPage({ params }: PageProps) {
 
       {/* What's Included FAQ Section */}
       <section className="relative px-5 md:px-10 lg:px-18 pb-16 mt-20">
-        {/* Background Image with Overlay */}
+        {/* Background color using product.kitColorHex (fallback to theme color) */}
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
+          className="absolute inset-0 opacity-60"
           style={{
-            backgroundImage: kit?.mainImage
-              ? `url(${kit.mainImage.url})`
-              : "none",
-            backgroundColor: kit?.mainImage ? "transparent" : "#FA7035",
+            backgroundColor: (product?.kitColorHex && /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(product.kitColorHex)) ? product.kitColorHex : '#FA7035'
           }}
-        >
-          {/* Overlay for better text readability */}
-          <div className="absolute inset-0"></div>
-        </div>
+        />
 
         {/* Content */}
         <div className="relative z-10">

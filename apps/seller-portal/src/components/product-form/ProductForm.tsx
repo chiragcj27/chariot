@@ -88,6 +88,7 @@ interface ProductFormData {
   kitImages?: KitImage[];
   kitFiles?: KitFile[];
   kitMainFile?: KitMainFile | null;
+  kitColorHex?: string;
   
   // Physical product specific
   dimensions?: {
@@ -302,6 +303,15 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
     // Validate kit type if this is a kit product
     if (formData.isKitProduct && !formData.typeOfKit) {
       newErrors.typeOfKit = 'Kit type is required for kit products';
+    }
+
+    // Validate kit color hex if provided (optional field)
+    if (formData.isKitProduct && formData.kitColorHex && formData.kitColorHex.trim() !== '') {
+      const hex = formData.kitColorHex.trim();
+      const isValid = /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(hex);
+      if (!isValid) {
+        newErrors.kitColorHex = 'Enter a valid hex color (e.g., #ABC or #AABBCC)';
+      }
     }
 
     // Validate kit images have titles (description is optional)
@@ -655,6 +665,26 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
                     </SelectContent>
                   </Select>
                   {errors.typeOfKit && <p className="text-red-500 text-sm mt-1">{errors.typeOfKit}</p>}
+                </div>
+
+                <div className="md:col-span-2">
+                  <Label htmlFor="kitColorHex">Kit Color (Hex)</Label>
+                  <div className="flex items-center gap-3 mt-1">
+                    <Input
+                      id="kitColorHex"
+                      placeholder="#AABBCC"
+                      value={formData.kitColorHex || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, kitColorHex: e.target.value }))}
+                    />
+                    {/* Color preview box */}
+                    <div
+                      aria-label="color-preview"
+                      className="h-8 w-8 rounded border"
+                      style={{ backgroundColor: (formData.kitColorHex && /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(formData.kitColorHex.trim())) ? formData.kitColorHex.trim() : '#ffffff' }}
+                    />
+                  </div>
+                  {errors.kitColorHex && <p className="text-red-500 text-sm mt-1">{errors.kitColorHex}</p>}
+                  <p className="text-xs text-gray-500 mt-1">Optional. Use format #RGB or #RRGGBB.</p>
                 </div>
               </div>
             ) : (

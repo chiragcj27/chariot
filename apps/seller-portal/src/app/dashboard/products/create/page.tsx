@@ -118,6 +118,7 @@ interface ProductFormData {
   // Images
   images: (string | { _id: string; url: string })[];
   previewFile?: { name: string; url: string; key: string } | null;
+  kitColorHex?: string;
 }
 
 export default function CreateProductPage() {

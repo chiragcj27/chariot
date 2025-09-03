@@ -100,6 +100,7 @@ export interface IKitProduct extends IProduct {
   kitDescription?: string; // Additional description specific to the kit
   kitInstructions?: string; // Instructions for using the kit
   kitContents?: string[]; // List of what's included in the kit
+  kitColorHex?: string; // Hex color code associated with the kit (e.g. #AABBCC)
 }
 
 const baseProductSchema = new mongoose.Schema<IProduct>(
@@ -332,6 +333,16 @@ const kitProductSchema = new mongoose.Schema<IKitProduct>({
   kitContents: {
     type: [String],
     default: [],
+  },
+  kitColorHex: {
+    type: String,
+    validate: {
+      validator: function(v: string) {
+        if (!v) return true;
+        return /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(v);
+      },
+      message: (props: any) => `${props.value} is not a valid hex color (expected #RGB or #RRGGBB)`,
+    },
   },
 });
 
