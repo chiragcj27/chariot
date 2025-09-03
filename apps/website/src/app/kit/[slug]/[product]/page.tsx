@@ -122,7 +122,8 @@ export default function KitProductDetailPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; title?: string; description?: string } | null>(null);
+  
   const router = useRouter();
   const { addItem } = useCart();
 
@@ -164,6 +165,8 @@ export default function KitProductDetailPage({ params }: PageProps) {
     // reset index when the image set changes
     setCurrentImageIndex(0);
   }, [imageKey]);
+
+
 
   const kitImageMetaMap = useMemo(() => {
     const map = new Map<string, KitImageMetadataItem>();
@@ -376,7 +379,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* What's Included FAQ Section */}
+      {/* What's Included Points Section */}
       <section className="relative px-5 md:px-10 lg:px-18 pb-16 mt-20">
         {/* Background color using product.kitColorHex (fallback to theme color) */}
         <div
@@ -392,37 +395,14 @@ export default function KitProductDetailPage({ params }: PageProps) {
             What&apos;s Included?
           </h2>
           <div className="w-full">
-            {faqs.map((faq, idx) => (
-              <div key={idx} className="mb-1">
-                <div
-                  className="flex items-center cursor-pointer py-4 group"
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                >
-                  {/* Orange Plus/Minus Icon */}
-                  <span
-                    className="text-2xl text-[#FA7035] font-bold mr-6 select-none transition-transform duration-200 group-hover:scale-110"
-                    style={{ minWidth: "24px", textAlign: "center" }}
-                  >
-                    {openFaq === idx ? "−" : "+"}
-                  </span>
-
-                  {/* Question Text */}
-                  <span className="text-lg font-semibold text-black flex-1">
-                    {faq.question}
-                  </span>
-                </div>
-
-                {/* Answer */}
-                {openFaq === idx && (
-                  <div className="pl-10 pb-4 text-black font-medium">
-                    {faq.answer}
-                  </div>
-                )}
-
-                {/* Orange Separator Line */}
-                <div className="border-1 border-[#FA7035] w-full" />
-              </div>
-            ))}
+            <ul className="space-y-2 pt-2">
+              {faqs.map((faq, idx) => (
+                <li key={idx} className="flex items-start py-2">
+                  <span className="text-white mr-3 mt-[2px]">➜</span>
+                  <span className="text-lg font-semibold text-white">{faq.question}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
@@ -437,22 +417,33 @@ export default function KitProductDetailPage({ params }: PageProps) {
             <div className="text-gray-500 py-8">No kit media available.</div>
           )}
           {alternatingMedia.map((entry, idx) => (
-            <div
+              <div
               key={idx}
               className="flex-shrink-0 w-48 sm:w-56 md:w-70 h-64 sm:h-72 md:h-100 bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl"
               style={{ aspectRatio: "2/3" }}
             >
               <div className="relative w-full h-full group">
-                {entry.kind === "image" ? (
+                                                {entry.kind === "image" ? (
                   <>
-                    <Image
-                      src={entry.image.url}
-                      alt={entry.meta?.title || entry.image.originalname || "Kit Image"}
-                      fill
-                      className="object-cover transition-all duration-300 group-hover:scale-105"
-                    />
+                    <div 
+                      className="w-full h-full cursor-pointer"
+                      onClick={() => {
+                        setSelectedImage({
+                          url: entry.image.url,
+                          title: entry.meta?.title,
+                          description: entry.meta?.description
+                        });
+                      }}
+                    >
+                      <Image
+                        src={entry.image.url}
+                        alt={entry.meta?.title || entry.image.originalname || "Kit Image"}
+                        fill
+                        className="object-cover transition-all duration-300 group-hover:scale-105"
+                      />
+                    </div>
                     {(entry.meta?.title || entry.meta?.description) && (
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/70 transition-all duration-300 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/70 transition-all duration-300 flex items-center justify-center pointer-events-none">
                         <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0 px-4">
                           {entry.meta?.title && (
                             <h3 className="text-lg sm:text-xl font-semibold mb-2 leading-tight">
@@ -497,6 +488,41 @@ export default function KitProductDetailPage({ params }: PageProps) {
           ))}
         </div>
       </section>
+
+      {/* Full Screen Image Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-w-[90vw] max-h-[90vh]">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-12 right-0 text-white text-4xl hover:text-gray-300 transition-colors"
+              aria-label="Close modal"
+            >
+              ×
+            </button>
+            <Image
+              src={selectedImage.url}
+              alt={selectedImage.title || "Kit Image"}
+              width={800}
+              height={600}
+              className="max-w-full max-h-full object-contain"
+            />
+            {(selectedImage.title || selectedImage.description) && (
+              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-4 text-center">
+                {selectedImage.title && (
+                  <h3 className="text-xl font-semibold mb-2">{selectedImage.title}</h3>
+                )}
+                {selectedImage.description && (
+                  <p className="text-sm">{selectedImage.description}</p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="flex mt-12 mb-12 px-18">
         <button
