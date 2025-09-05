@@ -40,7 +40,7 @@ interface CheckoutInfo {
 
 export default function CheckoutPage() {
   const { user } = useAuth();
-  const { items: cartItems, clearCart, removeItem } = useCart();
+  const { items: cartItems, clearCart, removeItem, getTotalPrice } = useCart();
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<'credits' | 'paypal'>('paypal');
   const [checkoutInfo, setCheckoutInfo] = useState<CheckoutInfo | null>(null);
@@ -88,17 +88,14 @@ export default function CheckoutPage() {
       setLoading(false);
     }
   }, [cartItems, router]);
-
-  // Redirect unauthenticated users to login
-  useEffect(() => {
-    if (!user) {
-      router.replace('/login?redirect=/checkout');
-    }
-  }, [user, router]);
-
   // Load checkout info when authenticated and cart has items
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      // Not logged in: allow viewing cart, don't fetch checkout info
+      setLoading(false);
+      setCheckoutInfo(null);
+      return;
+    }
 
     if (cartItems.length === 0) {
       setLoading(false);
@@ -136,6 +133,11 @@ export default function CheckoutPage() {
   };
 
   const handleCreateOrder = async () => {
+    if (!user) {
+      // Cart is already persisted via CartContext -> localStorage
+      router.replace('/login?redirect=/checkout');
+      return;
+    }
     // If credits are selected, show confirmation for mixed payment
     if (paymentMethod === 'credits' && checkoutInfo) {
       const availableCredits = checkoutInfo.userCredits || 0;
@@ -267,7 +269,7 @@ export default function CheckoutPage() {
     );
   }
 
-  if (error && !checkoutInfo) {
+  if (error && user && !checkoutInfo) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
@@ -287,15 +289,20 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!checkoutInfo) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">No checkout information available</p>
-        </div>
-      </div>
-    );
-  }
+  const displayTotal = checkoutInfo?.total ?? getTotalPrice();
+  const displaySubtotal = checkoutInfo?.subtotal ?? getTotalPrice();
+  const displayTax = checkoutInfo?.tax ?? 0;
+  const itemsToRender = checkoutInfo?.orderItems ?? cartItems.map(ci => ({
+    productId: ci.productId,
+    productName: ci.productName,
+    productSlug: ci.productSlug,
+    quantity: ci.quantity,
+    unitPrice: ci.price,
+    unitCreditsCost: ci.creditsCost,
+    totalPrice: ci.price * ci.quantity,
+    totalCreditsCost: ci.creditsCost * ci.quantity,
+    imageUrl: ci.imageUrl,
+  }));
 
   return (
     <div className="min-h-screen bg-white">
@@ -338,7 +345,7 @@ export default function CheckoutPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-gray-700">Total Payment</span>
-              <span className="font-semibold text-lg">${checkoutInfo.total}</span>
+              <span className="font-semibold text-lg">${displayTotal}</span>
             </div>
             
             <div className="flex items-center justify-between">
@@ -374,7 +381,7 @@ export default function CheckoutPage() {
                 >
                   <div className="flex items-center space-x-2">
                     <span className="text-green-600">💰</span>
-                    <span>Credits ({checkoutInfo.userCredits || 0} available)</span>
+                    <span>Credits ({checkoutInfo?.userCredits || 0} available)</span>
                   </div>
                 </button>
 
@@ -399,7 +406,7 @@ export default function CheckoutPage() {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Order</h2>
           
           <div className="space-y-4">
-            {checkoutInfo.orderItems.map((item, index) => (
+            {itemsToRender.map((item, index) => (
               <div key={index} className="flex items-center space-x-4">
                 <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
                   {item.imageUrl ? (
@@ -444,15 +451,15 @@ export default function CheckoutPage() {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-gray-700">Subtotal</span>
-              <span className="text-gray-900">${checkoutInfo.subtotal}</span>
+              <span className="text-gray-900">${displaySubtotal}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-700">Tax</span>
-              <span className="text-gray-900">${checkoutInfo.tax}</span>
+              <span className="text-gray-900">${displayTax}</span>
             </div>
             <div className="border-t pt-3 flex items-center justify-between">
               <span className="font-semibold text-gray-900">Total</span>
-              <span className="font-semibold text-lg text-gray-900">${checkoutInfo.total}</span>
+              <span className="font-semibold text-lg text-gray-900">${displayTotal}</span>
             </div>
           </div>
         </div>
