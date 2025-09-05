@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { ArrowLeft, FileText, Calendar, CreditCard, ChevronDown, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -40,6 +41,7 @@ interface CheckoutInfo {
 export default function CheckoutPage() {
   const { user } = useAuth();
   const { items: cartItems, clearCart, removeItem } = useCart();
+  const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<'credits' | 'paypal'>('paypal');
   const [checkoutInfo, setCheckoutInfo] = useState<CheckoutInfo | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,43 +53,7 @@ export default function CheckoutPage() {
   const [currentOrder, setCurrentOrder] = useState<{ _id: string; orderNumber: string; total: number; paypalAmount?: number; items: unknown[] } | null>(null);
   const paypalButtonRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      setError('Please log in to continue with checkout');
-      return;
-    }
-
-    if (cartItems.length === 0) {
-      setLoading(false);
-      setError('Your cart is empty. Please add items before checkout.');
-      // Clear any previous checkout info to avoid rendering stale items
-      setCheckoutInfo(null);
-      return;
-    }
-
-    fetchCheckoutInfo();
-  }, [user, cartItems]);
-
-  useEffect(() => {
-    // Listen for PayPal payment success
-    const handlePayPalPaymentSuccess = (event: CustomEvent) => {
-      const { orderId, paymentId, result } = event.detail;
-      console.log('PayPal payment successful:', { orderId, paymentId, result });
-      
-      // Clear cart and redirect to order confirmation
-      clearCart();
-      window.location.href = `/order-confirmation?orderId=${orderId}`;
-    };
-
-    window.addEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
-
-    return () => {
-      window.removeEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
-    };
-  }, [clearCart]);
-
-  const fetchCheckoutInfo = async () => {
+  const fetchCheckoutInfo = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -95,7 +61,7 @@ export default function CheckoutPage() {
       const token = localStorage.getItem('accessToken');
       
       if (!token) {
-        setError('Authentication required. Please log in.');
+        router.replace('/login?redirect=/checkout');
         return;
       }
 
@@ -121,7 +87,48 @@ export default function CheckoutPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [cartItems, router]);
+
+  // Redirect unauthenticated users to login
+  useEffect(() => {
+    if (!user) {
+      router.replace('/login?redirect=/checkout');
+    }
+  }, [user, router]);
+
+  // Load checkout info when authenticated and cart has items
+  useEffect(() => {
+    if (!user) return;
+
+    if (cartItems.length === 0) {
+      setLoading(false);
+      // Clear any previous checkout info to avoid rendering stale items
+      setCheckoutInfo(null);
+      return;
+    }
+
+    fetchCheckoutInfo();
+  }, [user, cartItems.length, fetchCheckoutInfo]);
+
+  useEffect(() => {
+    // Listen for PayPal payment success
+    const handlePayPalPaymentSuccess = (event: CustomEvent) => {
+      const { orderId, paymentId, result } = event.detail;
+      console.log('PayPal payment successful:', { orderId, paymentId, result });
+      
+      // Clear cart and redirect to order confirmation
+      clearCart();
+      window.location.href = `/order-confirmation?orderId=${orderId}`;
+    };
+
+    window.addEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+
+    return () => {
+      window.removeEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+    };
+  }, [clearCart]);
+
+  
 
   const handlePaymentMethodChange = (method: 'credits' | 'paypal') => {
     setPaymentMethod(method);
@@ -236,6 +243,25 @@ export default function CheckoutPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading checkout information...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Gracefully handle empty cart state
+  if (cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <p className="text-gray-700 mb-2">Your cart is empty.</p>
+          <p className="text-gray-500 mb-6">Add items to proceed to checkout.</p>
+          <div className="space-y-2">
+            <Link href="/">
+              <Button variant="outline" className="w-full">
+                Continue Shopping
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     );
