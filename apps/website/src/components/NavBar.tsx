@@ -114,12 +114,12 @@ export default function NavBar() {
             </Link>
           </div>
           {/* Say Hi! Button (no fade) */}
-          <button
+          {/* <button
             className="bg-gray-200 hover:bg-gray-300 z-50 font-secondary px-6 py-2 rounded-lg font-semibold transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 whitespace-nowrap"
             aria-label="Say Hi!"
           >
             Say Hi! 👋
-          </button>
+          </button> */}
           {/* Menu Icon (no fade) */}
           <button
             className="relative w-8 h-8 z-[100] flex flex-col justify-center items-center"
