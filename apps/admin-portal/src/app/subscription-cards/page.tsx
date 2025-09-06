@@ -11,10 +11,13 @@ interface SubscriptionCard {
   description: string;
   features: string[];
   button: string;
+  credits: number;
+  paypalPlanId: string;
+  planKey: string;
 }
 
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+// Use Next.js API routes instead of direct backend calls
 
 
 export default function SubscriptionCardsAdmin() {
@@ -26,12 +29,15 @@ export default function SubscriptionCardsAdmin() {
     description: "",
     features: [],
     button: "",
+    credits: 0,
+    paypalPlanId: "",
+    planKey: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    fetch(`${API_URL}/api/admin/subscription-cards`)
+    fetch('/api/admin/subscription-cards')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -55,16 +61,16 @@ export default function SubscriptionCardsAdmin() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const method = editingId ? "PUT" : "POST";
-    const url = editingId ? `${API_URL}/api/admin/subscription-cards/${editingId}` : `${API_URL}/api/admin/subscription-cards`;
+    const url = editingId ? `/api/admin/subscription-cards/${editingId}` : `/api/admin/subscription-cards`;
     await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    setForm({ title: "", price: "", period: "", description: "", features: [], button: "" });
+    setForm({ title: "", price: "", period: "", description: "", features: [], button: "", credits: 0, paypalPlanId: "", planKey: "" });
     setEditingId(null);
     setShowForm(false);
-    fetch(`${API_URL}/api/admin/subscription-cards`).then((res) => res.json()).then(setCards);
+    fetch('/api/admin/subscription-cards').then((res) => res.json()).then(setCards);
   };
 
   const handleEdit = (card: SubscriptionCard) => {
@@ -75,11 +81,11 @@ export default function SubscriptionCardsAdmin() {
 
   const handleDelete = async (id: string) => {
     await fetch(`/api/admin/subscription-cards/${id}`, { method: "DELETE" });
-    fetch(`${API_URL}/api/admin/subscription-cards`).then((res) => res.json()).then(setCards);
+    fetch('/api/admin/subscription-cards').then((res) => res.json()).then(setCards);
   };
 
   const handleAddNew = () => {
-    setForm({ title: "", price: "", period: "", description: "", features: [], button: "" });
+    setForm({ title: "", price: "", period: "", description: "", features: [], button: "", credits: 0, paypalPlanId: "", planKey: "" });
     setEditingId(null);
     setShowForm(true);
   };
@@ -125,6 +131,11 @@ export default function SubscriptionCardsAdmin() {
                         <span className="text-2xl font-bold text-[#FA7035] font-balgin-regular mr-1">{card.price}</span>
                         <span className="text-base text-gray-500">{card.period}</span>
                       </div>
+                      <div className="mb-2">
+                        <span className="inline-block bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
+                          {card.credits} Credits
+                        </span>
+                      </div>
                       <div className="font-semibold text-[20px] text-gray-700 mb-4 text-center">{card.description}</div>
                       <ul className="mb-8 space-y-2 text-gray-700">
                         {card.features.map((feature, i) => (
@@ -145,8 +156,8 @@ export default function SubscriptionCardsAdmin() {
         </div>
         {/* Modal/Form */}
         {showForm && (
-          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg relative border border-gray-200">
+          <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-lg relative border border-gray-200 max-h-[90vh] overflow-y-auto">
               <button
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl focus:outline-none"
                 onClick={() => setShowForm(false)}
@@ -180,9 +191,21 @@ export default function SubscriptionCardsAdmin() {
                   <label htmlFor="button" className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
                   <input id="button" name="button" value={form.button} onChange={handleChange} placeholder="Button Text" className="input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" required />
                 </div>
+                <div>
+                  <label htmlFor="credits" className="block text-sm font-medium text-gray-700 mb-1">Credits</label>
+                  <input id="credits" name="credits" type="number" value={form.credits} onChange={handleChange} placeholder="Number of credits" className="input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" required />
+                </div>
+                <div>
+                  <label htmlFor="paypalPlanId" className="block text-sm font-medium text-gray-700 mb-1">PayPal Plan ID</label>
+                  <input id="paypalPlanId" name="paypalPlanId" value={form.paypalPlanId} onChange={handleChange} placeholder="PayPal Plan ID" className="input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" required />
+                </div>
+                <div>
+                  <label htmlFor="planKey" className="block text-sm font-medium text-gray-700 mb-1">Plan Key</label>
+                  <input id="planKey" name="planKey" value={form.planKey} onChange={handleChange} placeholder="Plan Key (e.g., starter, pro, elite)" className="input w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" required />
+                </div>
                 <div className="flex gap-2 mt-6">
                   <button type="submit" className="btn btn-primary flex-1 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-orange-600 transition focus:outline-none focus:ring-2 focus:ring-orange-400">{editingId ? "Update" : "Add"} Card</button>
-                  <button type="button" onClick={() => { setForm({ title: "", price: "", period: "", description: "", features: [], button: "" }); setEditingId(null); setShowForm(false); }} className="btn btn-secondary flex-1 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400">Cancel</button>
+                  <button type="button" onClick={() => { setForm({ title: "", price: "", period: "", description: "", features: [], button: "", credits: 0, paypalPlanId: "", planKey: "" }); setEditingId(null); setShowForm(false); }} className="btn btn-secondary flex-1 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition focus:outline-none focus:ring-2 focus:ring-gray-400">Cancel</button>
                 </div>
               </form>
             </div>
