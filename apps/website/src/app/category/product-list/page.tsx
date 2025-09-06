@@ -2,6 +2,8 @@
 import Footer from "@/components/Footer";
 import FilterDropDown from "@/components/FilterDropDown";
 import ProductCard from "@/components/ProductCard";
+import DiscoveryCallButton from "@/components/DiscoveryCallButton";
+import AskForQuoteButton from "@/components/AskForQuoteButton";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -82,12 +84,13 @@ export default function ProductListPage() {
           Need something tailored to your brand? We offer customization across templates, color palettes, messaging, and layouts. Whether it’s a full kit revamp or small tweaks, we’ll deliver a ready-to-use version that fits perfectly.
         </p>
         <div className="flex flex-row gap-8">
-          <button className="bg-[#DF9999] text-lg font-secondary font-semibold px-6 py-2 rounded transition-colors hover:bg-[#DF9999]/70 focus:outline-none focus:ring-2 focus:ring-[#DF9999]/40">
-            Ask For Quote
-          </button>
-          <button className="bg-[#DF9999] text-lg font-secondary font-semibold px-6 py-2 rounded transition-colors hover:bg-[#DF9999]/70 focus:outline-none focus:ring-2 focus:ring-[#DF9999]/40">
-            Discovery Call
-          </button>
+          <AskForQuoteButton 
+            productType="custom products"
+          />
+          <DiscoveryCallButton 
+            title="Book a Discovery Call"
+            subtitle="Let&apos;s explore how we can help you find the perfect solution"
+          />
         </div>
       </div>
     </section>

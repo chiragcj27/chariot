@@ -7,6 +7,8 @@ import Image from 'next/image';
 import TestimonialsCarousel from '@/components/TestimonialsCarousel';
 import ProductCard from '@/components/ProductCard';
 import Footer from '@/components/Footer';
+import DiscoveryCallButton from '@/components/DiscoveryCallButton';
+import AskForQuoteButton from '@/components/AskForQuoteButton';
 import { useRouter } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -262,12 +264,16 @@ export default function KitPage({ params }: KitPageProps) {
             Need something tailored to your brand? We offer customization across templates, color palettes, messaging, and layouts. Whether it&apos;s a full kit revamp or small tweaks, we&apos;ll deliver a ready-to-use version that fits perfectly.
           </p>
           <div className="flex flex-row items-center justify-center gap-8">
-            <button className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] text-lg font-semibold px-6 py-2 transition-colors hover:bg-[#FFC1A0]/70 focus:outline-none focus:ring-2 focus:ring-[#FFC1A0]/40">
-                Discovery Call
-            </button>
-            <button className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] text-lg font-semibold px-6 py-2 transition-colors hover:bg-[#FFC1A0]/70 focus:outline-none focus:ring-2 focus:ring-[#FFC1A0]/40">
-              Ask For Quote
-            </button>
+            <DiscoveryCallButton 
+              className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] text-lg font-semibold px-6 py-2 transition-colors hover:bg-[#FFC1A0]/70 focus:outline-none focus:ring-2 focus:ring-[#FFC1A0]/40"
+              title="Book a Discovery Call"
+              subtitle="Let&apos;s explore how we can customize this kit for your brand"
+            />
+            <AskForQuoteButton 
+              className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] text-lg font-semibold px-6 py-2 transition-colors hover:bg-[#FFC1A0]/70 focus:outline-none focus:ring-2 focus:ring-[#FFC1A0]/40"
+              productName={kit?.title}
+              productType="kit"
+            />
           </div>
         </div>
       </div>
