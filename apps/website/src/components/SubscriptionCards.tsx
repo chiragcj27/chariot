@@ -70,7 +70,7 @@ export default function SubscriptionCards() {
   };
 
   return (
-    <section className="w-full min-h-screen bg-gradient-to-b from-white to-seafoam py-20 px-4">
+    <section className=" w-full min-h-screen bg-gradient-to-b from-white to-seafoam pt-20 px-4">
       {/* Success Notification */}
       {showSuccess && (
         <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
@@ -83,11 +83,11 @@ export default function SubscriptionCards() {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row gap-8 items-center justify-center max-w-6xl mx-auto">
+      <div className="flex flex-col [@media(min-width:1179px)]:flex-row gap-8 items-center justify-center max-w-8xl [@media(min-width:1179px)]:max-w-6xl px-3 [@media(min-width:420px)]:mx-auto">
         {cards.map((card) => (
           <div
             key={card.title}
-            className="relative w-full max-w-sm rounded-3xl overflow-hidden shadow-lg min-h-[540px] h-[540px]"
+            className="relative w-full max-w-sm sm:max-w-md md:max-w-lg rounded-3xl overflow-hidden shadow-lg min-h-[580px] sm:min-h-[540px] h-[540px]"
           >
             {/* Background Image */}
             <Image
@@ -105,7 +105,7 @@ export default function SubscriptionCards() {
                   <span className="text-2xl font-bold text-[#FA7035] font-balgin-regular mr-1">{card.price}</span>
                   <span className="text-base text-gray-500">{card.period}</span>
                 </div>
-                <div className="font-semibold text-[20px] text-gray-700 mb-4 text-center">{card.description}</div>
+                <div className="font-semibold text-[clamp(0.70rem,2vw,1.15rem)] text-gray-700 mb-4 text-center">{card.description}</div>
                 <ul className="mb-8 space-y-2 text-gray-700">
                   {card.features.map((feature, i) => (
                     <li key={i} className="list-disc list-inside">{feature}</li>
