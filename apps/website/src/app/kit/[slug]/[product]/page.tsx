@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import Footer from "@/components/Footer";
+import { useProductPurchase } from "@/hooks/useProductPurchase";
+import { Download } from "lucide-react";
 
 interface ProductImage {
   _id: string;
@@ -122,10 +124,14 @@ export default function KitProductDetailPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; title?: string; description?: string } | null>(null);
   
   const router = useRouter();
   const { addItem } = useCart();
+  
+  // Check if the product is purchased (kit products are always downloadable if purchased)
+  const { isPurchased, isLoading: purchaseLoading } = useProductPurchase(product?._id || '');
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -145,6 +151,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
         if (!found) {
           notFound();
         }
+        console.log('Kit product found:', found);
         setProduct(found || null);
       } catch (err) {
         console.error("Error fetching product:", err);
@@ -245,6 +252,64 @@ export default function KitProductDetailPage({ params }: PageProps) {
       alert("Failed to add to cart. Please try again.");
     } finally {
       setAddingToCart(false);
+    }
+  };
+
+  const handleDownloadProduct = async () => {
+    if (!product) return;
+    
+    try {
+      setDownloading(true);
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        alert('Please log in to download your digital products');
+        return;
+      }
+      
+      // Get the download URL from our frontend API
+      const response = await fetch(`/api/assets/digital-product/${product._id}/download`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        
+        if (response.status === 401) {
+          alert('Please log in to download this product');
+          return;
+        }
+        
+        if (response.status === 403) {
+          alert('You need to purchase this product to download it');
+          return;
+        }
+        
+        throw new Error(errorData.message || 'Failed to get download URL');
+      }
+
+      const { downloadUrl } = await response.json();
+
+      // Create a temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${product.name}.zip`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      
+      // Add to DOM, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      alert('Download started! The download link will expire in 5 minutes.');
+    } catch (error) {
+      console.error('Error downloading product:', error);
+      alert('Failed to download the file. Please try again.');
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -360,20 +425,43 @@ export default function KitProductDetailPage({ params }: PageProps) {
               {product.description}
             </p>
             <div className="flex mr-150 mt-10 flex-col gap-4 pt-4">
-              <Button
-                variant="outline"
-                className="flex-1 border-[#FCA17A] border-3 text-gray-900 font-avenir text-[16px] w-[150] hover:bg-orange-50 hover:border-orange-600 transition-all duration-200"
-              >
-                Buy Now
-              </Button>
+              {/* Show download button if user has purchased this kit product */}
+              {(() => {
+                console.log('Kit button render - isPurchased:', isPurchased, 'product:', product);
+                return isPurchased;
+              })() ? (
+                <Button
+                  onClick={handleDownloadProduct}
+                  disabled={downloading}
+                  className="flex-1 border-[#FCA17A] border-3 bg-[#FFC1A0] text-black font-avenir text-[16px] w-[150] hover:bg-orange-600 transition-all duration-200"
+                >
+                  {downloading ? (
+                    'Downloading...'
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download
+                    </>
+                  )}
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-[#FCA17A] border-3 text-gray-900 font-avenir text-[16px] w-[150] hover:bg-orange-50 hover:border-orange-600 transition-all duration-200"
+                  >
+                    Buy Now
+                  </Button>
 
-              <Button 
-                className="flex-1 border-[#FCA17A] border-3 bg-[#FFC1A0] text-black font-avenir text-[16px] w-[150] hover:bg-orange-600 transition-all duration-200"
-                onClick={handleAddToCart}
-                disabled={addingToCart}
-              >
-                {addingToCart ? 'Adding...' : 'Add To Cart'}
-              </Button>
+                  <Button 
+                    className="flex-1 border-[#FCA17A] border-3 bg-[#FFC1A0] text-black font-avenir text-[16px] w-[150] hover:bg-orange-600 transition-all duration-200"
+                    onClick={handleAddToCart}
+                    disabled={addingToCart || purchaseLoading}
+                  >
+                    {addingToCart ? 'Adding...' : 'Add To Cart'}
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>

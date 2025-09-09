@@ -21,19 +21,31 @@ export function useProductPurchase(productId: string): PurchaseStatus {
       }
 
       try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          setIsPurchased(false);
+          setIsLoading(false);
+          return;
+        }
+
         const response = await fetch(`${API_URL}/api/products/${productId}/purchase-status`, {
           method: 'GET',
-          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
         });
 
         if (response.ok) {
           const data = await response.json();
+          console.log('Purchase status response:', data);
           setIsPurchased(data.isPurchased);
         } else if (response.status === 401) {
           // User not authenticated
+          console.log('User not authenticated for purchase status check');
           setIsPurchased(false);
         } else {
           // Other error
+          console.error('Failed to check purchase status, status:', response.status);
           setError('Failed to check purchase status');
         }
       } catch (err) {
