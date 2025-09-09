@@ -66,28 +66,34 @@ export default function NavBar() {
 
   return (
     <Fragment>
-      <nav className="sticky top-0 z-50 flex items-center bg-white px-8 py-2 shadow-md justify-between h-16">
+      <nav className="sticky top-0 z-50 flex items-center bg-white px-[clamp(1rem,4vw,2rem)] py-[clamp(0.5rem,1.5vw,0.75rem)] shadow-md justify-between h-[clamp(3.5rem,8vw,4rem)]">
         {/* Left: Logo + Nav Links */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-[clamp(1rem,4vw,2rem)]">
           {/* Logo */}
           <div className="flex items-center z-50 gap-2">
             <Link href="/">
-              <Image src="/chariot.svg" alt="The Chariot Logo" width={70} height={70} />
+              <Image 
+                src="/chariot.svg" 
+                alt="The Chariot Logo" 
+                width={114} 
+                height={66} 
+                className="w-[clamp(4rem,8vw,4.375rem)] h-[clamp(4rem,8vw,4.375rem)]"
+              />
             </Link>
           </div>
           {/* Navigation Links (fade) */}
-          <div className={`hidden md:flex gap-8 transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          <div className={`hidden lg:flex gap-[clamp(1rem,3vw,2rem)] transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             {categories.map((cat) => (
-              <Link key={cat._id} href={`/category/${cat.slug}`} className="text-lg font-secondary font-medium text-gray-800 hover:text-[#FCA17A]">
+              <Link key={cat._id} href={`/category/${cat.slug}`} className="text-[clamp(1rem,1.8vw,1.125rem)] font-secondary font-medium text-gray-800 hover:text-[#FCA17A] transition-colors duration-200 whitespace-nowrap">
                 {cat.title}
               </Link>
             ))}
           </div>
         </div>
         {/* Right: Icons + Say Hi + Menu Icon */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-[clamp(0.75rem,2vw,1rem)]">
           {/* Action Icons (fade) */}
-          <div className={`flex items-center gap-4 transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          <div className={`flex items-center gap-[clamp(0.75rem,2vw,1rem)] transition-opacity duration-500 `}>
             {/* User Profile Dropdown */}
             <UserProfileDropdown />
             {/* Wishlist Icon */}
@@ -100,14 +106,14 @@ export default function NavBar() {
               </svg>
             </button> */}
             {/* Cart Icon */}
-            <Link href="/checkout" className="relative text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200">
+            <Link href="/checkout" onClick={() => setIsMenuOpen(false)} className="relative text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200">
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="21" r="1"/>
                 <circle cx="20" cy="21" r="1"/>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
               </svg>
               {getTotalItems() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[clamp(0.625rem,1.5vw,0.75rem)] rounded-full h-[clamp(1rem,2.5vw,1.25rem)] w-[clamp(1rem,2.5vw,1.25rem)] flex items-center justify-center min-w-[1rem] min-h-[1rem]">
                   {getTotalItems()}
                 </span>
               )}
@@ -122,17 +128,17 @@ export default function NavBar() {
           </button> */}
           {/* Menu Icon (no fade) */}
           <button
-            className="relative w-8 h-8 z-[100] flex flex-col justify-center items-center"
+            className="relative w-[clamp(1.5rem,3vw,2rem)] h-[clamp(1.5rem,3vw,2rem)] z-[100] flex flex-col justify-center items-center"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <span
-              className={`absolute w-6 h-0.5 transition-all duration-300 ${
-                isMenuOpen ? 'rotate-45 bg-white' : '-translate-y-1.5 bg-black'
+              className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
+                isMenuOpen ? 'rotate-45 bg-black' : '-translate-y-1.5 bg-black'
               }`}
             />
             <span
-              className={`absolute w-6 h-0.5 transition-all duration-300 ${
-                isMenuOpen ? '-rotate-45 bg-white' : 'translate-y-1.5 bg-black'
+              className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
+                isMenuOpen ? '-rotate-45 bg-black' : 'translate-y-1.5 bg-black'
               }`}
             />
           </button>
@@ -140,25 +146,25 @@ export default function NavBar() {
       </nav>
       {/* Mobile Menu (dropdown style) */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col md:hidden transition-all duration-500 ease-in-out">
-          <div className="flex flex-col mt-24 px-8 gap-4 overflow-y-auto">
+        <div className="fixed inset-0 z-50 bg-black flex flex-col lg:hidden transition-all duration-500 ease-in-out">
+          <div className="flex flex-col mt-[clamp(5rem,12vw,6rem)] px-[clamp(1rem,4vw,2rem)] gap-[clamp(0.75rem,2vw,1rem)] overflow-y-auto">
             {categories.map((cat) => (
               <div key={cat._id}>
                 <button
-                  className="w-full text-left text-white text-xl font-semibold flex justify-between items-center"
+                  className="w-full text-left text-white text-[clamp(1.125rem,3vw,1.25rem)] font-semibold flex justify-between items-center py-2"
                   onClick={() => handleCategoryClick(cat._id)}
                 >
                   {cat.title}
-                  <span>{expandedCategoryId === cat._id ? '-' : '+'}</span>
+                  <span className="text-[clamp(1rem,2.5vw,1.125rem)]">{expandedCategoryId === cat._id ? '-' : '+'}</span>
                 </button>
                 {expandedCategoryId === cat._id && (
-                  <ul className="pl-4 mt-2 space-y-2">
+                  <ul className="pl-[clamp(0.75rem,2vw,1rem)] mt-2 space-y-2">
                     {Array.isArray(cat.items) && cat.items.length > 0 ? (
                       cat.items.map((item: CategoryItem) => (
                         <li key={item._id}>
                           <Link
                             href={`/category/${cat.slug}/${item.slug}`}
-                            className="text-gray-300 font-secondary hover:text-orange-400 cursor-pointer"
+                            className="text-gray-300 font-secondary hover:text-orange-400 cursor-pointer text-[clamp(0.875rem,2.2vw,1rem)] block py-1"
                             onClick={handleCloseMenu}
                           >
                             {item.title}
@@ -166,20 +172,20 @@ export default function NavBar() {
                         </li>
                       ))
                     ) : (
-                      <li className="text-gray-500 italic">No items</li>
+                      <li className="text-gray-500 italic text-[clamp(0.875rem,2.2vw,1rem)]">No items</li>
                     )}
                   </ul>
                 )}
               </div>
             ))}
             {/* Contact Section */}
-            <div className="mt-8">
-              <h2 className="text-white text-xl font-semibold mb-2">Contact</h2>
+            <div className="mt-[clamp(1.5rem,4vw,2rem)]">
+              <h2 className="text-white text-[clamp(1.125rem,3vw,1.25rem)] font-semibold mb-2">Contact</h2>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400">Email</a></li>
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400">LinkedIn</a></li>
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400">Twitter</a></li>
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400">Instagram</a></li>
+                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400 text-[clamp(0.875rem,2.2vw,1rem)]">Email</a></li>
+                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400 text-[clamp(0.875rem,2.2vw,1rem)]">LinkedIn</a></li>
+                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400 text-[clamp(0.875rem,2.2vw,1rem)]">Twitter</a></li>
+                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400 text-[clamp(0.875rem,2.2vw,1rem)]">Instagram</a></li>
               </ul>
             </div>
           </div>
@@ -212,11 +218,11 @@ export default function NavBar() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:20px_20px]"></div>
         </div>
         {/* Scrollable Content Area */}
-        <div className="flex-1 overflow-y-auto px-8 pb-8 mt-18 relative z-10 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto px-[clamp(1rem,4vw,2rem)] pb-[clamp(1rem,4vw,2rem)] mt-[clamp(4.5rem,10vw,5rem)] relative z-10 scrollbar-hide">
           {/* Main Layout: 4-Column Grid */}
           <div className="w-full max-w-7xl mx-auto">
             {/* Categories Grid - 4 Columns including Contact */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-[clamp(1.5rem,4vw,2rem)]">
               {/* First 6 Categories */}
               {categories.slice(0, 6).map((cat, index) => (
                 <motion.div 
@@ -224,9 +230,9 @@ export default function NavBar() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1, duration: 0.5 }}
-                  className="space-y-3"
+                  className="space-y-[clamp(0.75rem,2vw,1rem)]"
                 >
-                  <h2 className="text-white text-xl font-bold tracking-wide border-b border-gray-700 pb-2">
+                  <h2 className="text-white text-[clamp(1.125rem,2.5vw,1.25rem)] font-bold tracking-wide border-b border-gray-700 pb-2">
                     {cat.title}
                   </h2>
                   <ul className="space-y-2">
@@ -240,7 +246,7 @@ export default function NavBar() {
                         >
                           <Link 
                             href={`/category/${cat.slug}/${item.slug}`} 
-                            className="text-gray-300 text-base font-medium hover:text-orange-400 cursor-pointer transition-colors duration-200 flex items-center group"
+                            className="text-gray-300 text-[clamp(0.875rem,2vw,1rem)] font-medium hover:text-orange-400 cursor-pointer transition-colors duration-200 flex items-center group"
                             onClick={handleCloseMenu}
                           >
                             <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
@@ -253,7 +259,7 @@ export default function NavBar() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: index * 0.1, duration: 0.3 }}
-                        className="text-gray-500 italic text-base"
+                        className="text-gray-500 italic text-[clamp(0.875rem,2vw,1rem)]"
                       >
                         No items
                       </motion.li>
@@ -267,9 +273,9 @@ export default function NavBar() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
-                className="space-y-3"
+                className="space-y-[clamp(0.75rem,2vw,1rem)]"
               >
-                <h2 className="text-white text-xl font-bold tracking-wide border-b border-gray-700 pb-2">
+                <h2 className="text-white text-[clamp(1.125rem,2.5vw,1.25rem)] font-bold tracking-wide border-b border-gray-700 pb-2">
                   Contact
                 </h2>
                 <ul className="space-y-2">
@@ -282,7 +288,7 @@ export default function NavBar() {
                     >
                       <a 
                         href="#" 
-                        className="text-gray-300 text-base font-medium hover:text-orange-400 cursor-pointer transition-colors duration-200 flex items-center group"
+                        className="text-gray-300 text-[clamp(0.875rem,2vw,1rem)] font-medium hover:text-orange-400 cursor-pointer transition-colors duration-200 flex items-center group"
                       >
                         <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
                         {platform}

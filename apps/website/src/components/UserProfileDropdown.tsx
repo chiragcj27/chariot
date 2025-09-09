@@ -34,14 +34,14 @@ const UserProfileDropdown: React.FC = () => {
         <button
           type="button"
           onClick={() => router.push('/login')}
-          className="text-gray-700 text-sm border-3 border-[#D94506] focus:outline-none transition-colors duration-200 px-4 py-1 rounded-md hover:bg-[#FFC1A0]"
+          className="text-gray-700 text-sm border-2 border-[#D94506] focus:outline-none transition-colors duration-200 px-4 py-1 rounded-md hover:bg-[#FFC1A0]"
         >
           LOG IN
         </button>
         <button
           type="button"
           onClick={() => router.push('/signup')}
-          className="bg-[#FFC1A0] text-sm px-3 py-1 rounded-md border-3 border-[#D94506] hover:bg-gray-100 focus:outline-none transition-colors duration-200"
+          className="bg-[#FFC1A0] text-sm px-3 py-1 rounded-md border-2 border-[#D94506] hover:bg-gray-100 focus:outline-none transition-colors duration-200"
         >
           SIGN UP
         </button>

@@ -23,29 +23,35 @@ export default function CallToAction() {
   };
 
   return (
-    <section className="w-full flex flex-col items-center justify-center relative px-5 md:px-10 lg:px-20 mb-10">
-      <div className="flex flex-col w-[1/3] items-center justify-center mt-12">
-        <h1 className="text-[32px] md:text-[40px] font-balgin-regular">
-          Let us create
-          <br />
-          something<span className="text-sunrise"> exceptional</span>
-        </h1>
-        <p className="mt-8 px-13 font-secondary text-[20px] max-w-xl">
-        Whether you&apos;re refining a vision or starting from scratch — we&apos;re here to bring it to life.
-        </p>
-        <div className="flex flex-col md:flex-row gap-6 mt-10 -translate-x-3">
-          <button 
-            onClick={handleSendMessage}
-            className="bg-[#FFC1A0] hover:bg-[#FFC1A0]/20 border-2 border-[#D94506] text-black px-5 py-2 rounded-4xl text-xl font-medium transition"
-          >
-            Send us a message
-          </button>
-          <button 
-            onClick={handleBookConsultation}
-            className="bg-[#FFC1A0] hover:bg-[#FFC1A0]/20 border-2 border-[#D94506] text-black px-5 py-2 rounded-4xl text-xl font-medium transition"
-          >
-            Book a consultation
-          </button>
+    <section className="w-full lg:ml-3 pt-6 sm:pt-8 md:pt-10 lg:pt-11 xl:pt-12 mb-[clamp(2rem,5vw,4rem)]">
+      <div className="px-5 sm:px-8 md:px-12 lg:px-16 xl:px-24 w-full flex">
+        {/* Empty left column to match the sidebar width - only on large screens */}
+        <div className="hidden [@media(min-width:1179px)]:block [@media(min-width:1179px)]:w-[33%] [@media(min-width:1179px)]:pr-6 xl:pr-12"></div>
+        
+        {/* Right column matching the content area on large screens, full width on smaller screens */}
+        <div className="w-full [@media(min-width:1179px)]:max-w-[calc(33%-0.5rem)] [@media(min-width:1179px)]:w-[33%] ">
+          <h1 className="mt-[clamp(2rem,6vw,3rem)] text-[clamp(1.5rem,3.75vw,2.25rem)] [@media(min-width:1179px)]:text-[clamp(1.25rem,2.5vw,2.75rem)] font-balgin-regular leading-[1.2] text-left">
+            Let us create
+            <br />
+            <span className=" lg:whitespace-nowrap">something<span className="text-sunrise"> exceptional</span></span>
+          </h1>
+          <p className="mt-[clamp(1.5rem,4vw,2rem)] font-secondary text-[clamp(1rem,2.5vw,1.25rem)] leading-relaxed text-left">
+          Whether you&apos;re refining a vision or starting from scratch — we&apos;re here to bring it to life.
+          </p>
+          <div className="grid grid-cols-2 gap-4 mt-10 max-w-full">
+            <button 
+              onClick={handleSendMessage}
+              className=" hover:bg-[#FFC1A0] border-2 hover:border-[#D94506] border-[#FCA17A] text-black px-3 py-2 rounded-md text-lg font-medium transition w-full"
+            >
+              Send us a message
+            </button>
+            <button 
+              onClick={handleBookConsultation}
+              className=" hover:bg-[#FFC1A0] border-2 hover:border-[#D94506] border-[#FCA17A] text-black px-3 py-2 rounded-md text-lg font-medium transition w-full"
+            >
+              Book a consultation
+            </button>
+          </div>
         </div>
       </div>
 
