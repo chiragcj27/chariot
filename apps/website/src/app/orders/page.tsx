@@ -320,58 +320,7 @@ export default function OrdersPage() {
     window.location.href = '/login';
   };
 
-  const handleDownloadZip = async (orderId: string, productId: string, productName: string) => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        alert('Please log in to download your digital products');
-        return;
-      }
-      
-      // Get the download URL from our frontend API
-      const response = await fetch(`/api/assets/digital-product/${productId}/download`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        
-        if (response.status === 401) {
-          alert('Please log in to download this product');
-          return;
-        }
-        
-        if (response.status === 403) {
-          alert('You need to purchase this product to download it');
-          return;
-        }
-        
-        throw new Error(errorData.message || 'Failed to get download URL');
-      }
-
-      const { downloadUrl } = await response.json();
-
-      // Create a temporary link and trigger download
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `${productName}.zip`;
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
-      
-      // Add to DOM, click, and remove
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      alert('Download started! The download link will expire in 5 minutes.');
-    } catch (error) {
-      console.error('Error downloading ZIP:', error);
-      alert('Failed to download the file. Please try again.');
-    }
-  };
 
   const handleDownloadInvoice = (orderId: string) => {
     // TODO: Implement invoice download
@@ -596,15 +545,6 @@ export default function OrdersPage() {
                                         {item.productName}
                                       </p>
                                     </div>
-                                    {/* Only show download button for digital products or kit products */}
-                                    {(item.productInfo?.type === 'digital' || item.productInfo?.isKitProduct) && (
-                                      <button
-                                        onClick={() => handleDownloadZip(order._id, item.productId, item.productName)}
-                                        className="ml-3 flex-shrink-0 inline-flex items-center px-3 py-1 border-2 border-[#D94506] text-xs font-medium rounded-md text-black bg-[#FFC1A0] hover:bg-[#FFB08A] focus:outline-none transition-colors duration-200"
-                                      >
-                                        Download
-                                      </button>
-                                    )}
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { productController } from "../controllers/product.controller";
 import { landingController } from "../controllers/landing.controller";
 import { isSeller } from "../middleware/sellerAuth";
+import { authenticateToken } from "../middleware/auth.middleware";
 
 const router: Router = Router();
 
@@ -48,10 +49,10 @@ router.put("/:productId", isSeller, productController.updateProduct);
 router.delete("/:productId", isSeller, productController.deleteProduct);
 
 // Check if user has purchased a specific product (for digital products)
-router.get("/:productId/purchase-status", productController.checkPurchaseStatus);
+router.get("/:productId/purchase-status", authenticateToken, productController.checkPurchaseStatus);
 
 // Get all digital products purchased by the user
-router.get("/user/digital-products", productController.getUserDigitalProducts);
+router.get("/user/digital-products", authenticateToken, productController.getUserDigitalProducts);
 
 // Admin approval/rejection routes
 router.put("/:productId/approve", productController.approveProduct);
