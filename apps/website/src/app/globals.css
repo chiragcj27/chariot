@@ -230,3 +230,35 @@ html, body {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Safari and Chrome */
 }
+
+/* Loader CSS - Show until website is fully loaded */
+.loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: white;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}
+
+.loader-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.loader-overlay img {
+  width: 20rem;
+  height: 20rem;
+  object-fit: contain;
+}
+
+@media (min-width: 768px) {
+  .loader-overlay img {
+    width: 24rem;
+    height: 24rem;
+  }
+}

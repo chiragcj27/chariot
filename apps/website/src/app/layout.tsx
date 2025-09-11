@@ -4,6 +4,8 @@ import Script from "next/script";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
 import CustomScrollbar from "@/components/CustomScrollbar";
+import LoaderOverlay from "@/components/LoaderOverlay";
+import SmartLoader from "@/components/SmartLoader";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 
@@ -32,8 +34,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <LoaderOverlay />
         <AuthProvider>
           <CartProvider>
+            <SmartLoader />
             <CustomScrollbar />
             <NavBar />
             {children}
