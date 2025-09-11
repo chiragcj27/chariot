@@ -128,17 +128,22 @@ export default function NavBar() {
           </button> */}
           {/* Menu Icon (no fade) */}
           <button
-            className="relative w-[clamp(1.5rem,3vw,2rem)] h-[clamp(1.5rem,3vw,2rem)] z-[100] flex flex-col justify-center items-center"
+            className="relative w-[clamp(1.5rem,3vw,2rem)] h-[clamp(1.5rem,3vw,2rem)] z-[100] flex flex-col justify-center items-center group"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             <span
               className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
-                isMenuOpen ? 'rotate-45 bg-black' : '-translate-y-1.5 bg-black'
+                isMenuOpen ? 'rotate-45 bg-black group-hover:bg-orange-400' : '-translate-y-1.5 bg-black group-hover:bg-orange-400'
               }`}
             />
             <span
               className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
-                isMenuOpen ? '-rotate-45 bg-black' : 'translate-y-1.5 bg-black'
+                isMenuOpen ? 'opacity-0 bg-black group-hover:bg-orange-400' : 'bg-black group-hover:bg-orange-400'
+              }`}
+            />
+            <span
+              className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
+                isMenuOpen ? '-rotate-45 bg-black group-hover:bg-orange-400' : 'translate-y-1.5 bg-black group-hover:bg-orange-400'
               }`}
             />
           </button>

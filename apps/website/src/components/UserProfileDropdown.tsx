@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Button } from './ui/button';
 
 const UserProfileDropdown: React.FC = () => {
   const { user, logout } = useAuth();
@@ -30,18 +31,19 @@ const UserProfileDropdown: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center gap-4">
-        <button
+      <div className="flex items-center gap-2 sm:gap-4">
+        <Button
           type="button"
           onClick={() => router.push('/login')}
-          className="text-gray-700 text-sm border-2 border-[#D94506] focus:outline-none transition-colors duration-200 px-4 py-1 rounded-md hover:bg-[#FFC1A0]"
+          
+          className="text-gray-700 w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,2vw,1rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-1 rounded-md  bg-[#FFFFFF] hover:bg-[#FFC1A0]"
         >
           LOG IN
-        </button>
+        </Button>
         <button
           type="button"
           onClick={() => router.push('/signup')}
-          className="bg-[#FFC1A0] text-sm px-3 py-1 rounded-md border-2 border-[#D94506] hover:bg-gray-100 focus:outline-none transition-colors duration-200"
+          className="text-gray-700 w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.5rem,3vw,2.25rem)] text-[clamp(0.75rem,2vw,1rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2  rounded-md  bg-[#FFFFFF] hover:bg-[#FFC1A0]"
         >
           SIGN UP
         </button>
