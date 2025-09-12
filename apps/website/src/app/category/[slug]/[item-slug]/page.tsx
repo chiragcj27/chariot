@@ -1,5 +1,4 @@
 'use client'
-import Footer from "@/components/Footer";
 import FilterDropDown from "@/components/FilterDropDown";
 import ProductCard from "@/components/ProductCard";
 import DiscoveryCallButton from "@/components/DiscoveryCallButton";
@@ -216,7 +215,6 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
           Back to Home
         </button>
       </div>
-        <Footer />
       </div>
     </>
   );

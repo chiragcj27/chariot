@@ -5,11 +5,13 @@ import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/button';
+import { useStore } from '@/store/store';
 
 const UserProfileDropdown: React.FC = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const { setIsMenuOpen, isMenuOpen } = useStore();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -27,6 +29,7 @@ const UserProfileDropdown: React.FC = () => {
   const handleLogout = () => {
     logout();
     setIsDropdownOpen(false);
+    setIsMenuOpen(false);
   };
 
   if (!user) {
@@ -34,27 +37,26 @@ const UserProfileDropdown: React.FC = () => {
       <div className="flex items-center gap-2 sm:gap-4">
         <Button
           type="button"
-          onClick={() => router.push('/login')}
-          
-          className="text-gray-700 w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,2vw,1rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-1 rounded-md  bg-[#FFFFFF] hover:bg-[#FFC1A0]"
+          onClick={() => {setIsMenuOpen(false);router.push('/login')} }
+          className={`text-gray-700 center w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,2vw,1rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-2 rounded-md  ${isMenuOpen ? 'bg-[#FFC1A0] hover:bg-[#FFC1A0] hover:border-orange-400 hover:border-2' : 'bg-[#FFFFFF] hover:bg-[#FFC1A0]'} `}
         >
           LOG IN
-        </Button>
-        <button
+        </Button><Button
           type="button"
-          onClick={() => router.push('/signup')}
-          className="text-gray-700 w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.5rem,3vw,2.25rem)] text-[clamp(0.75rem,2vw,1rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2  rounded-md  bg-[#FFFFFF] hover:bg-[#FFC1A0]"
+          onClick={() => {setIsMenuOpen(false);router.push('/signup')} }
+          className={`text-gray-700 center w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,2vw,1rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-2 rounded-md  ${isMenuOpen ? 'bg-[#FFC1A0] hover:bg-[#FFC1A0] hover:border-orange-400 hover:border-2' : 'bg-[#FFFFFF] hover:bg-[#FFC1A0]'} `}
         >
           SIGN UP
-        </button>
-      </div>
+        </Button>
+        
+        </div>
     );
   }
 
   return (
     <div className="relative" ref={dropdownRef}>
       <button
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+        onClick={() => {setIsMenuOpen(false);setIsDropdownOpen(!isDropdownOpen)} }
         className="flex items-center space-x-2 text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200"
         aria-label="User Profile"
       >
@@ -97,7 +99,7 @@ const UserProfileDropdown: React.FC = () => {
             <Link
               href="/profile"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
-              onClick={() => setIsDropdownOpen(false)}
+              onClick={() => {setIsMenuOpen(false);setIsDropdownOpen(false)} }
             >
               <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -108,7 +110,7 @@ const UserProfileDropdown: React.FC = () => {
             <Link
               href="/orders"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
-              onClick={() => setIsDropdownOpen(false)}
+              onClick={() => {setIsMenuOpen(false);setIsDropdownOpen(false)} }
             >
               <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -119,7 +121,7 @@ const UserProfileDropdown: React.FC = () => {
             <Link
               href="/wishlist"
               className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
-              onClick={() => setIsDropdownOpen(false)}
+              onClick={() => {setIsMenuOpen(false);setIsDropdownOpen(false)} }
             >
               <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -130,7 +132,7 @@ const UserProfileDropdown: React.FC = () => {
             <div className="border-t border-gray-100 my-1"></div>
 
             <button
-              onClick={handleLogout}
+              onClick={() => {setIsMenuOpen(false);handleLogout()} }
               className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150"
             >
               <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

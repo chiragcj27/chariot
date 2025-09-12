@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import Footer from '@/components/Footer'
 import { paypalService } from '@/lib/paypal'
 import { Button } from '@/components/ui/button'
-import { Clock, AlertTriangle, CheckCircle, XCircle, CreditCard } from 'lucide-react'
+import { Clock, XCircle, CreditCard } from 'lucide-react'
 
 interface Order {
   _id: string;
@@ -53,6 +52,8 @@ export default function OrdersPage() {
   const [processingPayment, setProcessingPayment] = useState(false);
   const paypalButtonRef = useRef<HTMLDivElement>(null);
   const countdownRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const [currentPageState, setCurrentPageState] = useState(1);
+  const PAGE_SIZE = 10;
 
   const PAYMENT_TIMEOUT_MINUTES = 5;
   const PAYMENT_TIMEOUT_SECONDS = PAYMENT_TIMEOUT_MINUTES * 60;
@@ -328,6 +329,19 @@ export default function OrdersPage() {
     // This would typically call an API endpoint to generate and download the invoice
   };
 
+  // Build flattened row data for pagination
+  const flattenedRows = useMemo(() => {
+    return orders.flatMap((order) =>
+      order.items.map((item, itemIndex) => ({ order, item, key: `${order._id}-${itemIndex}` }))
+    );
+  }, [orders]);
+
+  const totalRows = flattenedRows.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const safePage = Math.min(Math.max(1, currentPageState), totalPages);
+  const startIndex = (safePage - 1) * PAGE_SIZE;
+  const paginatedRows = flattenedRows.slice(startIndex, startIndex + PAGE_SIZE);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -354,16 +368,16 @@ export default function OrdersPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-white mb-10">
+      <div className="min-h-screen max-w-full mx-auto bg-white mb-10 overflow-x-hidden">
         {/* Header */}
-        <div className="text-center py-8">
+        <div className="text-center py-8 px-[clamp(1rem,4vw,2rem)]">
           <h1 className="text-4xl font-bold text-orange-500">My Account</h1>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-8">
+        <div className="max-w-7xl mx-auto px-[clamp(1rem,4vw,2rem)]">
+          <div className="flex sm:flex-row flex-col gap-8">
             {/* Left Sidebar */}
-            <div className="w-64 bg-gray-100 p-6 rounded-lg">
+            <div className="w-full sm:w-64 bg-gray-100 p-6 rounded-lg">
               <h2 className="font-bold text-gray-900 mb-4">Account ID: {userAccountId}</h2>
               <hr className="border-gray-300 mb-4" />
               <nav className="space-y-2">
@@ -383,12 +397,11 @@ export default function OrdersPage() {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1">
+            <div className="flex-1 overflow-x-hidden">
               {/* Pending Orders Section */}
               {pendingOrders.length > 0 && (
                 <div className="mb-8">
                   <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                    <AlertTriangle className="w-6 h-6 text-orange-500 mr-2" />
                     Pending Orders
                   </h2>
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
@@ -487,7 +500,6 @@ export default function OrdersPage() {
               {/* Completed Orders Section */}
               <div>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-                  <CheckCircle className="w-6 h-6 text-green-500 mr-2" />
                   Order History
                 </h2>
                 
@@ -500,10 +512,13 @@ export default function OrdersPage() {
                   </div>
                 ) : (
                   <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="overflow-x-auto">
+                    <div className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-none w-full">
                       <table className="w-full min-w-[800px]">
                         <thead>
                           <tr className="bg-gray-50 border-b border-gray-200">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
+                              Product Name
+                            </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
                               Number ID
                             </th>
@@ -513,18 +528,23 @@ export default function OrdersPage() {
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
                               Price
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
-                              Product
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">
                               Invoice
                             </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {orders.map((order) => (
-                            order.items.map((item, itemIndex) => (
-                              <tr key={`${order._id}-${itemIndex}`} className="hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                          {paginatedRows.map(({ order, item, key }) => (
+                              <tr key={key} className="hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                                <td className="px-6 py-4 text-sm">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-gray-900 truncate" title={item.productName}>
+                                        {item.productName}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                   #{order.orderNumber}
                                 </td>
@@ -538,28 +558,42 @@ export default function OrdersPage() {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                   ${item.totalPrice.toFixed(2)}
                                 </td>
-                                <td className="px-6 py-4 text-sm">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-medium text-gray-900 truncate" title={item.productName}>
-                                        {item.productName}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                   <button
                                     onClick={() => handleDownloadInvoice(order._id)}
-                                    className="inline-flex items-center px-3 py-1 border-2 border-[#D94506] text-xs font-medium rounded-md text-black hover:bg-[#ffd9c7] focus:outline-none transition-colors duration-200"
+                                    className="text-[#D94506] hover:underline"
                                   >
-                                    Invoice
+                                    Download invoice
                                   </button>
                                 </td>
                               </tr>
-                            ))
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3">
+                      <div className="text-sm text-gray-600">
+                        {totalRows === 0 ? 'No records' : `Showing ${startIndex + 1}-${Math.min(startIndex + PAGE_SIZE, totalRows)} of ${totalRows}`}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setCurrentPageState((p) => Math.max(1, p - 1))}
+                          disabled={safePage === 1}
+                          className="px-3 py-1 border rounded disabled:opacity-50"
+                        >
+                          Prev
+                        </button>
+                        <div className="text-sm">
+                          Page {safePage} of {totalPages}
+                        </div>
+                        <button
+                          onClick={() => setCurrentPageState((p) => Math.min(totalPages, p + 1))}
+                          disabled={safePage >= totalPages}
+                          className="px-3 py-1 border rounded disabled:opacity-50"
+                        >
+                          Next
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -596,7 +630,6 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
-      <Footer />
     </ProtectedRoute>
   );
 }

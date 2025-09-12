@@ -1,7 +1,6 @@
 'use client';
 import React from "react";
 import ProductCard from "@/components/ProductCard";
-import Footer from "@/components/Footer";
 
 // Flipbook Embed Component
 const FlipbookEmbed = ({ 
@@ -115,7 +114,6 @@ export default function Product() {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 }

@@ -1,5 +1,4 @@
 "use client"
-import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -187,7 +186,6 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         </button>
       </div>
     </section>
-        <Footer />
       </div>
     </>
   );

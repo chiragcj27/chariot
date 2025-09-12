@@ -7,7 +7,6 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import { useCart } from "@/contexts/CartContext";
-import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
 import { useProductPurchase } from "@/hooks/useProductPurchase";
 import { Download } from "lucide-react";
@@ -597,7 +596,6 @@ export default function ProductPage({ params }: ProductPageProps) {
           Back to Home
         </button>
       </div>
-      <Footer/>
     </div>
   );
 }

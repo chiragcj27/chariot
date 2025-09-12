@@ -41,13 +41,13 @@ export default function CallToAction() {
           <div className="grid grid-cols-2 gap-4 mt-10 max-w-full">
             <button 
               onClick={handleSendMessage}
-              className=" hover:bg-[#FFC1A0] border-2 hover:border-[#D94506] border-[#FCA17A] text-black px-3 py-2 rounded-md text-lg font-medium transition w-full"
+              className=" hover:bg-[#FFC1A0] border-2 hover:border-[#D94506] border-[#FCA17A] text-black px-2 py-2 rounded-md text-sm sm:text-base md:text-lg lg:text-base xl:text-base [@media(min-width:1400px)]:text-xl font-medium transition w-full"
             >
               Send us a message
             </button>
             <button 
               onClick={handleBookConsultation}
-              className=" hover:bg-[#FFC1A0] border-2 hover:border-[#D94506] border-[#FCA17A] text-black px-3 py-2 rounded-md text-lg font-medium transition w-full"
+              className=" hover:bg-[#FFC1A0] border-2 hover:border-[#D94506] border-[#FCA17A] text-black px-2 py-2 rounded-md text-sm sm:text-base md:text-lg lg:text-base xl:text-base [@media(min-width:1400px)]:text-xl font-medium transition w-full"
             >
               Book a consultation
             </button>

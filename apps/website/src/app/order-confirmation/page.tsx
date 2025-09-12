@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { CheckCircle, FileText, Calendar, DollarSign, CreditCard, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCart } from '@/contexts/CartContext'
+import Image from 'next/image'
 
 interface OrderConfirmationData {
   orderNumber: string;
@@ -90,9 +91,9 @@ export default function OrderConfirmationPage() {
 
     // Clear cart after successful order
     clearCart();
-  }, []); // Remove clearCart from dependencies to prevent infinite loop
+  }, []);
 
-  const fetchOrderDetails = async (orderId: string) => {
+  const fetchOrderDetails = useCallback(async (orderId: string) => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
@@ -178,7 +179,7 @@ export default function OrderConfirmationPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const getPaymentMethodDisplay = (method: string) => {
     switch (method) {
@@ -359,9 +360,11 @@ export default function OrderConfirmationPage() {
               {orderData.items.map((item, index) => (
                 <div key={index} className="flex items-center space-x-4">
                   <div className="w-16 h-16 bg-gray-200 rounded-lg flex-shrink-0">
-                    <img 
+                    <Image 
                       src={item.imageUrl || 'https://placehold.co/80x80'} 
                       alt={item.productName}
+                      width={64}
+                      height={64}
                       className="w-full h-full object-cover rounded-lg"
                     />
                   </div>

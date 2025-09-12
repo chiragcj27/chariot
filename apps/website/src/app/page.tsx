@@ -2,25 +2,24 @@ import KitGrid from "@/components/KitGrid";
 import CallToAction from "@/components/CallToAction";
 import WhoWeAre from "@/components/WhoWeAre";
 import SubscriptionCards from "@/components/SubscriptionCards";
-import Footer from "@/components/Footer";
 
 export default function Home() {
   return (
     <div>
       <div className="px-5 sm:px-8 md:px-12 lg:px-16 xl:px-24"> {/* Responsive margins: 20px -> 32px -> 48px -> 64px -> 96px */}
       {/* Hero Section */}
-      <div className="flex flex-col pt-16 sm:pt-20 md:pt-24 lg:pt-28 xl:pt-32 pb-8 sm:pb-10 md:pb-12 lg:pb-14 xl:pb-16 gap-4 sm:gap-5 md:gap-6 lg:gap-6 xl:gap-7">
-        <p className="text-black font-balgin-regular font-medium leading-[1.2] text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl max-w-full">
+      <div className="flex flex-col pt-5 sm:pt-15 md:pt-24 lg:pt-28 xl:pt-32 pb-8 sm:pb-10 md:pb-12 lg:pb-14 xl:pb-16 gap-4 sm:gap-5 md:gap-6 lg:gap-6 xl:gap-7">
+        <p className="text-black font-balgin-regular font-medium leading-[1] text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl max-w-full">
           Hi, we are <span className="text-[#FCA17A]">Chariot</span><br />Built for Jewelers,<br/>by Jewelers.
         </p>
-        <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-secondary leading-[1.4] max-w-[90%] lg:max-w-[80%]">Branding, websites, catalogs, campaigns — everything your jewelry business needs to grow, all in one place.</p>
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-secondary leading-[1] max-w-[90%] lg:max-w-[80%]">Branding, websites, catalogs, campaigns — everything your jewelry business needs to grow, all in one place.</p>
       </div>
       {/* Kits Section */}
       <div className="flex flex-col">
         <KitGrid />
       </div>
       {/* What We Do Section */}
-      <div className="flex flex-col lg:flex-row mt-16 sm:mt-20 md:mt-24 lg:mt-28 xl:mt-32 pt-6 sm:pt-8 md:pt-10 lg:pt-11 xl:pt-12 gap-4 sm:gap-5 md:gap-6 lg:gap-6 xl:gap-7">
+      <div className="flex flex-col lg:flex-row mt-5 sm:mt-12 md:mt-20 lg:mt-28 xl:mt-32 pt-6 sm:pt-8 md:pt-10 lg:pt-11 xl:pt-12 gap-4 sm:gap-5 md:gap-6 lg:gap-6 xl:gap-7">
         <div className="w-full lg:w-[33%] lg:pr-6 xl:pr-12">
           <span className="text-sunrise text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-secondary leading-[1.3]">What we do</span>
         </div>
@@ -55,7 +54,7 @@ export default function Home() {
       </div>
       {/* Who we are Section */}
       <WhoWeAre />
-      <div className="px-5 sm:px-8 md:px-12 lg:px-16 xl:px-24 flex flex-col lg:flex-row mt-16 sm:mt-20 md:mt-24 lg:mt-28 xl:mt-32 pt-6 sm:pt-8 md:pt-10 lg:pt-11 xl:pt-12 gap-4 sm:gap-5 md:gap-6 lg:gap-6 xl:gap-7">
+      <div className="px-5 sm:px-8 md:px-12 lg:px-16 xl:px-24 flex flex-col lg:flex-row mt-5 sm:mt-12 md:mt-20 lg:mt-28 xl:mt-32 pt-6 sm:pt-8 md:pt-10 lg:pt-11 xl:pt-12 gap-4 sm:gap-5 md:gap-6 lg:gap-6 xl:gap-7">
         <div className="w-full lg:w-[33%] lg:pr-6 xl:pr-12">
           <span className="text-sunrise text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-secondary leading-[1.3]">Real Industry<br/>Experience</span>
         </div>
@@ -91,8 +90,7 @@ export default function Home() {
       <CallToAction />
       {/* Subscription Plans Section */}
       <SubscriptionCards />
-      {/* Footer Section */}
-      <Footer />
+    
     </div>
   );
 }

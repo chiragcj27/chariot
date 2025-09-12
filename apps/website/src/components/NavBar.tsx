@@ -5,6 +5,7 @@ import { useEffect, useState, Fragment } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from "@/contexts/CartContext";
 import UserProfileDropdown from './UserProfileDropdown';
+import { useStore } from "@/store/store";
 
 interface Category {
   _id: string;
@@ -22,7 +23,7 @@ interface CategoryItem {
 
 export default function NavBar() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isMenuOpen, setIsMenuOpen } = useStore();
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
   const { getTotalItems } = useCart();
@@ -66,7 +67,7 @@ export default function NavBar() {
 
   return (
     <Fragment>
-      <nav className="sticky top-0 z-50 flex items-center bg-white px-[clamp(1rem,4vw,2rem)] py-[clamp(0.5rem,1.5vw,0.75rem)] shadow-md justify-between h-[clamp(3.5rem,8vw,4rem)]">
+      <nav className={`sticky top-0 z-50 flex items-center  ${isMenuOpen ? 'bg-black' : 'bg-white'} transition-colors duration-800 px-[clamp(1rem,4vw,2rem)] py-[clamp(0.5rem,1.5vw,0.75rem)] shadow-md justify-between h-[clamp(3.5rem,8vw,4rem)]`}>
         {/* Left: Logo + Nav Links */}
         <div className="flex items-center gap-[clamp(1rem,4vw,2rem)]">
           {/* Logo */}
@@ -106,14 +107,14 @@ export default function NavBar() {
               </svg>
             </button> */}
             {/* Cart Icon */}
-            <Link href="/checkout" onClick={() => setIsMenuOpen(false)} className="relative text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200">
+            <Link href="/checkout" onClick={() => setIsMenuOpen(false)} className="group relative text-gray-700 group-hover:text-orange-400 focus:outline-none transition-colors duration-200">
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="21" r="1"/>
                 <circle cx="20" cy="21" r="1"/>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
               </svg>
               {getTotalItems() > 0 && (
-                <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[clamp(0.625rem,1.5vw,0.75rem)] rounded-full h-[clamp(1rem,2.5vw,1.25rem)] w-[clamp(1rem,2.5vw,1.25rem)] flex items-center justify-center min-w-[1rem] min-h-[1rem]">
+                <span className={`absolute -top-2 -right-2 bg-[#FFC1A0] group-hover:bg-orange-400 ${isMenuOpen ? 'text-black' : 'text-white'} text-[clamp(0.625rem,1.5vw,0.75rem)] rounded-full h-[clamp(1rem,2.5vw,1.25rem)] w-[clamp(1rem,2.5vw,1.25rem)] flex items-center justify-center min-w-[1rem] min-h-[1rem]`}>
                   {getTotalItems()}
                 </span>
               )}
@@ -133,17 +134,17 @@ export default function NavBar() {
           >
             <span
               className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
-                isMenuOpen ? 'rotate-45 bg-black group-hover:bg-orange-400' : '-translate-y-1.5 bg-black group-hover:bg-orange-400'
+                isMenuOpen ? `rotate-45 ${isMenuOpen ? 'bg-[#FFC1A0]' : 'bg-black'} group-hover:bg-orange-400` : '-translate-y-1.5 bg-black group-hover:bg-orange-400'
               }`}
             />
             <span
               className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
-                isMenuOpen ? 'opacity-0 bg-black group-hover:bg-orange-400' : 'bg-black group-hover:bg-orange-400'
+                isMenuOpen ? `opacity-0 ${isMenuOpen ? 'bg-[#FFC1A0]' : 'bg-black'} group-hover:bg-orange-400` : 'bg-black group-hover:bg-orange-400'
               }`}
             />
             <span
               className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
-                isMenuOpen ? '-rotate-45 bg-black group-hover:bg-orange-400' : 'translate-y-1.5 bg-black group-hover:bg-orange-400'
+                isMenuOpen ? `-rotate-45 ${isMenuOpen ? 'bg-[#FFC1A0]' : 'bg-black'} group-hover:bg-orange-400` : 'translate-y-1.5 bg-black group-hover:bg-orange-400'
               }`}
             />
           </button>
@@ -216,12 +217,9 @@ export default function NavBar() {
           borderBottomRightRadius: '50% 10%',
         }}
         transition={{ duration: 0.6, ease: 'easeInOut' }}
-        className="fixed top-0 left-0 w-full z-40 bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col overflow-hidden"
+        className="fixed top-0 left-0 w-full z-40 bg-black text-white flex flex-col overflow-hidden"
       >
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5 pointer-events-none">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[length:20px_20px]"></div>
-        </div>
+        
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto px-[clamp(1rem,4vw,2rem)] pb-[clamp(1rem,4vw,2rem)] mt-[clamp(4.5rem,10vw,5rem)] relative z-10 scrollbar-hide">
           {/* Main Layout: 4-Column Grid */}
