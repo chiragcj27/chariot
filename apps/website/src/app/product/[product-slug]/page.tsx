@@ -597,7 +597,6 @@ export default function ProductPage({ params }: ProductPageProps) {
           Back to Home
         </button>
       </div>
-      <Footer/>
     </div>
   );
 }

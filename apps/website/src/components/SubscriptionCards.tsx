@@ -70,7 +70,7 @@ export default function SubscriptionCards() {
   };
 
   return (
-    <section className=" w-full min-h-screen bg-gradient-to-b from-white to-seafoam pt-20 px-4">
+    <section className="w-full bg-gradient-to-b from-white to-seafoam px-4 pt-14 sm:pt-16 md:pt-16 lg:pt-12 xl:pt-10 2xl:pt-8 pb-10 sm:pb-12 md:pb-14 min-h-screen md:min-h-0">
       {/* Success Notification */}
       {showSuccess && (
         <div className="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in">
@@ -114,8 +114,7 @@ export default function SubscriptionCards() {
               </div>
               <button 
                 onClick={() => handleSubscribe(card)}
-                className="mt-auto py-2 rounded-lg border-2 border-[#FA7035] text-primary font-semibold bg-[#FFC1A0] hover:bg-primary hover:text-white transition"
-              >
+                className="mt-auto py-2 rounded-lg border-2 border-[#FA7035] text-primary font-semibold bg-[#FFC1A0] hover:border-3 focus:outline-none focus:ring-2 focus:ring-[#B73E00] focus:ring-inset focus-visible:ring-2 focus-visible:ring-[#B73E00] focus-visible:ring-inset">
                 {card.button}
               </button>
             </div>

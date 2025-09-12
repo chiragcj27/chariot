@@ -313,8 +313,7 @@ export default function KitPage({ params }: KitPageProps) {
         </button>
       </div>
     </section>
-    {/* Footer */}
-    <Footer />
+  
     
     </div>
   );

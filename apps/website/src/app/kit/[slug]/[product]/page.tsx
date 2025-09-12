@@ -620,7 +620,6 @@ export default function KitProductDetailPage({ params }: PageProps) {
           Back to Home
         </button>
       </div>
-      <Footer/>
     </div>
   );
 }

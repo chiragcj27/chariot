@@ -187,7 +187,6 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         </button>
       </div>
     </section>
-        <Footer />
       </div>
     </>
   );

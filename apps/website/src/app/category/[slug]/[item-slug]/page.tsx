@@ -216,7 +216,6 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
           Back to Home
         </button>
       </div>
-        <Footer />
       </div>
     </>
   );

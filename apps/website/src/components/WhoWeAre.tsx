@@ -1,49 +1,72 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import Marquee from "react-fast-marquee";
+import img1 from "../../public/1.png";
+import img2 from "../../public/2.jpg";
+import img3 from "../../public/3.png";  
+import img4 from "../../public/4.png";
+import img5 from "../../public/5.jpg";
 
 const images = [
   {
-    src: "https://placehold.co/250x350",
-    alt: "Co-working in Yerevan, 2022",
-    caption: "Co-working in Yerevan, 2022",
-    w: 250,
-    h: 350,
+    src: img1,
+    alt: "Mark Samuels Jwellers",
+    caption: "Mark Samuels Jwellers",
+    w: 960,
+    h: 540,
   },
   {
-    src: "https://placehold.co/300x400",
-    alt: "Teamwork",
-    caption: "Teamwork",
-    w: 300,
-    h: 400,
+    src: img3,
+    alt: "what we do",
+    caption: "what we do",
+    w: 416,
+    h: 836,
   },
   {
-    src: "https://placehold.co/350x250",
-    alt: "Workshop",
-    caption: "Workshop",
-    w: 350,
-    h: 250,
+    src: img2,
+    alt: "Mark Samuels Jwellers",
+    caption: "Mark Samuels Jwellers",
+    w: 675,
+    h: 540,
   },
   {
-    src: "https://placehold.co/600x800",
-    alt: "Our Fall Party, 2021",
-    caption: "Our Fall Party, 2021",
-    w: 250,
-    h: 350,
+    src: img4,
+    alt: "Mother's Day",
+    caption: "Mother's Day",
+    w: 594,
+    h: 844,
+  },
+  {
+    src: img5,
+    alt: "Blind Craft",
+    caption: "Blind Craft",
+    w: 665.06,
+    h: 506.25,
   },
 ];
 
 export default function WhoWeAre() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const update = () => setIsMobile(window.innerWidth < 640);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
   return (
-    <section className="w-full pt-[clamp(2.5rem,5vw,3rem)]">
+    <section className="w-full pt-[clamp(1.5rem,3.5vw,2.90rem)]">
+      {/* Heading */}
       <div className="flex flex-col lg:flex-row mt-[clamp(3rem,8vw,6rem)] px-[clamp(1.25rem,5vw,5rem)]">
-        <div className="w-full lg:w-[33%] mb-[clamp(2rem,4vw,3rem)] lg:mb-0 lg:pr-[clamp(2rem,4vw,3rem)]">
-          <span className="text-sunrise text-[clamp(1.5rem,4vw,2.25rem)] font-secondary">
+        <div className="w-full lg:w-[33%] mb-[clamp(1.25rem,4vw,3rem)] lg:mb-0 lg:pr-[clamp(2rem,4vw,3rem)]">
+          <span className="text-sunrise text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-secondary">
             Who we are
           </span>
         </div>
         <div className="w-full lg:w-[67%]">
-          <h2 className="text-[clamp(1.5rem,3.5vw,2rem)] leading-[1.3] mb-[clamp(2rem,5vw,3rem)]">
+          <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl leading-[1.4] lg:pl-4 mb-[clamp(2rem,5vw,3rem)]">
             We&apos;re a creative team born out of the jewelry trade, from
             Mumbai to LA. We&apos;ve lived the chaos of exhibitions, product
             drops, and client deadlines — and built Chariot to make it all a
@@ -51,23 +74,29 @@ export default function WhoWeAre() {
           </h2>
         </div>
       </div>
+
+      {/* Carousel */}
       <div className="overflow-hidden w-full flex justify-center mt-[clamp(2rem,5vw,3rem)]">
-        <div className="relative">
-          <div className="carousel-track flex items-end gap-[clamp(1rem,3vw,2rem)]">
-            {[...images, ...images, ...images].map((img, i) => (
+        <Marquee autoFill={true}  gradient={false} speed={60} >
+          <div className="flex items-start">
+            {images.map((img, i) => {
+              const scale = isMobile ? 0.75 : 1;
+              const minWidth = `clamp(150px, ${img.w * 0.6 * scale}px, ${img.w * scale}px)`;
+              const minHeight = `clamp(200px, ${img.h * 0.6 * scale}px, ${img.h * scale}px)`;
+              return (
               <div
-                key={i}
-                className="flex flex-col items-center flex-shrink-0"
-                style={{ 
-                  minWidth: `clamp(150px, ${img.w * 0.6}px, ${img.w}px)`,
-                  height: `clamp(200px, ${img.h * 0.6}px, ${img.h}px)`
+                key={`img-${i}`}
+                className="flex flex-col items-center m-2 flex-shrink-0"
+                style={{
+                  minWidth,
+                  height: minHeight,
                 }}
               >
                 <div
-                  className="rounded-lg overflow-hidden shadow-lg bg-white"
-                  style={{ 
-                    width: `clamp(150px, ${img.w * 0.6}px, ${img.w}px)`,
-                    height: `clamp(200px, ${img.h * 0.6}px, ${img.h}px)`
+                  className="group overflow-hidden shadow-lg bg-white"
+                  style={{
+                    width: minWidth,
+                    height: minHeight,
                   }}
                 >
                   <Image
@@ -75,7 +104,7 @@ export default function WhoWeAre() {
                     alt={img.alt}
                     width={img.w}
                     height={img.h}
-                    className="object-cover w-full h-full"
+                    className="object-cover w-full h-full transition-all duration-300 sm:grayscale sm:group-hover:grayscale-0"
                     draggable={false}
                   />
                 </div>
@@ -83,38 +112,11 @@ export default function WhoWeAre() {
                   {img.caption}
                 </span>
               </div>
-            ))}
+              );
+            })}
           </div>
-        </div>
+        </Marquee>
       </div>
-      <style jsx>{`
-        .carousel-track {
-          animation: scroll-x 20s linear infinite;
-        }
-        .carousel-track:hover {
-          animation-play-state: paused;
-        }
-        @keyframes scroll-x {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-33.333%);
-          }
-        }
-        
-        @media (max-width: 768px) {
-          .carousel-track {
-            animation-duration: 15s;
-          }
-        }
-        
-        @media (max-width: 480px) {
-          .carousel-track {
-            animation-duration: 12s;
-          }
-        }
-      `}</style>
     </section>
   );
 }

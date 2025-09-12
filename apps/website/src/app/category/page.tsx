@@ -107,7 +107,6 @@ export default function Category() {
 
       {/* Footer */}
       </div>
-      <Footer />
     </div>
   );
 }

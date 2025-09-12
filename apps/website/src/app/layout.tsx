@@ -8,6 +8,7 @@ import LoaderOverlay from "@/components/LoaderOverlay";
 import SmartLoader from "@/components/SmartLoader";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
+import Footer from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,13 +42,16 @@ export default function RootLayout({
             <CustomScrollbar />
             <NavBar />
             {children}
+            <Footer />
           </CartProvider>
         </AuthProvider>
         <Script 
           src="https://assets.calendly.com/assets/external/widget.js"
           strategy="afterInteractive"
         />
+        
       </body>
+      
     </html>
   );
 }
