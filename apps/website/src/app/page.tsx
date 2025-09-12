@@ -2,7 +2,6 @@ import KitGrid from "@/components/KitGrid";
 import CallToAction from "@/components/CallToAction";
 import WhoWeAre from "@/components/WhoWeAre";
 import SubscriptionCards from "@/components/SubscriptionCards";
-import Footer from "@/components/Footer";
 
 export default function Home() {
   return (

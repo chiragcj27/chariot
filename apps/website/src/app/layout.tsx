@@ -8,7 +8,7 @@ import LoaderOverlay from "@/components/LoaderOverlay";
 import SmartLoader from "@/components/SmartLoader";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
-import Footer from "@/components/Footer";
+import ConditionalFooter from "@/components/ConditionalFooter";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +42,7 @@ export default function RootLayout({
             <CustomScrollbar />
             <NavBar />
             {children}
-            <Footer />
+            <ConditionalFooter />
           </CartProvider>
         </AuthProvider>
         <Script 

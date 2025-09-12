@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import { paypalService } from '@/lib/paypal'
 import { Button } from '@/components/ui/button'
-import { Clock, AlertTriangle, CheckCircle, XCircle, CreditCard } from 'lucide-react'
+import { Clock, XCircle, CreditCard } from 'lucide-react'
 
 interface Order {
   _id: string;

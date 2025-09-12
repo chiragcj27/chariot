@@ -1,5 +1,4 @@
 'use client'
-import Footer from "@/components/Footer";
 import FilterDropDown from "@/components/FilterDropDown";
 import ProductCard from "@/components/ProductCard";
 import DiscoveryCallButton from "@/components/DiscoveryCallButton";

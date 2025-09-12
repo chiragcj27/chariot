@@ -6,7 +6,6 @@ import { AspectRatio } from '@/components/ui/aspect-ratio';
 import Image from 'next/image';
 import TestimonialsCarousel from '@/components/TestimonialsCarousel';
 import ProductCard from '@/components/ProductCard';
-import Footer from '@/components/Footer';
 import DiscoveryCallButton from '@/components/DiscoveryCallButton';
 import AskForQuoteButton from '@/components/AskForQuoteButton';
 import { useRouter } from 'next/navigation';
