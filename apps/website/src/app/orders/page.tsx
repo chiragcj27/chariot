@@ -53,7 +53,9 @@ export default function OrdersPage() {
   const paypalButtonRef = useRef<HTMLDivElement>(null);
   const countdownRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const [currentPageState, setCurrentPageState] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
   const PAGE_SIZE = 10;
+  const MOBILE_PAGE_SIZE = 3;
 
   const PAYMENT_TIMEOUT_MINUTES = 5;
   const PAYMENT_TIMEOUT_SECONDS = PAYMENT_TIMEOUT_MINUTES * 60;
@@ -67,6 +69,24 @@ export default function OrdersPage() {
       setError('Please log in to view your orders');
     }
   }, [user]);
+
+  // Handle screen size changes
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Set initial value
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Reset page when switching between mobile and desktop
+  useEffect(() => {
+    setCurrentPageState(1);
+  }, [isMobile]);
 
   // Cleanup countdown timers on unmount
   useEffect(() => {
@@ -336,11 +356,27 @@ export default function OrdersPage() {
     );
   }, [orders]);
 
+  // Group items by order for mobile view
+  const ordersWithItems = useMemo(() => {
+    return orders.map(order => ({
+      ...order,
+      allItems: order.items
+    }));
+  }, [orders]);
+
   const totalRows = flattenedRows.length;
-  const totalPages = Math.max(1, Math.ceil(totalRows / PAGE_SIZE));
+  const totalOrders = ordersWithItems.length;
+  
+  // Use different page sizes for desktop vs mobile
+  const currentPageSize = isMobile ? MOBILE_PAGE_SIZE : PAGE_SIZE;
+  const currentTotal = isMobile ? totalOrders : totalRows;
+  
+  const totalPages = Math.max(1, Math.ceil(currentTotal / currentPageSize));
   const safePage = Math.min(Math.max(1, currentPageState), totalPages);
-  const startIndex = (safePage - 1) * PAGE_SIZE;
-  const paginatedRows = flattenedRows.slice(startIndex, startIndex + PAGE_SIZE);
+  const startIndex = (safePage - 1) * currentPageSize;
+  
+  const paginatedRows = flattenedRows.slice(startIndex, startIndex + currentPageSize);
+  const paginatedOrders = ordersWithItems.slice(startIndex, startIndex + currentPageSize);
 
   if (loading) {
     return (
@@ -511,75 +547,134 @@ export default function OrdersPage() {
                     </Link>
                   </div>
                 ) : (
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="overflow-x-auto overflow-y-auto max-h-[70vh] sm:max-h-none w-full">
-                      <table className="w-full min-w-[800px]">
-                        <thead>
-                          <tr className="bg-gray-50 border-b border-gray-200">
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
-                              Product Name
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
-                              Number ID
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">
-                              Dates
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
-                              Price
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">
-                              Invoice
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {paginatedRows.map(({ order, item, key }) => (
-                              <tr key={key} className="hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
-                                <td className="px-6 py-4 text-sm">
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-medium text-gray-900 truncate" title={item.productName}>
-                                        {item.productName}
-                                      </p>
+                  <>
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200">
+                      <div className="overflow-x-auto overflow-y-auto max-h-[70vh] w-full">
+                        <table className="w-full min-w-[800px]">
+                          <thead>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
+                                Product Name
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
+                                Number ID
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">
+                                Dates
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+                                Price
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">
+                                Invoice
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {paginatedRows.map(({ order, item, key }) => (
+                                <tr key={key} className="hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                                  <td className="px-6 py-4 text-sm">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-gray-900 truncate" title={item.productName}>
+                                          {item.productName}
+                                        </p>
+                                      </div>
                                     </div>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                  #{order.orderNumber}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {new Date(order.createdAt).toLocaleDateString('en-US', { 
-                                    year: 'numeric', 
-                                    month: 'long', 
-                                    day: 'numeric' 
-                                  })}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  ${item.totalPrice.toFixed(2)}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  <button
-                                    onClick={() => handleDownloadInvoice(order._id)}
-                                    className="text-[#D94506] hover:underline"
-                                  >
-                                    Download invoice
-                                  </button>
-                                </td>
-                              </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    #{order.orderNumber}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                                      year: 'numeric', 
+                                      month: 'long', 
+                                      day: 'numeric' 
+                                    })}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    ${item.totalPrice.toFixed(2)}
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                    <button
+                                      onClick={() => handleDownloadInvoice(order._id)}
+                                      className="text-[#D94506] hover:underline"
+                                    >
+                                      Download invoice
+                                    </button>
+                                  </td>
+                                </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3">
+
+                    {/* Mobile Card View */}
+                    <div className="md:hidden space-y-4">
+                      {paginatedOrders.map((order) => (
+                        <div key={order._id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                Order #{order.orderNumber}
+                              </h3>
+                              <p className="text-sm text-gray-600">
+                                {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                                  year: 'numeric', 
+                                  month: 'long', 
+                                  day: 'numeric' 
+                                })}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-lg font-bold text-gray-900">
+                                ${order.total.toFixed(2)}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mb-4">
+                            <div className="text-sm text-gray-600 mb-2">Items:</div>
+                            <div className="space-y-2">
+                              {order.allItems.map((item, index) => (
+                                <div key={index} className="flex justify-between items-center text-sm bg-gray-50 p-2 rounded">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">{item.productName}</span>
+                                    <span className="text-gray-600">x{item.quantity}</span>
+                                  </div>
+                                  <span className="font-semibold">${item.totalPrice.toFixed(2)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-3 border-t border-gray-200">
+                            <button
+                              onClick={() => handleDownloadInvoice(order._id)}
+                              className="text-[#D94506] hover:underline text-sm font-medium"
+                            >
+                              Download Invoice
+                            </button>
+                            <div className="text-xs text-gray-500">
+                              {order.allItems.length} item{order.allItems.length > 1 ? 's' : ''}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Pagination */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 mt-4">
                       <div className="text-sm text-gray-600">
-                        {totalRows === 0 ? 'No records' : `Showing ${startIndex + 1}-${Math.min(startIndex + PAGE_SIZE, totalRows)} of ${totalRows}`}
+                        {currentTotal === 0 ? 'No records' : `Showing ${startIndex + 1}-${Math.min(startIndex + currentPageSize, currentTotal)} of ${currentTotal}`}
                       </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setCurrentPageState((p) => Math.max(1, p - 1))}
                           disabled={safePage === 1}
-                          className="px-3 py-1 border rounded disabled:opacity-50"
+                          className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
                         >
                           Prev
                         </button>
@@ -589,13 +684,13 @@ export default function OrdersPage() {
                         <button
                           onClick={() => setCurrentPageState((p) => Math.min(totalPages, p + 1))}
                           disabled={safePage >= totalPages}
-                          className="px-3 py-1 border rounded disabled:opacity-50"
+                          className="px-3 py-1 border rounded disabled:opacity-50 hover:bg-gray-50"
                         >
                           Next
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             </div>
