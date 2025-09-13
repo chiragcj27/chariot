@@ -17,7 +17,7 @@ export async function GET(
       
       if (refreshToken) {
         // Try to refresh via direct backend call
-        const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+        const baseBackendUrl = process.env.API_BASE_URL || 'http://localhost:3001';
         const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
         const backendRefresh = await fetch(backendUrl, {
           method: 'POST',
@@ -46,7 +46,7 @@ export async function GET(
     const limit = searchParams.get('limit') || '10';
 
     // Forward the request to the backend API
-    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const baseBackendUrl = process.env.API_BASE_URL || 'http://localhost:3001';
     const backendUrl = `${baseBackendUrl}/api/marketplace/admin/notifications/${adminId}?limit=${limit}`;
     
     const response = await fetch(backendUrl, {
