@@ -190,7 +190,7 @@ export default function LoginPage() {
                 value={formData.userAccountId}
                 onChange={handleInputChange}
                 required
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
                 placeholder="Enter your user account ID"
               />
             </div>
@@ -206,7 +206,7 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={handleInputChange}
                 required
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
                 placeholder="Enter your password"
               />
             </div>
@@ -237,7 +237,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-30 flex justify-center py-1 px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Signing In...' : 'LOG IN'}
               </button>
@@ -266,7 +266,7 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
                 placeholder="Enter your email address"
               />
             </div>
@@ -282,7 +282,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-30 flex justify-center py-1 px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Sending...' : 'SEND OTP'}
               </button>
@@ -312,7 +312,7 @@ export default function LoginPage() {
                 onChange={handleInputChange}
                 required
                 maxLength={6}
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm text-center text-lg tracking-widest"
+                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm text-center text-lg tracking-widest"
                 placeholder="000000"
               />
             </div>
@@ -328,7 +328,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-30 flex justify-center py-1 px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Verifying...' : 'VERIFY OTP'}
               </button>
@@ -357,7 +357,7 @@ export default function LoginPage() {
                 value={formData.newPassword}
                 onChange={handleInputChange}
                 required
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
                 placeholder="Enter new password"
               />
             </div>
@@ -373,7 +373,7 @@ export default function LoginPage() {
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 required
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm"
+                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
                 placeholder="Confirm new password"
               />
             </div>
@@ -389,7 +389,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-30 flex justify-center py-1 px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Resetting...' : 'RESET PASSWORD'}
               </button>
@@ -404,7 +404,7 @@ export default function LoginPage() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center py-12 px-6 relative"
+      className="min-h-screen flex items-center justify-center py-12 px-6 sm:px-8 relative"
       style={{
         backgroundImage: 'url(/login.jpg)',
         backgroundSize: 'cover',
@@ -415,22 +415,22 @@ export default function LoginPage() {
       {/* Overlay for better readability */}
       <div className="absolute inset-0 bg-black/70"></div>
       
-      <div className="relative z-10 w-full max-w-6xl flex items-center">
-        {/* Left side - Text content */}
-        <div className="flex-1 text-white pr-10">
-          <h1 className="text-5xl h-[50%] -ml-10 font-balgin-regular">
+      <div className="relative z-10 w-full max-w-5xl flex flex-col lg:flex-row items-center">
+        {/* Left side - Text content - Hidden on mobile and tablet */}
+        <div className="hidden lg:flex flex-1 text-white pr-6 xl:pr-10">
+          <h1 className="text-4xl xl:text-5xl h-[50%] -ml-6 xl:-ml-14 font-balgin-regular">
             Login to your jewelry <br/> marketing studio
           </h1>
         </div>
 
         {/* Right side - Login form */}
-        <div className="w-80">
-          <div className="bg-white -mr-10 rounded-4xl py-8 px-6 shadow-xl">
+        <div className="w-full max-w-sm sm:max-w-md lg:w-72 xl:w-80">
+          <div className="bg-white lg:-mr-6 xl:-mr-10 rounded-2xl sm:rounded-4xl py-6 px-4 sm:py-8 sm:px-6 shadow-xl">
             {/* Logo and header */}
             <div className="text-center mb-6">
-              <Image src="/chariot_icon.svg" alt="Chariot Logo" width={500} height={500} className="-mb-20 -mt-10"/>
-              <p className="text-black text-[24px] font-bold font-balgin-regular">Welcome to</p>
-              <h2 className="text-[#FCA17A] text-[24px] -mt-3 font-bold font-balgin-regular">Chariot</h2>
+              <Image src="/chariot_icon.svg" alt="Chariot Logo" width={500} height={500} className="w-32 h-32 sm:w-40 sm:h-40 lg:w-40 lg:h-40 xl:w-48 xl:h-48 mx-auto -mb-16 -mt-8 lg:-mb-18 lg:-mt-8 xl:-mb-20 xl:-mt-10"/>
+              <p className="text-black text-lg sm:text-xl lg:text-xl xl:text-[24px] font-bold font-balgin-regular">Welcome to</p>
+              <h2 className="text-[#FCA17A] text-lg sm:text-xl lg:text-xl xl:text-[24px] -mt-3 font-bold font-balgin-regular">Chariot</h2>
             </div>
 
             {error && (
@@ -445,7 +445,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               {renderForm()}
             </form>
           </div>
