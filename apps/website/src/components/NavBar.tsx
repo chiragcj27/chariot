@@ -131,20 +131,21 @@ export default function NavBar() {
           <button
             className="relative w-[clamp(1.5rem,3vw,2rem)] h-[clamp(1.5rem,3vw,2rem)] z-[100] flex flex-col justify-center items-center group"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           >
             <span
               className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
-                isMenuOpen ? `rotate-45 ${isMenuOpen ? 'bg-[#FFC1A0]' : 'bg-black'} group-hover:bg-orange-400` : '-translate-y-1.5 bg-black group-hover:bg-orange-400'
+                isMenuOpen ? 'rotate-45 bg-white group-hover:bg-[#FA7035]' : '-translate-y-1.5 bg-black group-hover:bg-orange-400'
               }`}
             />
             <span
               className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
-                isMenuOpen ? `opacity-0 ${isMenuOpen ? 'bg-[#FFC1A0]' : 'bg-black'} group-hover:bg-orange-400` : 'bg-black group-hover:bg-orange-400'
+                isMenuOpen ? 'opacity-0 bg-white group-hover:bg-[#FA7035]' : 'bg-black group-hover:bg-orange-400'
               }`}
             />
             <span
               className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
-                isMenuOpen ? `-rotate-45 ${isMenuOpen ? 'bg-[#FFC1A0]' : 'bg-black'} group-hover:bg-orange-400` : 'translate-y-1.5 bg-black group-hover:bg-orange-400'
+                isMenuOpen ? '-rotate-45 bg-white group-hover:bg-[#FA7035]' : 'translate-y-1.5 bg-black group-hover:bg-orange-400'
               }`}
             />
           </button>
@@ -153,6 +154,17 @@ export default function NavBar() {
       {/* Mobile Menu (dropdown style) */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-50 bg-black flex flex-col lg:hidden transition-all duration-500 ease-in-out">
+          {/* Close Button */}
+          <button
+            className="absolute top-4 right-4 z-60 w-8 h-8 flex items-center justify-center text-white hover:text-[#FA7035] transition-colors duration-200"
+            onClick={() => setIsMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
           <div className="flex flex-col mt-[clamp(5rem,12vw,6rem)] px-[clamp(1rem,4vw,2rem)] gap-[clamp(0.75rem,2vw,1rem)] overflow-y-auto">
             {categories.map((cat) => (
               <div key={cat._id}>
