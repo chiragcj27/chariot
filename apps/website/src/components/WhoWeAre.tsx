@@ -61,12 +61,12 @@ export default function WhoWeAre() {
       {/* Heading */}
       <div className="flex flex-col lg:flex-row mt-[clamp(3rem,8vw,6rem)] px-[clamp(1.25rem,5vw,5rem)]">
         <div className="w-full lg:w-[33%] mb-[clamp(1.25rem,4vw,3rem)] lg:mb-0 lg:pr-[clamp(2rem,4vw,3rem)]">
-          <span className="text-sunrise text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-secondary">
+          <span className="text-sunrise text-xl sm:text-2xl md:text-[28px] lg:text-[30px] xl:text-[32px] 2xl:text-[36px] font-secondary">
             Who we are
           </span>
         </div>
         <div className="w-full lg:w-[67%]">
-          <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl leading-[1.4] lg:pl-4 mb-[clamp(2rem,5vw,3rem)]">
+          <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-[24px] 2xl:text-[30px] leading-[1.4] lg:pl-4 mb-[clamp(2rem,5vw,3rem)]">
             We&apos;re a creative team born out of the jewelry trade, from
             Mumbai to LA. We&apos;ve lived the chaos of exhibitions, product
             drops, and client deadlines — and built Chariot to make it all a
