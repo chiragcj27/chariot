@@ -34,22 +34,39 @@ const UserProfileDropdown: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center gap-2 sm:gap-4">
-        <Button
-          type="button"
-          onClick={() => {setIsMenuOpen(false);router.push('/login')} }
-          className={`text-gray-700 center w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,2vw,1rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-2 rounded-md  ${isMenuOpen ? 'bg-[#FFC1A0] hover:bg-[#FFC1A0] hover:border-orange-400 hover:border-2' : 'bg-[#FFFFFF] hover:bg-[#FFC1A0]'} `}
-        >
-          LOG IN
-        </Button><Button
-          type="button"
-          onClick={() => {setIsMenuOpen(false);router.push('/signup')} }
-          className={`text-gray-700 center w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,2vw,1rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-2 rounded-md  ${isMenuOpen ? 'bg-[#FFC1A0] hover:bg-[#FFC1A0] hover:border-orange-400 hover:border-2' : 'bg-[#FFFFFF] hover:bg-[#FFC1A0]'} `}
-        >
-          SIGN UP
-        </Button>
-        
+      <>
+        {/* Login/Signup buttons - visible only on lg+ screens */}
+        <div className="hidden lg:flex items-center gap-2 sm:gap-4">
+          <Button
+            type="button"
+            onClick={() => {setIsMenuOpen(false);router.push('/login')} }
+            className={`text-gray-700 center w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,2vw,1rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-2 rounded-md  ${isMenuOpen ? 'bg-[#FFC1A0] hover:bg-[#FFC1A0] hover:border-orange-400 hover:border-2' : 'bg-[#FFFFFF] hover:bg-[#FFC1A0]'} `}
+          >
+            LOG IN
+          </Button>
+          <Button
+            type="button"
+            onClick={() => {setIsMenuOpen(false);router.push('/signup')} }
+            className={`text-gray-700 center w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,2vw,1rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-2 rounded-md  ${isMenuOpen ? 'bg-[#FFC1A0] hover:bg-[#FFC1A0] hover:border-orange-400 hover:border-2' : 'bg-[#FFFFFF] hover:bg-[#FFC1A0]'} `}
+          >
+            SIGN UP
+          </Button>
         </div>
+        
+        {/* Profile icon - visible only on screens smaller than lg */}
+        <div className="lg:hidden">
+          <button
+            onClick={() => router.push('/auth')}
+            className="text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200"
+            aria-label="User Profile"
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </button>
+        </div>
+      </>
     );
   }
 
