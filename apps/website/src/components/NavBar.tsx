@@ -85,7 +85,7 @@ export default function NavBar() {
           {/* Navigation Links (fade) */}
           <div className={`hidden lg:flex gap-[clamp(1rem,3vw,2rem)] transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             {categories.map((cat) => (
-              <Link key={cat._id} href={`/category/${cat.slug}`} className="text-[clamp(1rem,1.8vw,1.125rem)] font-secondary font-medium text-gray-800 hover:text-[#FCA17A] transition-colors duration-200 whitespace-nowrap">
+              <Link key={cat._id} href={`/category/${cat.slug}`} className="text-[clamp(1rem,1.8vw,1.125rem)] font-secondary font-medium text-gray-800 hover:text-[#FA7035] transition-colors duration-200 whitespace-nowrap">
                 {cat.title}
               </Link>
             ))}
@@ -107,14 +107,14 @@ export default function NavBar() {
               </svg>
             </button> */}
             {/* Cart Icon */}
-            <Link href="/checkout" onClick={() => setIsMenuOpen(false)} className="group relative text-gray-700 group-hover:text-orange-400 focus:outline-none transition-colors duration-200">
+            <Link href="/checkout" onClick={() => setIsMenuOpen(false)} className="group relative text-gray-700 group-hover:text-[#FA7035] focus:outline-none transition-colors duration-200">
               <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="9" cy="21" r="1"/>
                 <circle cx="20" cy="21" r="1"/>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
               </svg>
               {getTotalItems() > 0 && (
-                <span className={`absolute -top-2 -right-2 bg-[#FFC1A0] group-hover:bg-orange-400 ${isMenuOpen ? 'text-black' : 'text-white'} text-[clamp(0.625rem,1.5vw,0.75rem)] rounded-full h-[clamp(1rem,2.5vw,1.25rem)] w-[clamp(1rem,2.5vw,1.25rem)] flex items-center justify-center min-w-[1rem] min-h-[1rem]`}>
+                <span className={`absolute -top-2 -right-2 bg-orange-400 group-hover:bg-orange-400 ${isMenuOpen ? 'text-black' : 'text-white'} text-[clamp(0.625rem,1.5vw,0.75rem)] rounded-full h-[clamp(1rem,2.5vw,1.25rem)] w-[clamp(1rem,2.5vw,1.25rem)] flex items-center justify-center min-w-[1rem] min-h-[1rem]`}>
                   {getTotalItems()}
                 </span>
               )}
@@ -170,7 +170,7 @@ export default function NavBar() {
                         <li key={item._id}>
                           <Link
                             href={`/category/${cat.slug}/${item.slug}`}
-                            className="text-gray-300 font-secondary hover:text-orange-400 cursor-pointer text-[clamp(0.875rem,2.2vw,1rem)] block py-1"
+                            className="text-gray-300 font-secondary hover:text-[#FA7035] cursor-pointer text-[clamp(0.875rem,2.2vw,1rem)] block py-1"
                             onClick={handleCloseMenu}
                           >
                             {item.title}
@@ -188,10 +188,10 @@ export default function NavBar() {
             <div className="mt-[clamp(1.5rem,4vw,2rem)]">
               <h2 className="text-white text-[clamp(1.125rem,3vw,1.25rem)] font-semibold mb-2">Contact</h2>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400 text-[clamp(0.875rem,2.2vw,1rem)]">Email</a></li>
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400 text-[clamp(0.875rem,2.2vw,1rem)]">LinkedIn</a></li>
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400 text-[clamp(0.875rem,2.2vw,1rem)]">Twitter</a></li>
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-orange-400 text-[clamp(0.875rem,2.2vw,1rem)]">Instagram</a></li>
+                <li><a href="#" className="text-gray-300 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">Email</a></li>
+                <li><a href="#" className="text-gray-300 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">LinkedIn</a></li>
+                <li><a href="#" className="text-gray-300 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">Twitter</a></li>
+                <li><a href="#" className="text-gray-300 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">Instagram</a></li>
               </ul>
             </div>
           </div>
@@ -249,10 +249,10 @@ export default function NavBar() {
                         >
                           <Link 
                             href={`/category/${cat.slug}/${item.slug}`} 
-                            className="text-gray-300 text-[clamp(0.875rem,2vw,1rem)] font-medium hover:text-orange-400 cursor-pointer transition-colors duration-200 flex items-center group"
+                            className="text-gray-300 text-[clamp(0.875rem,2vw,1rem)] font-medium hover:text-[#FA7035] cursor-pointer transition-colors duration-200 flex items-center group"
                             onClick={handleCloseMenu}
                           >
-                            <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
+                            <span className="w-1.5 h-1.5 bg-[#FA7035] rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
                             {item.title}
                           </Link>
                         </motion.li>
@@ -291,9 +291,9 @@ export default function NavBar() {
                     >
                       <a 
                         href="#" 
-                        className="text-gray-300 text-[clamp(0.875rem,2vw,1rem)] font-medium hover:text-orange-400 cursor-pointer transition-colors duration-200 flex items-center group"
+                        className="text-gray-300 text-[clamp(0.875rem,2vw,1rem)] font-medium hover:text-[#FA7035] cursor-pointer transition-colors duration-200 flex items-center group"
                       >
-                        <span className="w-1.5 h-1.5 bg-orange-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
+                        <span className="w-1.5 h-1.5 bg-[#FA7035] rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
                         {platform}
                       </a>
                     </motion.li>

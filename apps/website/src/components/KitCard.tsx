@@ -59,11 +59,11 @@ export default function KitCard({ kit }: KitCardProps) {
             const [firstWord, ...rest] = kit.title.split(' ');
             return (
               <>
-                <h3 className="text-base sm:text-lg md:text-xl lg:text-2xl  font-normal text-gray-900">
+                <h3 className="text-base sm:text-lg md:text-xl lg:text-[18px] xl:text-[20px] 2xl:text-[24px] font-normal text-gray-900">
                   {firstWord}
                 </h3>
                 {rest.length > 0 && (
-                  <div className="text-xs sm:text-sm md:text-base lg:text-lg  text-gray-400 font-light">
+                  <div className="text-xs sm:text-sm md:text-base lg:text-[14px] xl:text-[16px] 2xl:text-[18px] text-gray-400 font-light">
                     {rest.join(' ')}
                   </div>
                 )}
