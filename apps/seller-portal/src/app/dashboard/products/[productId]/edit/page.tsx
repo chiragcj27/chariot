@@ -540,7 +540,8 @@ export default function EditProductPage() {
           kitFiles: [
             ...existingFileIds,
             ...uploadedFileIds
-          ]
+          ],
+          kitImages: [] // Initialize as empty array, will be populated later if needed
         };
         
       }
@@ -562,6 +563,7 @@ export default function EditProductPage() {
         } else {
           apiPayload = {
             ...formData,
+            kitFiles: [], // Initialize as empty array
             kitImages: [
               ...existingImageIds,
               ...uploadedKitImageIds
