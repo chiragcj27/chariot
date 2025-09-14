@@ -3,7 +3,7 @@ import FilterDropDown from "@/components/FilterDropDown";
 import ProductCard from "@/components/ProductCard";
 import DiscoveryCallButton from "@/components/DiscoveryCallButton";
 import AskForQuoteButton from "@/components/AskForQuoteButton";
-import { use, useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -42,7 +42,7 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [productsPerPage, setProductsPerPage] = useState<number>(6);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -57,12 +57,12 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug, itemSlug]);
 
   useEffect(() => {
     fetchProducts();
     setCurrentPage(1); // Reset to first page when category/item changes
-  }, [slug, itemSlug]);
+  }, [slug, itemSlug, fetchProducts]);
 
   // Handle responsive products per page
   useEffect(() => {
@@ -301,16 +301,18 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
               <div className="flex flex-row justify-center gap-2 sm:gap-4">
                 <DiscoveryCallButton
                   className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
-                  children="Discovery Call"
                   title="Discovery Call"
                   subtitle="Let&apos;s discuss how we can customize this product for your brand"
-                />
+                >
+                  Discovery Call
+                </DiscoveryCallButton>
                 <AskForQuoteButton
                   className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
-                  children="Ask For Quote"
                   productName={allProducts[0]?.name}
                   productType="product"
-                />
+                >
+                  Ask For Quote
+                </AskForQuoteButton>
               </div>
             </div>
           </div>
