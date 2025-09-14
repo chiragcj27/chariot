@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
@@ -60,87 +60,7 @@ export default function OrdersPage() {
   const PAYMENT_TIMEOUT_MINUTES = 5;
   const PAYMENT_TIMEOUT_SECONDS = PAYMENT_TIMEOUT_MINUTES * 60;
 
-  useEffect(() => {
-    if (user) {
-      fetchAllOrders();
-      fetchUserAccountId();
-    } else {
-      setLoading(false);
-      setError('Please log in to view your orders');
-    }
-  }, [user]);
-
-  // Handle screen size changes
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    // Set initial value
-    handleResize();
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Reset page when switching between mobile and desktop
-  useEffect(() => {
-    setCurrentPageState(1);
-  }, [isMobile]);
-
-  // Cleanup countdown timers on unmount
-  useEffect(() => {
-    return () => {
-      countdownRefs.current.forEach((timer) => clearInterval(timer));
-    };
-  }, []);
-
-  // Listen for PayPal payment success
-  useEffect(() => {
-    const handlePayPalPaymentSuccess = (event: CustomEvent) => {
-      const { orderId, paymentId, result } = event.detail;
-      console.log('PayPal payment successful:', { orderId, paymentId, result });
-      
-      // Close payment modal
-      setShowPayPalPayment(false);
-      setCurrentPendingOrder(null);
-      
-      // Refresh orders to update status
-      fetchAllOrders();
-      
-      // Show success message
-      alert('Payment completed successfully! Your order has been processed.');
-    };
-
-    window.addEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
-
-    return () => {
-      window.removeEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
-    };
-  }, []);
-
-  const fetchUserAccountId = async () => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) return;
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/api/buyers/profile`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUserAccountId(data.buyer.userAccountId || 'N/A');
-      }
-    } catch (error) {
-      console.error('Error fetching user account ID:', error);
-    }
-  };
-
-  const fetchAllOrders = async () => {
+  const fetchAllOrders = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -220,7 +140,89 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchAllOrders();
+      fetchUserAccountId();
+    } else {
+      setLoading(false);
+      setError('Please log in to view your orders');
+    }
+  }, [user, fetchAllOrders]);
+
+  // Handle screen size changes
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Set initial value
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Reset page when switching between mobile and desktop
+  useEffect(() => {
+    setCurrentPageState(1);
+  }, [isMobile]);
+
+  // Cleanup countdown timers on unmount
+  useEffect(() => {
+    const currentCountdownRefs = countdownRefs.current;
+    return () => {
+      currentCountdownRefs.forEach((timer) => clearInterval(timer));
+    };
+  }, []);
+
+  // Listen for PayPal payment success
+  useEffect(() => {
+    const handlePayPalPaymentSuccess = (event: CustomEvent) => {
+      const { orderId, paymentId, result } = event.detail;
+      console.log('PayPal payment successful:', { orderId, paymentId, result });
+      
+      // Close payment modal
+      setShowPayPalPayment(false);
+      setCurrentPendingOrder(null);
+      
+      // Refresh orders to update status
+      fetchAllOrders();
+      
+      // Show success message
+      alert('Payment completed successfully! Your order has been processed.');
+    };
+
+    window.addEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+
+    return () => {
+      window.removeEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+    };
+  }, [fetchAllOrders]);
+
+  const fetchUserAccountId = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/buyers/profile`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserAccountId(data.buyer.userAccountId || 'N/A');
+      }
+    } catch (error) {
+      console.error('Error fetching user account ID:', error);
+    }
   };
+
 
   const startCountdownTimer = (orderId: string) => {
     // Clear existing timer if any

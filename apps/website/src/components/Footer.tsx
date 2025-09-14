@@ -5,11 +5,11 @@ export default function Footer() {
   return (
     <footer className="bg-seafoam min-w-full text-gray-800">
       {/* Main Footer Content */}
-      <div className="mx-12 sm:mx-24 py-16">
+      <div className="mx-4 sm:mx-12 lg:mx-24 py-8 sm:py-12 lg:py-16">
         <div className="max-w-[1200px] mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 lg:gap-12">
             {/* Company Info */}
-            <div className="space-y-6 sm:col-span-2 lg:col-span-1">
+            <div className="space-y-4 col-span-2 sm:space-y-6 sm:col-span-2 lg:col-span-1">
               <h3 className="text-xl font-semibold text-gray-900">Chariot</h3>
               <p className="text-base font-secondary text-gray-700 leading-relaxed">
                 Empowering businesses with innovative solutions and cutting-edge technology.
@@ -38,9 +38,9 @@ export default function Footer() {
             </div>
 
             {/* Quick Links */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <h3 className="text-xl font-semibold text-gray-900">Quick Links</h3>
-              <ul className="space-y-3">
+              <ul className="space-y-2 sm:space-y-3">
                 <li>
                   <Link href="/" className="text-base font-secondary text-gray-700 hover:text-gray-900 transition-colors">
                     Home
@@ -70,9 +70,9 @@ export default function Footer() {
             </div>
 
             {/* Services */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <h3 className="text-xl font-semibold text-gray-900">Services</h3>
-              <ul className="space-y-3">
+              <ul className="space-y-2 sm:space-y-3">
                 <li>
                   <Link href="/web-development" className="text-base font-secondary text-gray-700 hover:text-gray-900 transition-colors">
                     Web Development
@@ -102,9 +102,9 @@ export default function Footer() {
             </div>
 
             {/* Contact Info */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <h3 className="text-xl font-semibold text-gray-900">Contact Us</h3>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex items-start space-x-3">
                   <svg className="h-5 w-5 text-gray-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -140,9 +140,9 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-seafoam bg-seafoam">
-        <div className="mx-24 py-8">
+        <div className="mx-4 sm:mx-12 lg:mx-24 py-4 sm:py-6 lg:py-8">
           <div className="max-w-[1200px] mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0">
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
               <div className="text-base font-secondary text-gray-700 text-center md:text-left">
                 © 2025 Chariot. All rights reserved.
               </div>
