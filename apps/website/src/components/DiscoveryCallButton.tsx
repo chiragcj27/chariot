@@ -11,7 +11,7 @@ interface DiscoveryCallButtonProps {
 }
 
 export default function DiscoveryCallButton({ 
-  className = "bg-[#DF9999] text-lg font-secondary font-semibold px-6 py-2 rounded transition-colors hover:bg-[#DF9999]/70 focus:outline-none focus:ring-2 focus:ring-[#DF9999]/40",
+  className = "bg-white text-lg  border-2 rounded-md border-[#FCA17A] px-6 py-2 rounded transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40",
   children = "Discovery Call",
   title = "Book a Discovery Call",
   subtitle = "Let&apos;s explore how we can help your jewelry business grow"

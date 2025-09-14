@@ -237,7 +237,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#FCA17A] border-3 rounded-md shadow-sm text-sm  text-gray-700 font-medium hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid "
               >
                 {loading ? 'Signing In...' : 'LOG IN'}
               </button>
@@ -282,7 +282,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Sending...' : 'SEND OTP'}
               </button>
@@ -328,7 +328,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Verifying...' : 'VERIFY OTP'}
               </button>
@@ -389,7 +389,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Resetting...' : 'RESET PASSWORD'}
               </button>

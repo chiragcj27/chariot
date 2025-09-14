@@ -99,14 +99,14 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
 
   return (
     <>
-      <div className="min-h-screen ">
-        {/* Existing content below */}
-        <div className="container mx-auto flex flex-col md:flex-row gap-12 pt-12 pb-8">
+      <div className="min-h-screen">
+        {/* Main content with responsive padding */}
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-8 md:gap-12 pt-8 md:pt-12 pb-8">
           <main className="flex-1">
-            <h1 className="text-6xl font-bold font-secondary mb-8">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-secondary mb-6 md:mb-8">
               {category?.title || (slug.charAt(0).toUpperCase() + slug.slice(1))}
             </h1>
-            <p className="text-2xl font-secondary mb-8">
+            <p className="text-lg sm:text-xl md:text-2xl font-secondary mb-6 md:mb-8">
               {category?.description || `${slug.charAt(0).toUpperCase() + slug.slice(1)} is a collection of products that are designed to be used in a variety of ways.`}
             </p>
             {loading && (
@@ -115,14 +115,14 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             {error && (
               <p className="text-red-500 font-secondary mb-8">{error}</p>
             )}
-            {/* Product Grid with centered last row if needed */}
+            {/* Product Grid with responsive spacing */}
             {/* Full rows */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-20 gap-y-16">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-16">
               {fullRowProducts.map((product, idx) => (
                 <Link key={idx} href={`/category/${slug}/${product.slug}`} className="block">
                   <ProductCard
                     title={product.title}
-                    image={product.image?.url || `https://placehold.co/400x350/FFEAEA/000000?text=${encodeURIComponent(product.title)}`}
+                    image={product.image?.url || `https://placehold.co/400x350/FFCCB6/000000?text=${encodeURIComponent(product.title)}`}
                     onHoverImage={product.onHover?.url}
                     aspectRatio={1}
                   />
@@ -131,7 +131,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             </div>
             {/* Last row, centered if 1 or 2 items */}
             {lastRowProducts.length > 0 && (
-              <div className="flex justify-center gap-x-20 mt-16 w-full">
+              <div className="flex justify-center gap-4 sm:gap-6 md:gap-8 lg:gap-12 xl:gap-16 mt-6 sm:mt-8 md:mt-12 w-full">
                 {lastRowProducts.map((product, idx) => (
                   <Link
                     key={fullRowProducts.length + idx}
@@ -141,7 +141,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                     <ProductCard
                       title={product.title}
                       subtitle={product.description}
-                      image={product.image?.url || `https://placehold.co/400x350/FFEAEA/000000?text=${encodeURIComponent(product.title)}`}
+                      image={product.image?.url || `https://placehold.co/400x350/FFCCB6/000000?text=${encodeURIComponent(product.title)}`}
                       onHoverImage={product.onHover?.url}
                       aspectRatio={1}
                     />
@@ -152,40 +152,42 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
           </main>
         </div>
             {/* FAQ Section */}
-            <section className="px-5 md:px-10 lg:px-18 pb-16 bg-white">
-      <h2 className="text-3xl font-bold font-secondary mb-6">FAQ</h2>
-      <div className="w-full">
-        {faqs.map((faq, idx) => (
-          <div key={idx} className="mb-2">
-            <div
-              className="flex items-center cursor-pointer pt-6"
-              onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-            >
-              <span className="text-3xl text-[#FA7035] font-bold mr-8 select-none transition-transform" style={{ minWidth: '32px', textAlign: 'center' }}>
-                {openFaq === idx ? '-' : '+'}
-              </span>
-              <span className="text-xl font-secondary text-black">
-                {faq.question}
-              </span>
-            </div>
-            {openFaq === idx && (
-              <div className="pl-16 pb-4 text-gray-700 font-secondary font-semibold">
-                {faq.answer}
+            <section className="pb-12 md:pb-16 bg-white">
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 className="text-2xl sm:text-3xl font-bold font-secondary mb-6">FAQ</h2>
+                <div className="w-full">
+                  {faqs.map((faq, idx) => (
+                    <div key={idx} className="mb-2">
+                      <div
+                        className="flex items-center cursor-pointer pt-4 sm:pt-6"
+                        onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
+                      >
+                        <span className="text-2xl sm:text-3xl text-[#FA7035] font-bold mr-4 sm:mr-6 md:mr-8 select-none transition-transform flex-shrink-0" style={{ minWidth: '24px', textAlign: 'center' }}>
+                          {openFaq === idx ? '-' : '+'}
+                        </span>
+                        <span className="text-lg sm:text-xl font-secondary text-black">
+                          {faq.question}
+                        </span>
+                      </div>
+                      {openFaq === idx && (
+                        <div className="pl-8 sm:pl-12 md:pl-16 pb-4 text-gray-700 font-secondary font-semibold text-sm sm:text-base">
+                          {faq.answer}
+                        </div>
+                      )}
+                      <div className="border-[1px] border-[#FA7035] w-full" />
+                    </div>
+                  ))}
+                </div>
+                <div className="container mx-auto  py-6 sm:py-8">
+                  <button
+                    className="border border-[#FCA17A] border-2 bg-white hover:bg-[#FCA17A] text-black font-secondary font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-lg transition-colors text-base sm:text-lg"
+                    onClick={() => router.push('/')}
+                  >
+                    Back To Home
+                  </button>
+                </div>
               </div>
-            )}
-            <div className="border-[1px] border-[#FA7035] w-full" />
-          </div>
-        ))}
-      </div>
-      <div className="flex mt-10">
-        <button
-          className="border-2 border-[#D94506] rounded-4xl bg-[#FFC1A0] text-black font-semibold px-8 py-1 transition-colors shadow text-lg"
-          onClick={() => router.push('/')}
-        >
-          Back to Home
-        </button>
-      </div>
-    </section>
+            </section>
       </div>
     </>
   );

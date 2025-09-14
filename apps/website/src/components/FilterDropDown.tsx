@@ -46,18 +46,9 @@ export default function FilterDropDown({ filters = [], onChange }: Props) {
     });
   };
 
-  // Fallback to previous static UI when no dynamic filters provided
+  // Hide component when no filters are available
   if (!filters || filters.length === 0) {
-    return (
-      <div className="bg-[#fdfbf6]" style={{ fontFamily: 'inherit' }}>
-        <div className="mb-6">
-          <div className="w-full flex items-center justify-between border border-black/60 rounded px-4 py-3 text-lg font-medium tracking-wide bg-transparent">
-            <span>FILTERS</span>
-          </div>
-          <div className="mt-2 text-sm text-black/60">No filters available</div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -72,7 +63,7 @@ export default function FilterDropDown({ filters = [], onChange }: Props) {
         return (
           <div className="mb-6" key={filter.id}>
             {/* Filter Name Label */}
-            <div className="mb-2">
+            <div className="mb-2 px-1">
               <label className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                 {filter.name}
               </label>

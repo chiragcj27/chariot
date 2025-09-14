@@ -63,7 +63,7 @@ export default function CalendlyModal({
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-[clamp(0.5rem,2vw,1rem)]" style={{ zIndex: 999999 }}>
       <div className="bg-white rounded-2xl w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[80vw] xl:max-w-[75vw] 2xl:max-w-5xl h-[clamp(85vh,90vh,95vh)] flex flex-col relative shadow-2xl border border-gray-100">
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#FFC1A0] to-[#FCA17A] px-[clamp(1rem,3vw,1.5rem)] py-[clamp(1rem,2.5vw,1.25rem)] flex items-center justify-between flex-shrink-0 rounded-t-2xl">
+        <div className="bg-gradient-to-r from-[#CFDAE9] to-[#FCA17A] px-[clamp(1rem,3vw,1.5rem)] py-[clamp(1rem,2.5vw,1.25rem)] flex items-center justify-between flex-shrink-0 rounded-t-2xl">
           <div className="flex-1 min-w-0">
             <h2 className="text-[clamp(1.25rem,3vw,1.5rem)] md:text-[clamp(1.5rem,3.5vw,2rem)] font-balgin-regular text-black truncate">{title}</h2>
             <p className="text-black/80 font-secondary text-[clamp(0.75rem,2vw,0.875rem)] mt-1 line-clamp-2">{subtitle}</p>

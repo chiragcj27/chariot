@@ -53,10 +53,10 @@ export default function ProductCard({
         )}
       </div>
       {(title || subtitle) && (
-        <div className="w-full text-center mt-6">
-          <span className="block text-2xl font-secondary font-semibold mb-2">{title}</span>
+        <div className="w-full text-center mt-3 sm:mt-4 lg:mt-6">
+          <span className="block text-sm sm:text-lg lg:text-xl xl:text-2xl font-secondary font-semibold mb-1 sm:mb-2">{title}</span>
           {subtitle && (
-            <span className="block text-lg font-primary text-black/70">{subtitle}</span>
+            <span className="block text-xs sm:text-sm lg:text-base xl:text-lg font-primary text-black/70">{subtitle}</span>
           )}
         </div>
       )}

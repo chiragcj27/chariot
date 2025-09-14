@@ -12,7 +12,7 @@ interface AskForQuoteButtonProps {
 }
 
 export default function AskForQuoteButton({ 
-  className = "bg-[#DF9999] text-[clamp(1rem,2.2vw,1.125rem)] font-secondary font-semibold px-[clamp(1rem,3vw,1.5rem)] py-[clamp(0.5rem,1.5vw,0.75rem)] rounded transition-colors hover:bg-[#DF9999]/70 focus:outline-none focus:ring-2 focus:ring-[#DF9999]/40 w-full sm:w-auto min-w-[120px]",
+  className = "bg-white text-lg  border-2 rounded-md border-[#FCA17A] px-6 py-2 rounded transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40",
   children = "Ask For Quote",
   productName = "",
   productType = "product",
