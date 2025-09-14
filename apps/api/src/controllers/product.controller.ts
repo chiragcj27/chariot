@@ -881,6 +881,27 @@ export const productController = {
         (product as any).kitFiles = kitFileIds;
       }
 
+      // Handle kit images array updates for kit products
+      if ((product as any).isKitProduct && updateData.kitImages) {
+        
+        // Convert string IDs to ObjectIds
+        const kitImageIds = updateData.kitImages
+          .map((image: any) => {
+            if (typeof image === 'string') {
+              return new mongoose.Types.ObjectId(image);
+            } else if (image._id) {
+              return new mongoose.Types.ObjectId(image._id);
+            } else if (image.url && image.url.startsWith('blob:')) {
+              // Skip blob URLs - these should have been uploaded already
+              return null;
+            }
+            return null;
+          })
+          .filter((id: any) => id !== null);
+
+        (product as any).kitImages = kitImageIds;
+      }
+
       // Handle digital preview file cleanup if previewFile is being updated
       if (product.type === 'digital' && updateData.previewFile) {
         const currentPreviewFile = (product as any).previewFile;

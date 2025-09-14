@@ -277,6 +277,8 @@ export default function EditProductPage() {
   };
 
   const uploadKitImages = async (kitImages: KitImage[], productId: string) => {
+    const uploadedImageIds: string[] = [];
+    
     for (let i = 0; i < kitImages.length; i++) {
       const kitImage = kitImages[i];
       if (!kitImage.url.startsWith('blob:')) continue;
@@ -322,7 +324,13 @@ export default function EditProductPage() {
         }),
       });
       if (!imageResponse.ok) throw new Error('Failed to store kit image metadata');
+      
+      // Get the uploaded image ID
+      const { image: uploadedImage } = await imageResponse.json();
+      uploadedImageIds.push(uploadedImage._id);
     }
+    
+    return uploadedImageIds;
   };
 
   const uploadKitFiles = async (kitFiles: KitFile[], productId: string) => {
@@ -495,15 +503,16 @@ export default function EditProductPage() {
       }
 
       // Upload newly added kit images
+      let uploadedKitImageIds: string[] = [];
       if (formData.isKitProduct && formData.kitImages && formData.kitImages.length > 0) {
         const newKitImages = formData.kitImages.filter(img => img.url.startsWith('blob:'));
         if (newKitImages.length > 0) {
-          await uploadKitImages(newKitImages, productId);
+          uploadedKitImageIds = await uploadKitImages(newKitImages, productId);
         }
       }
 
       // Upload new kit preview files FIRST
-      let apiPayload: Omit<ProductFormData, 'kitFiles'> & { kitFiles: string[] } | null = null;
+      let apiPayload: Omit<ProductFormData, 'kitFiles' | 'kitImages'> & { kitFiles: string[], kitImages: string[] } | null = null;
       
       if (formData.isKitProduct && formData.kitFiles && formData.kitFiles.length > 0) {
         // Separate existing files (have _id) from new files (blob URLs)
@@ -531,9 +540,36 @@ export default function EditProductPage() {
           kitFiles: [
             ...existingFileIds,
             ...uploadedFileIds
-          ]
+          ],
+          kitImages: [] // Initialize as empty array, will be populated later if needed
         };
         
+      }
+
+      // Handle kit images similar to kit files
+      if (formData.isKitProduct && formData.kitImages && formData.kitImages.length > 0) {
+        // Separate existing images (have _id) from new images (blob URLs)
+        const existingKitImages = formData.kitImages.filter((image): image is KitImage => 
+          typeof image === 'object' && image._id !== undefined && !image.url.startsWith('blob:')
+        );
+        
+        // Update apiPayload to include existing image IDs and new image IDs
+        const existingImageIds = existingKitImages.map(image => image._id).filter((id): id is string => id !== undefined);
+        if (apiPayload) {
+          apiPayload.kitImages = [
+            ...existingImageIds,
+            ...uploadedKitImageIds
+          ];
+        } else {
+          apiPayload = {
+            ...formData,
+            kitFiles: [], // Initialize as empty array
+            kitImages: [
+              ...existingImageIds,
+              ...uploadedKitImageIds
+            ]
+          };
+        }
       }
 
       // Upload or set kit main file
@@ -545,8 +581,8 @@ export default function EditProductPage() {
       }
 
       // NOW update the product with all the form data
-      // The kitFiles array will now include both existing and newly uploaded files
-      const payloadToSend = formData.isKitProduct && formData.kitFiles && formData.kitFiles.length > 0 ? apiPayload : formData;
+      // The kitFiles and kitImages arrays will now include both existing and newly uploaded files
+      const payloadToSend = (formData.isKitProduct && ((formData.kitFiles && formData.kitFiles.length > 0) || (formData.kitImages && formData.kitImages.length > 0))) ? apiPayload : formData;
       const response = await fetch(`/api/products/${productId}`, {
         method: 'PUT',
         headers: {

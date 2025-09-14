@@ -16,7 +16,7 @@ export async function PUT(
       
       if (refreshToken) {
         // Try to refresh via direct backend call
-        const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+        const baseBackendUrl = process.env.API_BASE_URL || 'http://localhost:3001';
         const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
         const backendRefresh = await fetch(backendUrl, {
           method: 'POST',
@@ -44,7 +44,7 @@ export async function PUT(
     const body = await req.json();
 
     // Forward the request to the backend API
-    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const baseBackendUrl = process.env.API_BASE_URL || 'http://localhost:3001';
     const backendUrl = `${baseBackendUrl}/api/admin/subscription-cards/${id}`;
     
     const response = await fetch(backendUrl, {
@@ -106,7 +106,7 @@ export async function DELETE(
       
       if (refreshToken) {
         // Try to refresh via direct backend call
-        const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+        const baseBackendUrl = process.env.API_BASE_URL || 'http://localhost:3001';
         const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
         const backendRefresh = await fetch(backendUrl, {
           method: 'POST',
@@ -133,7 +133,7 @@ export async function DELETE(
     const { id } = await params;
 
     // Forward the request to the backend API
-    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const baseBackendUrl = process.env.API_BASE_URL || 'http://localhost:3001';
     const backendUrl = `${baseBackendUrl}/api/admin/subscription-cards/${id}`;
     
     const response = await fetch(backendUrl, {

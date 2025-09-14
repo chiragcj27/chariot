@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
       
       if (refreshToken) {
         // Try to refresh via direct backend call
-        const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+        const baseBackendUrl = process.env.API_BASE_URL || 'http://localhost:3001';
         const backendUrl = `${baseBackendUrl}/api/auth/refresh`;
         const backendRefresh = await fetch(backendUrl, {
           method: 'POST',
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     const period = searchParams.get('period') || 'month';
 
     // Forward the request to the backend API
-    const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
+    const baseBackendUrl = process.env.API_BASE_URL || 'http://localhost:3001';
     const backendUrl = `${baseBackendUrl}/api/marketplace/admin/stats?period=${period}`;
     
     const response = await fetch(backendUrl, {
