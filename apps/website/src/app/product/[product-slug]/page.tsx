@@ -532,56 +532,58 @@ export default function ProductPage({ params }: ProductPageProps) {
 
       {/* Related Products Section */}
       {relatedProducts.length > 0 && (
-        <section className="w-full flex flex-col items-center py-10">
+        <section className="w-screen flex flex-col py-10">
           <h2 className="text-4xl px-5 md:px-10 lg:px-18 pt-10 font-balgin-regular mb-8 text-black">
             Related Products
           </h2>
-          <div className="w-full max-w-6xl px-5 md:px-10 lg:px-18">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="w-screen">
+            <div className="flex gap-6 overflow-x-auto snap-x snap-mandatory">
               {relatedProducts.map((relatedProduct) => (
-                <div key={relatedProduct._id} className="flex flex-col bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
-                  <div 
-                    className="w-full cursor-pointer relative"
-                    onClick={() => handleRelatedProductClick(relatedProduct.slug)}
-                  >
-                    <ProductCard
-                      image={relatedProduct.images?.[0]?.url || "https://placehold.co/400x500?text=Product"}
-                      className="w-full"
-                    />
-                  </div>
-                  
-                  {/* Product Info */}
-                  <div className="p-4 flex-1 flex flex-col">
-                    <h3 
-                      className="text-lg font-semibold text-gray-900 mb-2 cursor-pointer hover:text-orange-600 transition-colors"
+                <div key={relatedProduct._id} className="flex-none w-64 sm:w-72 snap-start">
+                  <div className="flex flex-col bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden h-full">
+                    <div 
+                      className="w-full cursor-pointer relative"
                       onClick={() => handleRelatedProductClick(relatedProduct.slug)}
                     >
-                      {relatedProduct.name}
-                    </h3>
-                    
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-lg font-bold text-gray-900">
-                        {relatedProduct.price ? `$${relatedProduct.price.amount}` : "Contact for pricing"}
-                      </span>
+                      <ProductCard
+                        image={relatedProduct.images?.[0]?.url || "https://placehold.co/400x500?text=Product"}
+                        className="w-full"
+                      />
                     </div>
                     
-                    <button 
-                      className="w-full bg-[#FFC1A0] text-black py-2 px-4 rounded-md font-medium hover:bg-orange-600 transition-colors duration-200"
-                      onClick={() => {
-                        addItem({
-                          productId: relatedProduct._id,
-                          productName: relatedProduct.name,
-                          productSlug: relatedProduct.slug,
-                          price: relatedProduct.price?.amount || 0,
-                          creditsCost: relatedProduct.creditsCost || 0,
-                          imageUrl: relatedProduct.images?.[0]?.url,
-                          category: relatedProduct.category,
-                        });
-                        alert('Related product added to cart!');
-                      }}
-                    >
-                      Add To Cart
-                    </button>
+                    {/* Product Info */}
+                    <div className="p-4 flex-1 flex flex-col">
+                      <h3 
+                        className="text-lg font-semibold text-gray-900 mb-2 cursor-pointer hover:text-orange-600 transition-colors"
+                        onClick={() => handleRelatedProductClick(relatedProduct.slug)}
+                      >
+                        {relatedProduct.name}
+                      </h3>
+                      
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-lg font-bold text-gray-900">
+                          {relatedProduct.price ? `$${relatedProduct.price.amount}` : "Contact for pricing"}
+                        </span>
+                      </div>
+                      
+                      <button 
+                        className="w-full bg-[#FFC1A0] text-black py-2 px-4 rounded-md font-medium hover:bg-orange-600 transition-colors duration-200"
+                        onClick={() => {
+                          addItem({
+                            productId: relatedProduct._id,
+                            productName: relatedProduct.name,
+                            productSlug: relatedProduct.slug,
+                            price: relatedProduct.price?.amount || 0,
+                            creditsCost: relatedProduct.creditsCost || 0,
+                            imageUrl: relatedProduct.images?.[0]?.url,
+                            category: relatedProduct.category,
+                          });
+                          alert('Related product added to cart!');
+                        }}
+                      >
+                        Add To Cart
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
