@@ -10,6 +10,7 @@ interface CartItem {
   price: number;
   creditsCost: number;
   imageUrl?: string;
+  category?: string;
 }
 
 interface CartContextType {

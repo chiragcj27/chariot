@@ -1,11 +1,32 @@
 import { Request, Response } from 'express';
-import { Order, PaymentMethod, PaymentStatus, OrderStatus, User, Product, Kit, IUser } from '@chariot/db';
+import { Order, PaymentMethod, PaymentStatus, OrderStatus, User, Product, Kit, IUser, MarketplaceSettings } from '@chariot/db';
 import { marketplaceService } from '../services/marketplace.service';
 
 interface CartItem {
   productId: string;
   quantity: number;
 }
+
+// Helper function to get tax rate from marketplace settings
+const getTaxRate = async (category?: string): Promise<number> => {
+  try {
+    const settings = await MarketplaceSettings.findOne();
+    if (!settings) {
+      return 12.5; // Fallback to 12.5% if no settings found
+    }
+
+    // If category is provided and has specific tax rate, use it
+    if (category && settings.taxRates.has(category)) {
+      return settings.taxRates.get(category) || settings.defaultTaxRate;
+    }
+
+    // Otherwise use default tax rate
+    return settings.defaultTaxRate;
+  } catch (error) {
+    console.error('Error fetching tax rate from marketplace settings:', error);
+    return 12.5; // Fallback to 12.5% on error
+  }
+};
 
 interface CheckoutRequest {
   items: CartItem[];
@@ -54,8 +75,10 @@ export const getCheckoutInfo = async (req: Request, res: Response) => {
 
     // Get products and kits and calculate totals
     const productIds = items.map(item => item.productId);
-    const products = await Product.find({ _id: { $in: productIds } }).populate('images');
-    const kits = await Kit.find({ _id: { $in: productIds } });
+    const products = await Product.find({ _id: { $in: productIds } })
+      .populate('images')
+      .populate('categoryId', 'title slug');
+    console.log(products);
 
     let subtotal = 0;
     let totalCreditsCost = 0;
@@ -64,14 +87,13 @@ export const getCheckoutInfo = async (req: Request, res: Response) => {
     for (const item of items) {
       // Check if it's a product
       let product = products.find((p: any) => p._id.toString() === item.productId);
-      let kit = null;
+   
       
       // If not a product, check if it's a kit
       if (!product) {
-        kit = kits.find((k: any) => k._id.toString() === item.productId);
-        if (!kit) {
-          return res.status(404).json({ message: `Product/Kit ${item.productId} not found` });
-        }
+        
+        return res.status(404).json({ message: `Product/Kit ${item.productId} not found` });
+  
       }
 
       let unitPrice = 0;
@@ -79,6 +101,7 @@ export const getCheckoutInfo = async (req: Request, res: Response) => {
       let productName = '';
       let productSlug = '';
       let imageUrl = '';
+      let category = '';
 
       if (product) {
         // Handle product
@@ -89,14 +112,14 @@ export const getCheckoutInfo = async (req: Request, res: Response) => {
         // Get the first image URL from populated images
         const firstImage = Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : null;
         imageUrl = firstImage && typeof firstImage === 'object' && 'url' in firstImage ? String(firstImage.url) : '';
-      } else if (kit) {
-        // Handle kit - use mock pricing for now
-        unitPrice = 80; // Mock price for kits
-        unitCreditsCost = 80; // Mock credits cost for kits
-        productName = kit.title || '';
-        productSlug = kit.slug || '';
-        imageUrl = (kit.mainImage as any)?.url || (kit.thumbnail as any)?.url || '';
-      }
+        // Check if this is a kit product
+        if (product.isKitProduct) {
+          category = 'kit'; // Kit products get 'kit' category
+        } else {
+          // Get category from populated categoryId for regular products
+          category = product.categoryId && typeof product.categoryId === 'object' && 'slug' in product.categoryId ? String(product.categoryId.slug) : '';
+        }
+      } 
 
       const totalPrice = unitPrice * item.quantity;
       const totalCreditsCostForItem = unitCreditsCost * item.quantity;
@@ -105,7 +128,7 @@ export const getCheckoutInfo = async (req: Request, res: Response) => {
       totalCreditsCost += totalCreditsCostForItem;
 
       orderItems.push({
-        productId: product?._id || kit?._id,
+        productId: product?._id ,
         productName,
         productSlug,
         quantity: item.quantity,
@@ -114,10 +137,13 @@ export const getCheckoutInfo = async (req: Request, res: Response) => {
         totalPrice,
         totalCreditsCost: totalCreditsCostForItem,
         imageUrl: imageUrl || '',
+        category: category || 'Uncategorized',
       });
     }
 
-    const tax = subtotal * 0.125; // 12.5% tax rate
+    // Get tax rate from marketplace settings
+    const taxRate = await getTaxRate(); // Use default tax rate for checkout info
+    const tax = subtotal * (taxRate / 100);
     const total = subtotal + tax;
 
     // Calculate payment breakdown (1 credit = 1 dollar)
@@ -182,8 +208,9 @@ export const createOrder = async (req: Request, res: Response) => {
 
     // Get products and kits and calculate totals
     const productIds = items.map(item => item.productId);
-    const products = await Product.find({ _id: { $in: productIds } }).populate('images');
-    const kits = await Kit.find({ _id: { $in: productIds } });
+    const products = await Product.find({ _id: { $in: productIds } })
+      .populate('images')
+      .populate('categoryId', 'title slug');
 
     let subtotal = 0;
     let totalCreditsCost = 0;
@@ -192,14 +219,10 @@ export const createOrder = async (req: Request, res: Response) => {
     for (const item of items) {
       // Check if it's a product
       let product = products.find((p: any) => p._id.toString() === item.productId);
-      let kit = null;
       
       // If not a product, check if it's a kit
       if (!product) {
-        kit = kits.find((k: any) => k._id.toString() === item.productId);
-        if (!kit) {
-          return res.status(404).json({ message: `Product/Kit ${item.productId} not found` });
-        }
+        return res.status(404).json({ message: `Product/Kit ${item.productId} not found` });
       }
 
       let unitPrice = 0;
@@ -207,6 +230,7 @@ export const createOrder = async (req: Request, res: Response) => {
       let productName = '';
       let productSlug = '';
       let imageUrl = '';
+      let category = '';
 
       if (product) {
         // Handle product
@@ -217,14 +241,14 @@ export const createOrder = async (req: Request, res: Response) => {
         // Get the first image URL from populated images
         const firstImage = Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : null;
         imageUrl = firstImage && typeof firstImage === 'object' && 'url' in firstImage ? String(firstImage.url) : '';
-      } else if (kit) {
-        // Handle kit - use mock pricing for now
-        unitPrice = 80; // Mock price for kits
-        unitCreditsCost = 80; // Mock credits cost for kits
-        productName = kit.title || '';
-        productSlug = kit.slug || '';
-        imageUrl = (kit.mainImage as any)?.url || (kit.thumbnail as any)?.url || '';
-      }
+        // Check if this is a kit product
+        if (product.isKitProduct) {
+          category = 'kit'; // Kit products get 'kit' category
+        } else {
+          // Get category from populated categoryId for regular products
+          category = product.categoryId && typeof product.categoryId === 'object' && 'slug' in product.categoryId ? String(product.categoryId.slug) : '';
+        }
+      } 
 
       const totalPrice = unitPrice * item.quantity;
       const totalCreditsCostForItem = unitCreditsCost * item.quantity;
@@ -233,7 +257,7 @@ export const createOrder = async (req: Request, res: Response) => {
       totalCreditsCost += totalCreditsCostForItem;
 
       orderItems.push({
-        productId: product?._id || kit?._id,
+        productId: product?._id,
         productName,
         productSlug,
         quantity: item.quantity,
@@ -242,10 +266,13 @@ export const createOrder = async (req: Request, res: Response) => {
         totalPrice,
         totalCreditsCost: totalCreditsCostForItem,
         imageUrl: imageUrl || '',
+        category: category || 'Uncategorized',
       });
     }
 
-    const tax = subtotal * 0.125; // 12.5% tax rate
+    // Get tax rate from marketplace settings  
+    const taxRate = await getTaxRate(); // Use default tax rate for order creation
+    const tax = subtotal * (taxRate / 100);
     const total = subtotal + tax;
 
     // Calculate payment breakdown based on payment method

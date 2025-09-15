@@ -140,7 +140,7 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [PAYMENT_TIMEOUT_SECONDS]);
 
   useEffect(() => {
     if (user) {
@@ -224,7 +224,7 @@ export default function OrdersPage() {
   };
 
 
-  const startCountdownTimer = (orderId: string) => {
+  const startCountdownTimer = useCallback((orderId: string) => {
     // Clear existing timer if any
     if (countdownRefs.current.has(orderId)) {
       clearInterval(countdownRefs.current.get(orderId)!);
@@ -257,9 +257,9 @@ export default function OrdersPage() {
     }, 1000);
 
     countdownRefs.current.set(orderId, timer);
-  };
+  }, []);
 
-  const handleAutoCancelOrder = async (orderId: string) => {
+  const handleAutoCancelOrder = useCallback(async (orderId: string) => {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
@@ -281,7 +281,7 @@ export default function OrdersPage() {
     } catch (error) {
       console.error('Error auto-cancelling order:', error);
     }
-  };
+  }, [fetchAllOrders]);
 
   const handleCompletePayment = async (order: PendingOrder) => {
     if (order.paymentBreakdown.paypalAmount <= 0) {

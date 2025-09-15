@@ -244,6 +244,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
         price: product.price?.amount || 0,
         creditsCost: product.creditsCost || 0,
         imageUrl: product.images?.[0]?.url,
+        category: 'kit',
       });
       alert("Added to cart!");
     } catch (error) {
