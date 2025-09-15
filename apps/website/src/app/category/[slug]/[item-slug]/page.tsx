@@ -3,7 +3,7 @@ import FilterDropDown from "@/components/FilterDropDown";
 import ProductCard from "@/components/ProductCard";
 import DiscoveryCallButton from "@/components/DiscoveryCallButton";
 import AskForQuoteButton from "@/components/AskForQuoteButton";
-import { use, useEffect, useMemo, useState, useCallback } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -42,7 +42,7 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [productsPerPage, setProductsPerPage] = useState<number>(6);
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProducts = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -57,12 +57,12 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
     } finally {
       setLoading(false);
     }
-  }, [slug, itemSlug]);
+  };
 
   useEffect(() => {
     fetchProducts();
     setCurrentPage(1); // Reset to first page when category/item changes
-  }, [slug, itemSlug, fetchProducts]);
+  }, [slug, itemSlug]);
 
   // Handle responsive products per page
   useEffect(() => {
