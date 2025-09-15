@@ -245,6 +245,7 @@ export default function ProductPage({ params }: ProductPageProps) {
         price: product.price?.amount || 0,
         creditsCost: product.creditsCost || 0,
         imageUrl: product.images?.[0]?.url,
+        category: product.category,
       });
       
       alert('Product added to cart successfully!');
@@ -574,6 +575,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                           price: relatedProduct.price?.amount || 0,
                           creditsCost: relatedProduct.creditsCost || 0,
                           imageUrl: relatedProduct.images?.[0]?.url,
+                          category: relatedProduct.category,
                         });
                         alert('Related product added to cart!');
                       }}
