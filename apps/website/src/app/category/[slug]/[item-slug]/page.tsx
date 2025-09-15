@@ -301,16 +301,18 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
               <div className="flex flex-row justify-center gap-2 sm:gap-4">
                 <DiscoveryCallButton
                   className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
-                  children="Discovery Call"
                   title="Discovery Call"
                   subtitle="Let&apos;s discuss how we can customize this product for your brand"
-                />
+                >
+                  Discovery Call
+                </DiscoveryCallButton>
                 <AskForQuoteButton
                   className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
-                  children="Ask For Quote"
                   productName={allProducts[0]?.name}
                   productType="product"
-                />
+                >
+                  Ask For Quote
+                </AskForQuoteButton>
               </div>
             </div>
           </div>
