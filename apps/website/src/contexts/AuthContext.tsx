@@ -26,11 +26,11 @@ interface BuyerRegistrationData {
   companyInformation: {
     name: string;
     address: string;
+    address2?: string;
     country: string;
     state: string;
     zipcode: string;
-    telephone: string[];
-    fax: string[];
+    telephone: string;
     websiteUrl: string;
   };
   contactInformation: {
@@ -38,8 +38,8 @@ interface BuyerRegistrationData {
     lastName: string;
     position: string;
     email: string;
-    telephone: string[];
-    fax: string[];
+    mobile: string;
+    telephone: string;
   };
   otherInformation: {
     primaryMarketSegment: string;
