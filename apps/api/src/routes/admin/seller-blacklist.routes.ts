@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Router } from 'express';
 import {
   blacklistSeller,
   removeFromBlacklist,
@@ -7,7 +7,7 @@ import {
   getBlacklistStats,
 } from '../../controllers/admin/seller-blacklist.controller';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Get blacklist statistics
 router.get('/stats', getBlacklistStats);

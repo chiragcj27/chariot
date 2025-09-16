@@ -34,7 +34,7 @@ export const heyzineService = {
           success: false
         };
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error generating flipbook:', error);
       
       if (axios.isAxiosError(error)) {

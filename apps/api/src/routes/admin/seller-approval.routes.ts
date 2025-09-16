@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Router } from 'express';
 import {
   getPendingSellers,
   getAllSellers,
@@ -8,7 +8,7 @@ import {
   getSellerStats,
 } from '../../controllers/admin/seller-approval.controller';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Get pending sellers
 router.get('/pending', getPendingSellers);

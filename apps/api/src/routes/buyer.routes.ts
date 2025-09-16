@@ -1,8 +1,8 @@
-import express from 'express';
+import express, { Router } from 'express';
 import { registerBuyer, loginBuyer, updateBuyerProfile, getBuyerProfile } from '../controllers/buyer.controller';
 import { isBuyer } from '../middleware/buyerAuth';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Buyer registration
 router.post('/register', registerBuyer);

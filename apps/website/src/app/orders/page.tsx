@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
-import ProtectedRoute from '@/components/ProtectedRoute'
+import AccountLayout from '@/components/AccountLayout'
 import { paypalService } from '@/lib/paypal'
 import { Button } from '@/components/ui/button'
 import { Clock, XCircle, CreditCard } from 'lucide-react'
@@ -46,7 +46,6 @@ export default function OrdersPage() {
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userAccountId, setUserAccountId] = useState<string>('');
   const [showPayPalPayment, setShowPayPalPayment] = useState(false);
   const [currentPendingOrder, setCurrentPendingOrder] = useState<PendingOrder | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
@@ -54,8 +53,8 @@ export default function OrdersPage() {
   const countdownRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const [currentPageState, setCurrentPageState] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
-  const PAGE_SIZE = 10;
-  const MOBILE_PAGE_SIZE = 3;
+  const DESKTOP_PAGE_SIZE = 10;
+  const MOBILE_PAGE_SIZE = 5;
 
   const PAYMENT_TIMEOUT_MINUTES = 5;
   const PAYMENT_TIMEOUT_SECONDS = PAYMENT_TIMEOUT_MINUTES * 60;
@@ -145,7 +144,6 @@ export default function OrdersPage() {
   useEffect(() => {
     if (user) {
       fetchAllOrders();
-      fetchUserAccountId();
     } else {
       setLoading(false);
       setError('Please log in to view your orders');
@@ -155,7 +153,7 @@ export default function OrdersPage() {
   // Handle screen size changes
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < 1024);
     };
 
     // Set initial value
@@ -202,26 +200,6 @@ export default function OrdersPage() {
     };
   }, [fetchAllOrders]);
 
-  const fetchUserAccountId = async () => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) return;
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/api/buyers/profile`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUserAccountId(data.buyer.userAccountId || 'N/A');
-      }
-    } catch (error) {
-      console.error('Error fetching user account ID:', error);
-    }
-  };
 
 
   const startCountdownTimer = useCallback((orderId: string) => {
@@ -337,11 +315,6 @@ export default function OrdersPage() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    window.location.href = '/login';
-  };
 
 
 
@@ -370,7 +343,7 @@ export default function OrdersPage() {
   const totalOrders = ordersWithItems.length;
   
   // Use different page sizes for desktop vs mobile
-  const currentPageSize = isMobile ? MOBILE_PAGE_SIZE : PAGE_SIZE;
+  const currentPageSize = isMobile ? MOBILE_PAGE_SIZE : DESKTOP_PAGE_SIZE;
   const currentTotal = isMobile ? totalOrders : totalRows;
   
   const totalPages = Math.max(1, Math.ceil(currentTotal / currentPageSize));
@@ -382,60 +355,35 @@ export default function OrdersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your orders...</p>
+      <AccountLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading your orders...</p>
+          </div>
         </div>
-      </div>
+      </AccountLayout>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-4">
-          <p className="text-red-600 mb-4">{error}</p>
-          <Link href="/login" className="text-orange-500 hover:text-orange-600">
-            Go to Login
-          </Link>
+      <AccountLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center max-w-md mx-auto px-4">
+            <p className="text-red-600 mb-4">{error}</p>
+            <Link href="/login" className="text-orange-500 hover:text-orange-600">
+              Go to Login
+            </Link>
+          </div>
         </div>
-      </div>
+      </AccountLayout>
     );
   }
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen max-w-full mx-auto bg-white mb-10 overflow-x-hidden">
-        {/* Header */}
-        <div className="text-center py-8 px-[clamp(1rem,4vw,2rem)]">
-          <h1 className="text-4xl font-bold text-orange-500">My Account</h1>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-[clamp(1rem,4vw,2rem)]">
-          <div className="flex sm:flex-row flex-col gap-8">
-            {/* Left Sidebar */}
-            <div className="w-full sm:w-64 bg-gray-100 p-6 rounded-lg">
-              <h2 className="font-bold text-gray-900 mb-4">Account ID: {userAccountId}</h2>
-              <hr className="border-gray-300 mb-4" />
-              <nav className="space-y-2">
-                <Link href="/profile" className="block text-gray-700 hover:text-orange-600 font-medium">
-                  Account
-                </Link>
-                <Link href="/orders" className="block text-gray-600 hover:text-orange-600 font-medium">
-                  Orders
-                </Link>
-                <button 
-                  onClick={handleLogout}
-                  className="block text-gray-600 hover:text-orange-600"
-                >
-                  Log Out
-                </button>
-              </nav>
-            </div>
-
-            {/* Main Content */}
-            <div className="flex-1 overflow-x-hidden">
+    <AccountLayout>
+      <div className="w-full overflow-hidden">
               {/* Pending Orders Section */}
               {pendingOrders.length > 0 && (
                 <div className="mb-8">
@@ -551,59 +499,59 @@ export default function OrdersPage() {
                 ) : (
                   <>
                     {/* Desktop Table View */}
-                    <div className="hidden md:block bg-white rounded-lg shadow-sm border border-gray-200">
-                      <div className="overflow-x-auto overflow-y-auto max-h-[70vh] w-full">
-                        <table className="w-full min-w-[800px]">
+                    <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                      <div className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+                        <table className="w-full table-auto">
                           <thead>
                             <tr className="bg-gray-50 border-b border-gray-200">
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
+                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">
                                 Product Name
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">
-                                Number ID
+                              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                                Order ID
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">
-                                Dates
+                              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                                Date
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">
+                              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
                                 Price
                               </th>
-                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[140px]">
+                              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
                                 Invoice
                               </th>
                             </tr>
                           </thead>
                           <tbody className="bg-white divide-y divide-gray-200">
                             {paginatedRows.map(({ order, item, key }) => (
-                                <tr key={key} className="hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
-                                  <td className="px-6 py-4 text-sm">
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-gray-900 truncate" title={item.productName}>
-                                          {item.productName}
-                                        </p>
-                                      </div>
+                                <tr key={key} className="hover:bg-gray-50">
+                                  <td className="px-4 py-4 text-sm">
+                                    <div className="max-w-xs">
+                                      <p className="text-sm font-medium text-gray-900 truncate" title={item.productName}>
+                                        {item.productName}
+                                      </p>
                                     </div>
                                   </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    #{order.orderNumber}
+                                  <td className="px-3 py-4 text-sm font-medium text-gray-900">
+                                    <span className="truncate">#{order.orderNumber}</span>
                                   </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {new Date(order.createdAt).toLocaleDateString('en-US', { 
-                                      year: 'numeric', 
-                                      month: 'long', 
-                                      day: 'numeric' 
-                                    })}
+                                  <td className="px-3 py-4 text-sm text-gray-900">
+                                    <span className="whitespace-nowrap">
+                                      {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                                        year: '2-digit', 
+                                        month: 'short', 
+                                        day: 'numeric' 
+                                      })}
+                                    </span>
                                   </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    ${item.totalPrice.toFixed(2)}
+                                  <td className="px-3 py-4 text-sm text-gray-900">
+                                    <span className="whitespace-nowrap">${item.totalPrice.toFixed(2)}</span>
                                   </td>
-                                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <td className="px-3 py-4 text-sm">
                                     <button
                                       onClick={() => handleDownloadInvoice(order._id)}
-                                      className="text-[#D94506] hover:underline"
+                                      className="text-[#D94506] hover:underline text-xs whitespace-nowrap"
                                     >
-                                      Download invoice
+                                      Download
                                     </button>
                                   </td>
                                 </tr>
@@ -611,6 +559,53 @@ export default function OrdersPage() {
                           </tbody>
                         </table>
                       </div>
+                    </div>
+
+                    {/* Tablet Card View */}
+                    <div className="hidden md:block lg:hidden space-y-4">
+                      {paginatedOrders.map((order) => (
+                        <div key={order._id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-lg font-semibold text-gray-900 truncate">
+                                Order #{order.orderNumber}
+                              </h3>
+                              <p className="text-sm text-gray-600">
+                                {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                                  year: 'numeric', 
+                                  month: 'long', 
+                                  day: 'numeric' 
+                                })}
+                              </p>
+                            </div>
+                            <div className="text-right ml-4">
+                              <div className="text-lg font-bold text-gray-900">
+                                ${order.total.toFixed(2)}
+                              </div>
+                              <button
+                                onClick={() => handleDownloadInvoice(order._id)}
+                                className="text-[#D94506] hover:underline text-sm"
+                              >
+                                Download Invoice
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {order.allItems.map((item, index) => (
+                              <div key={index} className="flex justify-between items-center text-sm bg-gray-50 p-3 rounded">
+                                <div className="flex-1 min-w-0">
+                                  <span className="font-medium truncate block" title={item.productName}>
+                                    {item.productName}
+                                  </span>
+                                  <span className="text-gray-600">Qty: {item.quantity}</span>
+                                </div>
+                                <span className="font-semibold ml-2">${item.totalPrice.toFixed(2)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
                     {/* Mobile Card View */}
@@ -695,38 +690,35 @@ export default function OrdersPage() {
                   </>
                 )}
               </div>
+      </div>
+
+      {/* PayPal Payment Modal */}
+      {showPayPalPayment && currentPendingOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Complete Payment</h3>
+            <p className="text-gray-600 mb-4">
+              Order: <strong>#{currentPendingOrder.orderNumber}</strong>
+            </p>
+            <p className="text-gray-600 mb-6">
+              PayPal Amount: <strong>${currentPendingOrder.paymentBreakdown.paypalAmount.toFixed(2)}</strong>
+            </p>
+            
+            {/* PayPal Button Container */}
+            <div ref={paypalButtonRef} className="mb-4"></div>
+            
+            <div className="flex justify-center">
+              <Button
+                onClick={() => setShowPayPalPayment(false)}
+                variant="outline"
+                className="w-full"
+              >
+                Cancel
+              </Button>
             </div>
           </div>
         </div>
-
-        {/* PayPal Payment Modal */}
-        {showPayPalPayment && currentPendingOrder && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 max-w-md mx-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Complete Payment</h3>
-              <p className="text-gray-600 mb-4">
-                Order: <strong>#{currentPendingOrder.orderNumber}</strong>
-              </p>
-              <p className="text-gray-600 mb-6">
-                PayPal Amount: <strong>${currentPendingOrder.paymentBreakdown.paypalAmount.toFixed(2)}</strong>
-              </p>
-              
-              {/* PayPal Button Container */}
-              <div ref={paypalButtonRef} className="mb-4"></div>
-              
-              <div className="flex justify-center">
-                <Button
-                  onClick={() => setShowPayPalPayment(false)}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </ProtectedRoute>
+      )}
+    </AccountLayout>
   );
 }

@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import ProtectedRoute from '../../components/ProtectedRoute';
+import AccountLayout from '../../components/AccountLayout';
 
 const MARKET_SEGMENTS = [
   'Single Store Retailer',
@@ -168,51 +167,19 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <AccountLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
             <p className="mt-4 text-gray-600">Loading profile...</p>
           </div>
         </div>
-      </ProtectedRoute>
+      </AccountLayout>
     );
   }
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        {/* Main Title */}
-        <div className="bg-white py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl sm:text-4xl font-bold font-balgin-regular text-[#FA7035] text-center">My Account</h1>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col md:flex-row gap-8">
-                      {/* Left Sidebar */}
-          <div className="w-full md:w-64 bg-gray-100 p-4 sm:p-6 rounded-lg md:sticky md:top-6 h-fit">
-            <h2 className="font-bold text-gray-900 mb-4">Account Name</h2>
-            <hr className="border-gray-300 mb-4" />
-            <nav className="space-y-2">
-              <a href="#" className="block text-gray-700 hover:text-orange-600 font-medium">Account</a>
-              <Link href="/orders" className="block text-gray-600 hover:text-orange-600">Orders</Link>
-              <button 
-                onClick={() => {
-                  localStorage.removeItem('accessToken');
-                  localStorage.removeItem('refreshToken');
-                  window.location.href = '/login';
-                }}
-                className="block text-gray-600 hover:text-orange-600"
-              >
-                Log Out
-              </button>
-            </nav>
-          </div>
-
-            {/* Main Content */}
-            <div className="flex-1 bg-white p-4 sm:p-8 rounded-lg shadow-sm mt-6 md:mt-0">
+    <AccountLayout>
               {message && (
                 <div className={`mb-6 p-4 rounded-md ${
                   message.includes('successfully') 
@@ -530,10 +497,6 @@ export default function ProfilePage() {
                   </div>
                 )}
               </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </ProtectedRoute>
+    </AccountLayout>
   );
 } 

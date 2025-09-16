@@ -26,7 +26,7 @@ export default function ProductCard({
       onClick={onClick}
     >
       <div 
-        className="relative w-full rounded shadow-md overflow-hidden group transition-all duration-300 hover:scale-105 hover:shadow-xl hover:-translate-y-1"
+        className="relative w-full rounded  overflow-hidden group transition-all duration-300 hover:scale-105 h hover:-translate-y-1"
         style={{ 
           aspectRatio: aspectRatio,
           height: 'auto'
