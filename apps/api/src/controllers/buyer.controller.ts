@@ -30,8 +30,8 @@ export async function registerBuyer(req: Request, res: Response) {
     }
 
     // Validate contact information
-    const { firstName, lastName, position, email, telephone: contactTelephone, mobile } = contactInformation;
-    if (!firstName || !lastName || !position || !email || !contactTelephone || !mobile) {
+    const { firstName, lastName, position, email, telephone: contactTelephone } = contactInformation;
+    if (!firstName || !lastName || !position || !email || !contactTelephone) {
       return res.status(400).json({
         message: 'All contact information fields are required.',
       });
@@ -60,12 +60,8 @@ export async function registerBuyer(req: Request, res: Response) {
       role: 'buyer',
       approvalStatus: 'pending', // Buyers need admin approval
       credits: 0,
-      companyInformation: {
-        ...companyInformation,
-      },
-      contactInformation: {
-        ...contactInformation,
-      },
+      companyInformation,
+      contactInformation,
       otherInformation,
       isChariotCustomer,
       chariotCustomerId,

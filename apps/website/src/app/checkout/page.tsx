@@ -418,7 +418,7 @@ export default function CheckoutPage() {
                 onClick={handleCreateOrder}
                 disabled={processing}
               >
-                {processing ? 'Processing...' : user ? 'Continue with Payment' : 'Login To Proceed'}
+                {processing ? 'Processing...' : 'Continue with Payment'}
               </Button>
             </div>
 
@@ -432,7 +432,7 @@ export default function CheckoutPage() {
                   onClick={handleCreateOrder}
                   disabled={processing}
                 >
-                  {processing ? 'Processing...' : user ? 'Continue with Payment' : 'Login To Proceed'}
+                  {processing ? 'Processing...' : 'Continue with Payment'}
                 </Button>
               </div>
 
