@@ -415,7 +415,7 @@ export default function CheckoutPage() {
                 onClick={handleCreateOrder}
                 disabled={processing}
               >
-                {processing ? 'Processing...' : 'Continue with Payment'}
+                {processing ? 'Processing...' : user ? 'Continue with Payment' : 'Login To Proceed'}
               </Button>
             </div>
 
@@ -429,7 +429,7 @@ export default function CheckoutPage() {
                   onClick={handleCreateOrder}
                   disabled={processing}
                 >
-                  {processing ? 'Processing...' : 'Continue with Payment'}
+                  {processing ? 'Processing...' : user ? 'Continue with Payment' : 'Login To Proceed'}
                 </Button>
               </div>
 
@@ -482,7 +482,7 @@ export default function CheckoutPage() {
               {itemsToRender.map((item, index) => (
                 <div key={index} className="flex items-center gap-3 sm:gap-4 pt-3 sm:pt-4 first:pt-0 border-b border-gray-100 last:border-b-0 pb-3 sm:pb-4 last:pb-0">
                   {/* Product Image */}
-                  <div className="w-28 h-28 sm:w-32 sm:h-32 lg:w-38 lg:h-38 bg-gray-200 rounded-lg flex-shrink-0 overflow-hidden">
+                  <div className="w-28 h-28 sm:w-32 sm:h-32 lg:w-38 lg:h-38 bg-gray-200 flex-shrink-0 overflow-hidden">
                     {item.imageUrl ? (
                       <Image
                         src={item.imageUrl}

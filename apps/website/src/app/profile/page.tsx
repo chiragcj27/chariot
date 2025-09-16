@@ -185,14 +185,14 @@ export default function ProfilePage() {
         {/* Main Title */}
         <div className="bg-white py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h1 className="text-4xl font-bold text-orange-600 text-center">My Account</h1>
+            <h1 className="text-3xl sm:text-4xl font-bold font-balgin-regular text-[#FA7035] text-center">My Account</h1>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex gap-8">
+          <div className="flex flex-col md:flex-row gap-8">
                       {/* Left Sidebar */}
-          <div className="w-64 bg-gray-100 p-6 rounded-lg">
+          <div className="w-full md:w-64 bg-gray-100 p-4 sm:p-6 rounded-lg md:sticky md:top-6 h-fit">
             <h2 className="font-bold text-gray-900 mb-4">Account Name</h2>
             <hr className="border-gray-300 mb-4" />
             <nav className="space-y-2">
@@ -212,7 +212,7 @@ export default function ProfilePage() {
           </div>
 
             {/* Main Content */}
-            <div className="flex-1 bg-white p-8 rounded-lg shadow-sm">
+            <div className="flex-1 bg-white p-4 sm:p-8 rounded-lg shadow-sm mt-6 md:mt-0">
               {message && (
                 <div className={`mb-6 p-4 rounded-md ${
                   message.includes('successfully') 
@@ -298,7 +298,7 @@ export default function ProfilePage() {
                       />
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">STATE</label>
                         <input
@@ -519,11 +519,11 @@ export default function ProfilePage() {
 
                 {/* Save Button */}
                 {isEditing && (
-                  <div className="flex justify-end">
+                  <div className="flex justify-center sm:justify-end">
                     <button
                       type="submit"
                       disabled={isUpdating}
-                      className="px-6 py-3 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:bg-gray-400 transition-colors font-medium"
+                      className="w-full sm:w-auto px-6 py-3 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:bg-gray-400 transition-colors font-medium"
                     >
                       {isUpdating ? 'Saving...' : 'Save The Changes'}
                     </button>
