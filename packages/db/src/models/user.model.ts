@@ -235,11 +235,11 @@ export interface IBuyer extends Omit<IUser, 'password'> {
   companyInformation: {
     name: string;
     address: string;
-    address2?: string;
     country: string;
     state: string;
     zipcode: string;
-    telephone: string;
+    telephone: string[];
+    fax: string[];
     websiteUrl: string;
   },
   contactInformation: {
@@ -247,8 +247,8 @@ export interface IBuyer extends Omit<IUser, 'password'> {
     lastName: string;
     position: string;
     email: string;
-    mobile: string;
-    telephone: string;
+    telephone: string[];
+    fax: string[];
   },
   creditsPoints: number;
   userAccountId?: string; // Optional during signup, will be generated after approval
@@ -274,9 +274,6 @@ const buyerSchema = new Schema<IBuyer>({
       type: String,
       required: true,
     },
-    address2: {
-      type: String,
-    },
     country: {
       type: String,
       required: true,
@@ -290,8 +287,12 @@ const buyerSchema = new Schema<IBuyer>({
       required: true,
     },
     telephone: {
-      type: String,
+      type: [String],
       required: true,
+    },
+    fax: {
+      type: [String],
+      default: [],
     },
     websiteUrl: {
       type: String,
@@ -315,13 +316,13 @@ const buyerSchema = new Schema<IBuyer>({
       type: String,
       required: true,
     },
-    mobile: {
-      type: String,
+    telephone: {
+      type: [String],
       required: true,
     },
-    telephone: {
-      type: String,
-      required: true,
+    fax: {
+      type: [String],
+      default: [],
     },
   },
   creditsPoints: {

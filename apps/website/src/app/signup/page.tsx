@@ -11,11 +11,11 @@ export default function SignupPage() {
     companyInformation: {
       name: '',
       address: '',
-      address2: '',
       country: '',
       state: '',
       zipcode: '',
-      telephone: '',
+      telephone: [''],
+      fax: [''],
       websiteUrl: '',
     },
     contactInformation: {
@@ -23,8 +23,8 @@ export default function SignupPage() {
       lastName: '',
       position: '',
       email: '',
-      mobile: '',
-      telephone: '',
+      telephone: [''],
+      fax: [''],
     },
     otherInformation: {
       primaryMarketSegment: '',
@@ -50,7 +50,22 @@ export default function SignupPage() {
     setError('');
 
     try {
-      const success = await register(formData);
+      // Clean up telephone and fax arrays (remove empty strings)
+      const cleanedData = {
+        ...formData,
+        companyInformation: {
+          ...formData.companyInformation,
+          telephone: formData.companyInformation.telephone.filter(t => t.trim() !== ''),
+          fax: formData.companyInformation.fax.filter(f => f.trim() !== ''),
+        },
+        contactInformation: {
+          ...formData.contactInformation,
+          telephone: formData.contactInformation.telephone.filter(t => t.trim() !== ''),
+          fax: formData.contactInformation.fax.filter(f => f.trim() !== ''),
+        },
+      };
+
+      const success = await register(cleanedData);
       if (success) {
         setSuccess(true);
         setTimeout(() => {
@@ -107,30 +122,58 @@ export default function SignupPage() {
     });
   };
 
-  // phone helpers removed in new schema (single values)
+  const addPhoneNumber = (section: 'companyInformation' | 'contactInformation', type: 'telephone' | 'fax') => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [type]: [...prev[section][type], ''],
+      },
+    }));
+  };
+
+  const removePhoneNumber = (section: 'companyInformation' | 'contactInformation', type: 'telephone' | 'fax', index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [type]: prev[section][type].filter((_, i) => i !== index),
+      },
+    }));
+  };
+
+  const updatePhoneNumber = (section: 'companyInformation' | 'contactInformation', type: 'telephone' | 'fax', index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [type]: prev[section][type].map((phone, i) => i === index ? value : phone),
+      },
+    }));
+  };
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col justify-center py-6 px-4 sm:py-12 sm:px-6 lg:px-8 xl:px-12 relative" style={{ backgroundImage: 'url(/login.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+      <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative" style={{ backgroundImage: 'url(/login.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
         <div className="absolute inset-0 bg-black/70"></div>
-        <div className="relative z-10 mx-auto w-full max-w-md xl:max-w-lg 2xl:max-w-xl">
-          <div className="flex justify-center mb-6 xl:mb-8">
+        <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="flex justify-center">
             <Link href="/">
-              <Image src="/chariot.svg" alt="The Chariot Logo" width={70} height={70} className="xl:w-20 xl:h-20 2xl:w-24 2xl:h-24" />
+              <Image src="/chariot.svg" alt="The Chariot Logo" width={70} height={70} />
             </Link>
           </div>
-          <div className="bg-white py-6 px-4 shadow-lg rounded-lg sm:py-8 sm:px-10 xl:py-12 xl:px-12 2xl:py-16 2xl:px-16 text-center">
-            <div className="text-green-500 mb-4 xl:mb-6">
-              <svg className="w-12 h-12 sm:w-16 sm:h-16 xl:w-20 xl:h-20 2xl:w-24 2xl:h-24 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
+            <div className="text-green-500 mb-4">
+              <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-xl sm:text-2xl xl:text-3xl 2xl:text-4xl font-bold text-gray-900 mb-4 xl:mb-6">Registration Successful!</h2>
-            <p className="text-sm sm:text-base xl:text-lg 2xl:text-xl text-gray-600 mb-6 xl:mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Registration Successful!</h2>
+            <p className="text-gray-600 mb-6">
               Your buyer account application has been submitted successfully. 
               You will receive an email with your login credentials once your application is approved by our admin team.
             </p>
-            <p className="text-xs sm:text-sm xl:text-base 2xl:text-lg text-gray-500">
+            <p className="text-sm text-gray-500">
               Redirecting to login page in 3 seconds...
             </p>
           </div>
@@ -140,18 +183,18 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen py-6 px-4 sm:py-12 sm:px-6 lg:px-8 xl:px-12 relative" style={{ backgroundImage: 'url(/login.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+    <div className="min-h-screen py-12 sm:px-6 lg:px-8 relative" style={{ backgroundImage: 'url(/login.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
       <div className="absolute inset-0 bg-black/70"></div>
-      <div className="relative z-10 mx-auto w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
-        <div className="flex justify-center mb-4 sm:mb-6 xl:mb-8">
+      <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-4xl">
+        <div className="flex justify-center">
           <Link href="/">
-            <Image src="/chariot.svg" alt="The Chariot Logo" width={70} height={70} className="xl:w-20 xl:h-20 2xl:w-24 2xl:h-24" />
+            <Image src="/chariot.svg" alt="The Chariot Logo" width={70} height={70} />
           </Link>
         </div>
-        <h2 className="text-center text-2xl sm:text-3xl lg:text-4xl 2xl:text-5xl font-extrabold text-white mb-2 xl:mb-4">
-          Buyer Account Request
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
+          Register as a Buyer
         </h2>
-        <p className="text-center text-sm sm:text-base lg:text-lg xl:text-xl text-gray-200">
+        <p className="mt-2 text-center text-sm text-gray-200">
           Already have an account?{' '}
           <Link href="/login" className="font-medium text-orange-400 hover:text-orange-300">
             Sign in here
@@ -159,19 +202,19 @@ export default function SignupPage() {
         </p>
       </div>
 
-      <div className="relative z-10 mt-6 sm:mt-8 xl:mt-12 mx-auto w-full max-w-4xl xl:max-w-5xl 2xl:max-w-6xl">
-        <div className="bg-white bg-opacity-95 backdrop-blur-sm py-6 px-4 shadow-xl rounded-lg sm:py-8 sm:px-6 lg:px-10 xl:py-12 xl:px-12 2xl:py-16 2xl:px-16 border border-white border-opacity-20">
+      <div className="relative z-10 mt-8 sm:mx-auto sm:w-full sm:max-w-4xl">
+        <div className="bg-white bg-opacity-95 backdrop-blur-sm py-8 px-4 shadow-xl sm:rounded-lg sm:px-10 border border-white border-opacity-20">
           {error && (
             <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 xl:space-y-10 2xl:space-y-12">
+          <form onSubmit={handleSubmit} className="space-y-8">
             {/* Company Information */}
-            <div className="border-b border-gray-200 pb-6 sm:pb-8 xl:pb-10 2xl:pb-12">
-              <h3 className="text-base sm:text-lg xl:text-xl 2xl:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6 xl:mb-8">Your Company Information</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
+            <div className="border-b border-gray-200 pb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Company Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
                   <input
@@ -192,22 +235,13 @@ export default function SignupPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
-                <div className="lg:col-span-2 xl:col-span-3 2xl:col-span-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Address 1 *</label>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
                   <input
                     type="text"
                     value={formData.companyInformation.address}
                     onChange={(e) => handleInputChange('companyInformation', 'address', e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Address 2</label>
-                  <input
-                    type="text"
-                    value={formData.companyInformation.address2}
-                    onChange={(e) => handleInputChange('companyInformation', 'address2', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
@@ -232,7 +266,7 @@ export default function SignupPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">ZIP *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code *</label>
                   <input
                     type="text"
                     value={formData.companyInformation.zipcode}
@@ -242,24 +276,77 @@ export default function SignupPage() {
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Telephone *</label>
-                  <input
-                    type="tel"
-                    value={formData.companyInformation.telephone}
-                    onChange={(e) => handleInputChange('companyInformation', 'telephone', e.target.value)}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="+1 (555) 123-4567"
-                  />
+                {/* Company Telephone Numbers */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Telephone Numbers *</label>
+                  {formData.companyInformation.telephone.map((phone, index) => (
+                    <div key={index} className="flex gap-2 mb-2">
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => updatePhoneNumber('companyInformation', 'telephone', index, e.target.value)}
+                        required={index === 0}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="+1 (555) 123-4567"
+                      />
+                      {formData.companyInformation.telephone.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removePhoneNumber('companyInformation', 'telephone', index)}
+                          className="px-3 py-2 text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addPhoneNumber('companyInformation', 'telephone')}
+                    className="text-orange-600 hover:text-orange-800 text-sm"
+                  >
+                    + Add another phone number
+                  </button>
+                </div>
+
+                {/* Company Fax Numbers */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Fax Numbers</label>
+                  {formData.companyInformation.fax.map((fax, index) => (
+                    <div key={index} className="flex gap-2 mb-2">
+                      <input
+                        type="tel"
+                        value={fax}
+                        onChange={(e) => updatePhoneNumber('companyInformation', 'fax', index, e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="+1 (555) 123-4567"
+                      />
+                      {formData.companyInformation.fax.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removePhoneNumber('companyInformation', 'fax', index)}
+                          className="px-3 py-2 text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addPhoneNumber('companyInformation', 'fax')}
+                    className="text-orange-600 hover:text-orange-800 text-sm"
+                  >
+                    + Add fax number
+                  </button>
                 </div>
               </div>
             </div>
 
             {/* Contact Information */}
-            <div className="border-b border-gray-200 pb-6 sm:pb-8 xl:pb-10 2xl:pb-12">
-              <h3 className="text-base sm:text-lg xl:text-xl 2xl:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6 xl:mb-8">Contact Information</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
+            <div className="border-b border-gray-200 pb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Contact Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
                   <input
@@ -301,35 +388,77 @@ export default function SignupPage() {
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Mobile *</label>
-                  <input
-                    type="tel"
-                    value={formData.contactInformation.mobile}
-                    onChange={(e) => handleInputChange('contactInformation', 'mobile', e.target.value)}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="+1 (555) 987-6543"
-                  />
+                {/* Contact Telephone Numbers */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Contact Telephone Numbers *</label>
+                  {formData.contactInformation.telephone.map((phone, index) => (
+                    <div key={index} className="flex gap-2 mb-2">
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => updatePhoneNumber('contactInformation', 'telephone', index, e.target.value)}
+                        required={index === 0}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="+1 (555) 123-4567"
+                      />
+                      {formData.contactInformation.telephone.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removePhoneNumber('contactInformation', 'telephone', index)}
+                          className="px-3 py-2 text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addPhoneNumber('contactInformation', 'telephone')}
+                    className="text-orange-600 hover:text-orange-800 text-sm"
+                  >
+                    + Add another phone number
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Telephone *</label>
-                  <input
-                    type="tel"
-                    value={formData.contactInformation.telephone}
-                    onChange={(e) => handleInputChange('contactInformation', 'telephone', e.target.value)}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                    placeholder="+1 (555) 123-4567"
-                  />
+
+                {/* Contact Fax Numbers */}
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Contact Fax Numbers</label>
+                  {formData.contactInformation.fax.map((fax, index) => (
+                    <div key={index} className="flex gap-2 mb-2">
+                      <input
+                        type="tel"
+                        value={fax}
+                        onChange={(e) => updatePhoneNumber('contactInformation', 'fax', index, e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                        placeholder="+1 (555) 123-4567"
+                      />
+                      {formData.contactInformation.fax.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removePhoneNumber('contactInformation', 'fax', index)}
+                          className="px-3 py-2 text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => addPhoneNumber('contactInformation', 'fax')}
+                    className="text-orange-600 hover:text-orange-800 text-sm"
+                  >
+                    + Add fax number
+                  </button>
                 </div>
               </div>
             </div>
 
             {/* Business Information */}
-            <div className="border-b border-gray-200 pb-6 sm:pb-8 xl:pb-10 2xl:pb-12">
-              <h3 className="text-base sm:text-lg xl:text-xl 2xl:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6 xl:mb-8">Business Information</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6 xl:gap-8">
+            <div className="border-b border-gray-200 pb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Business Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Primary Market Segment *</label>
                   <select
@@ -371,7 +500,7 @@ export default function SignupPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tax ID#</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tax ID *</label>
                   <input
                     type="text"
                     value={formData.otherInformation.TaxId}
@@ -381,7 +510,7 @@ export default function SignupPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">JBT#</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">JBT ID *</label>
                   <input
                     type="text"
                     value={formData.otherInformation.JBT_id}
@@ -391,7 +520,7 @@ export default function SignupPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">DUNN#</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">DUNS Number *</label>
                   <input
                     type="text"
                     value={formData.otherInformation.DUNN}
@@ -404,37 +533,24 @@ export default function SignupPage() {
             </div>
 
             {/* Chariot Customer Information */}
-            <div className="pb-6 sm:pb-8 xl:pb-10 2xl:pb-12">
-              <h3 className="text-base sm:text-lg xl:text-xl 2xl:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6 xl:mb-8">Chariot Account Status</h3>
-              <div className="space-y-4 xl:space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 xl:gap-6">
-                  <span className="text-sm xl:text-base 2xl:text-lg font-medium text-gray-900">Are you existing Chariot Customer</span>
-                  <div className="flex gap-4 xl:gap-6">
-                    <label className="inline-flex items-center gap-2 text-sm xl:text-base 2xl:text-lg text-gray-900 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="isChariotCustomer"
-                        checked={formData.isChariotCustomer === true}
-                        onChange={() => handleInputChange('isChariotCustomer', '', true)}
-                        className="h-4 w-4 xl:h-5 xl:w-5 2xl:h-6 2xl:w-6 text-orange-600 focus:ring-orange-500 border-gray-300"
-                      />
-                      YES
-                    </label>
-                    <label className="inline-flex items-center gap-2 text-sm xl:text-base 2xl:text-lg text-gray-900 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="isChariotCustomer"
-                        checked={formData.isChariotCustomer === false}
-                        onChange={() => handleInputChange('isChariotCustomer', '', false)}
-                        className="h-4 w-4 xl:h-5 xl:w-5 2xl:h-6 2xl:w-6 text-orange-600 focus:ring-orange-500 border-gray-300"
-                      />
-                      NO
-                    </label>
-                  </div>
+            <div className="pb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Chariot Customer Information</h3>
+              <div className="space-y-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="isChariotCustomer"
+                    checked={formData.isChariotCustomer}
+                    onChange={(e) => handleInputChange('isChariotCustomer', '', e.target.checked)}
+                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="isChariotCustomer" className="ml-2 block text-sm text-gray-900">
+                    I am an existing Chariot customer
+                  </label>
                 </div>
                 {formData.isChariotCustomer && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">If Yes - your account Id:</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Chariot Customer ID</label>
                     <input
                       type="text"
                       value={formData.chariotCustomerId}
@@ -447,19 +563,19 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 xl:gap-6 sm:space-x-0">
+            <div className="flex justify-end space-x-4">
               <Link
                 href="/login"
-                className="w-full sm:w-auto px-6 py-2 xl:px-8 xl:py-3 2xl:px-10 2xl:py-4 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-200 text-center text-sm xl:text-base 2xl:text-lg"
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-200"
               >
                 Cancel
               </Link>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto px-6 py-2 xl:px-8 xl:py-3 2xl:px-10 2xl:py-4 border-3 border-[#FCA17A] text-black rounded-md hover:bg-[#FCA17A] disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 text-sm xl:text-base 2xl:text-lg"
+                className="px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
               >
-                {loading ? 'Submitting...' : 'Account Request'}
+                {loading ? 'Submitting...' : 'Submit Registration'}
               </button>
             </div>
           </form>
