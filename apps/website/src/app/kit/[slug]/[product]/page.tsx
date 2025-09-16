@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight,PlayIcon } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
@@ -90,31 +90,8 @@ const FlipbookEmbed = ({
   );
 };
 
-const faqs = [
-  {
-    question: "What is included in a brand kit?",
-    answer:
-      "A brand kit typically includes logos, color palettes, typography, brand guidelines, templates, and more, depending on your needs.",
-  },
-  {
-    question: "Can I request custom assets?",
-    answer:
-      "Absolutely! We offer full customization, including new assets, templates, and brand elements tailored to your requirements.",
-  },
-  {
-    question: "How long does it take to deliver a custom kit?",
-    answer:
-      "Delivery time depends on the scope of customization, but most kits are ready within 1-2 weeks.",
-  },
-  {
-    question: "Do you offer support after delivery?",
-    answer:
-      "Yes, we provide post-delivery support to ensure your brand kit is implemented smoothly.",
-  },
-  {
-    question: "Can I update my kit later?",
-    answer: "Of course! You can request updates or new assets at any time.",
-  },
+const includedItems = [
+    "logo","photography","brand tone","stationery","instagram starter kit"
 ];
 
 export default function KitProductDetailPage({ params }: PageProps) {
@@ -484,10 +461,10 @@ export default function KitProductDetailPage({ params }: PageProps) {
           </h2>
           <div className="w-full">
             <ul className="space-y-2 pt-2">
-              {faqs.map((faq, idx) => (
-                <li key={idx} className="flex items-start py-2">
-                  <span className="text-white mr-3 mt-[2px]">➜</span>
-                  <span className="text-lg font-semibold text-white">{faq.question}</span>
+              {includedItems.map((item, idx) => (
+                <li key={idx} className="flex items-center py-2">
+                  <span className="text-white mr-6 "><PlayIcon fill="white" className=" w-4 h-4 " /></span>
+                  <span className="text-lg font-semibold text-white uppercase">{item}</span>
                 </li>
               ))}
             </ul>

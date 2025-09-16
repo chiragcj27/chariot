@@ -7,7 +7,7 @@ import {
 } from "../../controllers/subscriptionCard.controller";
 import { isAdmin } from "../../middleware/adminAuth";
 
-const router = Router();
+const router: Router = Router();
 
 // All routes require admin authentication
 router.use(isAdmin);

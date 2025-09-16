@@ -1,11 +1,11 @@
-import express from 'express';
+import express, { Router } from 'express';
 import {
   requestPasswordReset,
   verifyOTP,
   resetPassword,
 } from '../controllers/password-reset.controller';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Request password reset (send OTP)
 router.post('/request', requestPasswordReset);

@@ -332,7 +332,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-white">
   
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Error Display */}
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -378,6 +378,7 @@ export default function CheckoutPage() {
                   <CreditCard className="w-4 h-4 text-gray-600 flex-shrink-0" />
                   <span className="text-gray-900 text-sm sm:text-base flex-1 truncate">{getPaymentMethodDisplay()}</span>
                   <button
+                    type="button"
                     onClick={() => setShowPaymentMethods(!showPaymentMethods)}
                     className="text-gray-400 hover:text-gray-600 p-1 flex-shrink-0"
                   >
@@ -387,6 +388,7 @@ export default function CheckoutPage() {
                   {showPaymentMethods && (
                     <div className="absolute right-0 top-full mt-2 w-full sm:w-72 bg-white border border-gray-200 rounded-lg p-2 shadow-lg z-20">
                       <button
+                        type="button"
                         onClick={() => handlePaymentMethodChange('paypal')}
                         className={`w-full text-left p-3 rounded text-sm sm:text-base ${paymentMethod === 'paypal' ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
                       >
@@ -397,6 +399,7 @@ export default function CheckoutPage() {
                       </button>
 
                       <button
+                        type="button"
                         onClick={() => handlePaymentMethodChange('credits')}
                         className={`w-full text-left p-3 rounded text-sm sm:text-base ${paymentMethod === 'credits' ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
                       >
@@ -438,6 +441,7 @@ export default function CheckoutPage() {
                 <CreditCard className="w-4 h-4 text-gray-600" />
                 <span className="text-gray-900 text-base flex-1 truncate">{getPaymentMethodDisplay()}</span>
                 <button
+                  type="button"
                   onClick={() => setShowPaymentMethods(!showPaymentMethods)}
                   className="text-gray-400 hover:text-gray-600"
                 >
@@ -447,6 +451,7 @@ export default function CheckoutPage() {
                 {showPaymentMethods && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg p-2 shadow-lg z-20">
                     <button
+                      type="button"
                       onClick={() => handlePaymentMethodChange('paypal')}
                       className={`w-full text-left p-2 rounded ${paymentMethod === 'paypal' ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
                     >
@@ -457,6 +462,7 @@ export default function CheckoutPage() {
                     </button>
 
                     <button
+                      type="button"
                       onClick={() => handlePaymentMethodChange('credits')}
                       className={`w-full text-left p-2 rounded ${paymentMethod === 'credits' ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
                     >
@@ -482,13 +488,13 @@ export default function CheckoutPage() {
               {itemsToRender.map((item, index) => (
                 <div key={index} className="flex items-center gap-3 sm:gap-4 pt-3 sm:pt-4 first:pt-0 border-b border-gray-100 last:border-b-0 pb-3 sm:pb-4 last:pb-0">
                   {/* Product Image */}
-                  <div className="w-28 h-28 sm:w-32 sm:h-32 lg:w-38 lg:h-38 bg-gray-200 flex-shrink-0 overflow-hidden">
+                  <div className="w-28 h-28 sm:w-38 sm:h-38 lg:w-46 lg:h-46 bg-gray-200 flex-shrink-0 overflow-hidden">
                     {item.imageUrl ? (
                       <Image
                         src={item.imageUrl}
                         alt={item.productName}
-                        width={512}
-                        height={512}
+                        width={640}
+                        height={640}
                         className="w-full h-full object-cover"
                         onError={() => {
                           // Fallback handled by Next.js Image component
@@ -511,6 +517,7 @@ export default function CheckoutPage() {
                       <span className="text-xs sm:text-sm text-gray-500">Qty:</span>
                       <div className="flex items-center gap-1 border border-gray-300 rounded-md">
                         <button
+                          type="button"
                           onClick={() => decrementQuantity(item.productId, item.quantity)}
                           className="p-1 hover:bg-gray-100 transition-colors rounded-l-md"
                           disabled={processing}
@@ -521,6 +528,7 @@ export default function CheckoutPage() {
                           {item.quantity}
                         </span>
                         <button
+                          type="button"
                           onClick={() => incrementQuantity(item.productId, item.quantity)}
                           className="p-1 hover:bg-gray-100 transition-colors rounded-r-md"
                           disabled={processing}
@@ -537,6 +545,7 @@ export default function CheckoutPage() {
                       <span className="font-semibold text-gray-900 text-sm sm:text-base">${item.totalPrice}</span>
                     </div>
                     <button
+                      type="button"
                       onClick={() => handleRemoveItem(item.productId)}
                       className="p-1.5 sm:p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
                       title="Remove item"

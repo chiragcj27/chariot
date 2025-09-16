@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Router } from 'express';
 import {
   getPendingBuyers,
   getAllBuyers,
@@ -9,7 +9,7 @@ import {
 } from '../../controllers/admin/buyer-approval.controller';
 import { isAdmin } from '../../middleware/adminAuth';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // All routes require admin authentication
 router.use(isAdmin);

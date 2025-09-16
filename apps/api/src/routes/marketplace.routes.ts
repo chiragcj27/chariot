@@ -4,7 +4,7 @@ import { isAdminOrSeller } from '../middleware/sellerAuth';
 import { isAdmin } from '../middleware/adminAuth';
 import { Sale, SaleStatus } from '@chariot/db';
 
-const router = Router();
+const router: Router = Router();
 
 // Get marketplace settings (admin only)
 router.get('/settings', isAdmin, async (req, res) => {

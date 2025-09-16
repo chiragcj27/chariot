@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, PlayIcon } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -78,6 +78,9 @@ interface ProductPageProps {
   params: Promise<{ "product-slug": string }>;
 }
 
+const includedItems = [
+  "logo","photography","brand tone","stationery","instagram starter kit"
+];
 // Flipbook Embed Component
 const FlipbookEmbed = ({
   flipbookUrl,
@@ -100,36 +103,10 @@ const FlipbookEmbed = ({
   );
 };
 
-const faqs = [
-  {
-    question: "What is included in this product?",
-    answer:
-      "This product includes comprehensive features, detailed documentation, and full support to help you get started quickly.",
-  },
-  {
-    question: "Can I request custom modifications?",
-    answer:
-      "Absolutely! We offer full customization, including new features, modifications, and enhancements tailored to your requirements.",
-  },
-  {
-    question: "How long does it take to deliver?",
-    answer:
-      "Delivery time depends on the scope of customization, but most products are ready within 1-2 weeks.",
-  },
-  {
-    question: "Do you offer support after purchase?",
-    answer:
-      "Yes, we provide post-purchase support to ensure your product is implemented smoothly.",
-  },
-  {
-    question: "Can I update my product later?",
-    answer: "Of course! You can request updates or new features at any time.",
-  },
-];
+
 
 export default function ProductPage({ params }: ProductPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -337,12 +314,12 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   return (
     <div className="min-h-screen bg-[#FEFCFB]">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mt-30 mx-15 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="mt-8 sm:mt-12 lg:mt-16 xl:mt-20 grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
           {/* Left Section - Image Carousel or Flipbook */}
-          <div className="relative">
+          <div className="relative w-full">
             <div
-              className="relative overflow-hidden rounded-lg bg-gray-100"
+              className="relative overflow-hidden rounded-lg bg-gray-100 w-full"
               style={{ aspectRatio: "3/2" }}
             >
               {showFlipbook ? (
@@ -373,7 +350,8 @@ export default function ProductPage({ params }: ProductPageProps) {
                           alt={`${product.name} image ${index + 1}`}
                           className="object-cover"
                           fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 45vw"
+                          priority={index === 0}
                         />
                       </div>
                     ))}
@@ -384,35 +362,35 @@ export default function ProductPage({ params }: ProductPageProps) {
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 bg-white/20 backdrop-blur-sm rounded-full"
                         aria-label="Previous image"
                       >
                         <ChevronLeft
-                          className="w-10 h-10 text-orange-500 font-bold"
+                          className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-orange-500 font-bold"
                           strokeWidth={3}
                         />
                       </button>
 
                       <button
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 flex items-center justify-center transition-all duration-200 hover:scale-110 bg-white/20 backdrop-blur-sm rounded-full"
                         aria-label="Next image"
                       >
                         <ChevronRight
-                          className="w-10 h-10 text-orange-500 font-bold"
+                          className="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-orange-500 font-bold"
                           strokeWidth={3}
                         />
                       </button>
 
                       {/* Image Indicators - Only show for images */}
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+                      <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex space-x-1 sm:space-x-2">
                         {images.map((_: string, index: number) => (
                           <button
                             key={index}
                             onClick={() => setCurrentImageIndex(index)}
-                            className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                            className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all duration-200 ${
                               index === currentImageIndex
-                                ? "bg-orange-500 w-6"
+                                ? "bg-orange-500 w-4 sm:w-6"
                                 : "bg-white/60 hover:bg-white"
                             }`}
                             aria-label={`Go to image ${index + 1}`}
@@ -427,24 +405,24 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
 
           {/* Right Section - Product Information */}
-          <div className="flex flex-col justify-center">
+          <div className="flex flex-col justify-center mt-6 lg:mt-0">
             {/* Product Title */}
-            <h1 className="text-4xl font-balgin-regular lg:text-[32px] text-[#FA7035]">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-[32px] font-balgin-regular text-[#FA7035] leading-tight">
               {product.name}
             </h1>
 
             {/* Price */}
-            <div className="text-[24px] text-gray-900">
+            <div className="text-xl sm:text-2xl lg:text-[24px] text-gray-900 mt-2 sm:mt-3">
               {product.price ? `$${product.price.amount}` : "Contact for pricing"}
             </div>
 
             {/* Description */}
-            <p className="text-lg mt-5 text-gray-700 leading-relaxed">
+            <p className="text-base sm:text-lg mt-4 sm:mt-5 text-gray-700 leading-relaxed w-full sm:max-w-md">
               {product.description}
             </p>
 
             {/* Call-to-Action Buttons */}
-            <div className="flex mr-150 mt-10 flex-col gap-4 pt-4">
+            <div className="flex mt-6 sm:mt-8 lg:mt-10 flex-row sm:flex-col gap-2 sm:gap-4 w-full lg:max-w-3xs">
               {/* Show download button if user has purchased this digital/kit product */}
               {(() => {
                 console.log('Button render - isPurchased:', isPurchased, 'product.type:', product.type, 'product.isKitProduct:', product.isKitProduct);
@@ -453,7 +431,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                 <Button
                   onClick={handleDownloadProduct}
                   disabled={downloading}
-                  className="flex-1 border-[#D94506] border-3 bg-[#FFC1A0] text-black font-avenir text-[16px] w-[150] hover:bg-orange-600 transition-all duration-200"
+                  className="flex-1 sm:w-full border-[#D94506] border-2 sm:border-3 bg-[#FFC1A0] text-black font-avenir text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-orange-600 transition-all duration-200 min-w-0"
                 >
                   {downloading ? (
                     'Downloading...'
@@ -468,13 +446,13 @@ export default function ProductPage({ params }: ProductPageProps) {
                 <>
                   <Button
                     variant="outline"
-                    className="flex-1 border-[#D94506] border-3 text-gray-900 font-avenir text-[16px] w-[150] hover:bg-orange-50 hover:border-orange-600 transition-all duration-200"
+                    className="flex-1 sm:w-full border-[#FCA17A] border-2 sm:border-2 text-gray-900 font-avenir text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-orange-50 hover:border-orange-600 transition-all duration-200 min-w-0"
                   >
                     Buy Now
                   </Button>
 
                   <Button 
-                    className="flex-1 border-[#D94506] border-3 bg-[#FFC1A0] text-black font-avenir text-[16px] w-[150] hover:bg-orange-600 transition-all duration-200"
+                    className="flex-1 sm:w-full border-[#FCA17A] border-2 sm:border-2 bg-[#FFC1A0] text-black font-avenir text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-orange-600 transition-all duration-200 min-w-0"
                     onClick={handleAddToCart}
                     disabled={addingToCart || purchaseLoading}
                   >
@@ -487,60 +465,42 @@ export default function ProductPage({ params }: ProductPageProps) {
         </div>
       </div>
 
-      {/* What's Included FAQ Section */}
-      <section className="relative px-5 md:px-10 lg:px-18 pb-16 mt-20 bg-orange-50">
+      {/* What's Included Points Section */}
+      <section className="relative px-4 sm:px-6 md:px-10 lg:px-16 xl:px-18 pb-12 sm:pb-16 mt-12 sm:mt-16 lg:mt-20">
+        {/* Background color using product.kitColorHex (fallback to theme color) */}
+        <div
+          className="absolute bg-[#CFDAE9] inset-0"
+        />
+
         {/* Content */}
         <div className="relative z-10">
-          <h2 className="text-4xl pt-10 font-bold mb-5 text-black">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl pt-8 sm:pt-10 font-bold mb-4 sm:mb-5 text-white">
             What&apos;s Included?
           </h2>
-          <div className="w-full">
-            {faqs.map((faq, idx) => (
-              <div key={idx} className="mb-1">
-                <div
-                  className="flex items-center cursor-pointer py-4 group"
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                >
-                  {/* Orange Plus/Minus Icon */}
-                  <span
-                    className="text-2xl text-[#FA7035] font-bold mr-6 select-none transition-transform duration-200 group-hover:scale-110"
-                    style={{ minWidth: "24px", textAlign: "center" }}
-                  >
-                    {openFaq === idx ? "−" : "+"}
-                  </span>
-
-                  {/* Question Text */}
-                  <span className="text-lg font-semibold text-black flex-1">
-                    {faq.question}
-                  </span>
-                </div>
-
-                {/* Answer */}
-                {openFaq === idx && (
-                  <div className="pl-10 pb-4 text-black font-medium">
-                    {faq.answer}
-                  </div>
-                )}
-
-                {/* Orange Separator Line */}
-                <div className="border-1 border-[#FA7035] w-full" />
-              </div>
-            ))}
+          <div className="w-full max-w-2xl">
+            <ul className="space-y-3 sm:space-y-4 pt-2">
+              {includedItems.map((item, idx) => (
+                <li key={idx} className="flex items-center py-2">
+                  <span className="text-white mr-4 sm:mr-6 flex-shrink-0"><PlayIcon fill="white" className="w-4 h-4 sm:w-5 sm:h-5" /></span>
+                  <span className="text-base sm:text-lg font-semibold text-white uppercase leading-relaxed">{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
 
       {/* Related Products Section */}
       {relatedProducts.length > 0 && (
-        <section className="w-screen flex flex-col py-10">
-          <h2 className="text-4xl px-5 md:px-10 lg:px-18 pt-10 font-balgin-regular mb-8 text-black">
+        <section className="w-full flex flex-col py-8 sm:py-10">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl px-4 sm:px-6 md:px-10 lg:px-16 xl:px-18 pt-6 sm:pt-8 lg:pt-10 font-balgin-regular mb-6 sm:mb-8 text-black">
             Related Products
           </h2>
-          <div className="w-screen">
-            <div className="flex gap-6 overflow-x-auto snap-x snap-mandatory">
+          <div className="w-full overflow-hidden">
+            <div className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory px-4 sm:px-6 md:px-10 lg:px-16 xl:px-18 pb-4">
               {relatedProducts.map((relatedProduct) => (
-                <div key={relatedProduct._id} className="flex-none w-64 sm:w-72 snap-start">
-                  <div className="flex flex-col bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden h-full">
+                <div key={relatedProduct._id} className="flex-none w-56 border-2 rounded-md border-[#FFC1A0] sm:w-64 lg:w-72 snap-start">
+                  <div className="flex flex-col bg-white rounded-lg   duration-300 overflow-hidden h-full">
                     <div 
                       className="w-full cursor-pointer relative"
                       onClick={() => handleRelatedProductClick(relatedProduct.slug)}
@@ -552,22 +512,22 @@ export default function ProductPage({ params }: ProductPageProps) {
                     </div>
                     
                     {/* Product Info */}
-                    <div className="p-4 flex-1 flex flex-col">
+                    <div className="p-3 sm:p-4 flex-1 flex flex-col">
                       <h3 
-                        className="text-lg font-semibold text-gray-900 mb-2 cursor-pointer hover:text-orange-600 transition-colors"
+                        className="text-base sm:text-lg font-semibold text-gray-900 mb-2 cursor-pointer hover:text-orange-600 transition-colors line-clamp-2"
                         onClick={() => handleRelatedProductClick(relatedProduct.slug)}
                       >
                         {relatedProduct.name}
                       </h3>
                       
                       <div className="flex items-center justify-between mb-3">
-                        <span className="text-lg font-bold text-gray-900">
+                        <span className="text-base sm:text-lg font-bold text-gray-900">
                           {relatedProduct.price ? `$${relatedProduct.price.amount}` : "Contact for pricing"}
                         </span>
                       </div>
                       
                       <button 
-                        className="w-full bg-[#FFC1A0] text-black py-2 px-4 rounded-md font-medium hover:bg-orange-600 transition-colors duration-200"
+                        className="w-full bg-[#FFC1A0] text-black py-2 px-3 sm:px-4 rounded-md font-medium text-sm sm:text-base hover:bg-orange-600 transition-colors duration-200"
                         onClick={() => {
                           addItem({
                             productId: relatedProduct._id,
@@ -592,9 +552,9 @@ export default function ProductPage({ params }: ProductPageProps) {
         </section>
       )}
 
-      <div className="flex mt-12 mb-12 px-18">
+      <div className="flex justify-center sm:justify-start mt-8 sm:mt-12 mb-8 sm:mb-12 px-4 sm:px-6 md:px-10 lg:px-16 xl:px-18">
         <button
-          className="border-2 border-[#D94506] rounded-xl bg-transparent text-black font-semibold px-8 py-3 transition-colors shadow-lg text-lg hover:bg-white hover:text-black"
+          className="border-2 border-[#FCA17A] rounded-xl bg-transparent text-black font-semibold px-6 sm:px-8 py-2 sm:py-3 transition-colors  text-base sm:text-lg hover:bg-white hover:text-black w-full sm:w-auto max-w-xs sm:max-w-none"
           onClick={() => router.push("/")}
         >
           Back to Home

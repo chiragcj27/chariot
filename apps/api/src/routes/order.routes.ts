@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Router } from 'express';
 import { isBuyer } from '../middleware/buyerAuth';
 import {
   getCheckoutInfo,
@@ -10,7 +10,7 @@ import {
   cancelOrder,
 } from '../controllers/order.controller';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // All routes require buyer authentication
 router.use(isBuyer);

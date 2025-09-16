@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Router } from 'express';
 import {
   registerSeller,
   loginSeller,
@@ -7,7 +7,7 @@ import {
 } from '../controllers/seller.controller';
 import { handleSellerReapplication } from '../controllers/admin/seller-blacklist.controller';
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Seller registration
 router.post('/register', registerSeller);

@@ -77,7 +77,7 @@ const UserProfileDropdown: React.FC = () => {
         className="flex items-center space-x-2 text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200"
         aria-label="User Profile"
       >
-        <div className="w-8 h-8 bg-orange-400 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+        <div className="w-8 h-8 bg-[#FFBC9F] rounded-full flex items-center justify-center text-white font-semibold text-sm">
           {user.name.charAt(0).toUpperCase()}
         </div>
         <svg 
@@ -95,7 +95,7 @@ const UserProfileDropdown: React.FC = () => {
           {/* User Info */}
           <div className="px-4 py-3 border-b border-gray-100">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-orange-400 rounded-full flex items-center justify-center text-white font-semibold">
+              <div className="w-10 h-10 bg-[#FFBC9F] rounded-full flex items-center justify-center text-white font-semibold">
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div>
@@ -104,7 +104,7 @@ const UserProfileDropdown: React.FC = () => {
                 {user.userAccountId && (
                   <p className="text-xs text-gray-500">ID: {user.userAccountId}</p>
                 )}
-                <p className="text-xs text-orange-600 font-medium">
+                <p className="text-xs text-[#FCA17A] font-medium">
                   Credits: {user.credits}
                 </p>
               </div>
@@ -150,7 +150,7 @@ const UserProfileDropdown: React.FC = () => {
 
             <button
               onClick={() => {setIsMenuOpen(false);handleLogout()} }
-              className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors duration-150"
+              className="flex items-center w-full px-4 py-2 text-sm text-[#FCA17A] hover:bg-red-50 transition-colors duration-150"
             >
               <svg className="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

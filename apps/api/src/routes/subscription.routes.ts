@@ -3,7 +3,7 @@ import { subscriptionController } from '../controllers/subscription.controller';
 import { isBuyer } from '../middleware/buyerAuth';
 import { webhookController } from '../controllers/webhook.controller';
 
-const router = Router();
+const router: Router = Router();
 
 // Confirm PayPal subscription and grant credits (for buyers)
 router.post('/confirm', isBuyer, subscriptionController.confirmSubscription);

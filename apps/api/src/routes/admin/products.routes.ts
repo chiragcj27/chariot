@@ -1,8 +1,8 @@
-import express from 'express';
+import express, { Router } from 'express';
 import { adminProductController } from "../../controllers/admin/product.controller";
 import { isAdmin } from "../../middleware/adminAuth";
 
-const router = express.Router();
+const router: Router = express.Router();
 
 // Test route
 router.get("/test", (req, res) => {
