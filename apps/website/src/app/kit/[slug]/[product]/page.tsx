@@ -432,7 +432,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
                   </Button>
 
                   <Button 
-                    className="flex-1 border-[#FCA17A] border-3 bg-[#FFC1A0] text-black font-avenir text-[16px] w-[150] hover:bg-orange-600 transition-all duration-200"
+                    className="flex-1 border-[#FCA17A] border-3 bg-[#FFC1A0] text-black font-avenir text-[16px] w-[150] hover:bg-sunrise transition-all duration-200"
                     onClick={handleAddToCart}
                     disabled={addingToCart || purchaseLoading}
                   >
@@ -449,7 +449,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
       <section className="relative px-5 md:px-10 lg:px-18 pb-16 mt-20">
         {/* Background color using product.kitColorHex (fallback to theme color) */}
         <div
-          className="absolute inset-0 "
+          className="absolute inset-0"
           style={{
             backgroundColor: (product?.kitColorHex && /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(product.kitColorHex)) ? product.kitColorHex : '#FA7035'
           }}
