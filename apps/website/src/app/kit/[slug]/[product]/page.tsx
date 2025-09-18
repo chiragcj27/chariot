@@ -314,7 +314,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
           {/* Left Section - Image Carousel */}
           <div className="relative">
             <div
-              className="relative overflow-hidden rounded-lg bg-gray-100"
+              className="relative overflow-hidden  bg-gray-100"
               style={{ aspectRatio: "3/2" }}
             >
               {/* Image Container */}
@@ -449,7 +449,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
       <section className="relative px-5 md:px-10 lg:px-18 pb-16 mt-20">
         {/* Background color using product.kitColorHex (fallback to theme color) */}
         <div
-          className="absolute inset-0 opacity-60"
+          className="absolute inset-0 "
           style={{
             backgroundColor: (product?.kitColorHex && /^#([0-9A-Fa-f]{6}|[0-9A-Fa-f]{3})$/.test(product.kitColorHex)) ? product.kitColorHex : '#FA7035'
           }}
@@ -457,7 +457,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
 
         {/* Content */}
         <div className="relative z-10">
-          <h2 className="text-4xl pt-10 font-bold mb-5 text-black">
+          <h2 className="text-4xl pt-10 font-bold mb-5 text-white">
             What&apos;s Included?
           </h2>
           <div className="w-full">
