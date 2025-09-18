@@ -7,6 +7,7 @@ import AccountLayout from '@/components/AccountLayout'
 import { paypalService } from '@/lib/paypal'
 import { Button } from '@/components/ui/button'
 import { Clock, XCircle, CreditCard } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface Order {
   _id: string;
@@ -190,7 +191,7 @@ export default function OrdersPage() {
       fetchAllOrders();
       
       // Show success message
-      alert('Payment completed successfully! Your order has been processed.');
+      toast.success('Payment completed! Your order has been processed.');
     };
 
     window.addEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);

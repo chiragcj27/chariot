@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCart } from '@/contexts/CartContext'
 import Image from 'next/image'
+import { toast } from 'sonner'
 
 interface OrderConfirmationData {
   orderNumber: string;
@@ -198,7 +199,7 @@ export default function OrderConfirmationPage() {
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        alert('Please log in to download your digital products');
+        toast.error('Please log in to download your digital products');
         return;
       }
 
@@ -214,12 +215,12 @@ export default function OrderConfirmationPage() {
         const errorData = await response.json();
         
         if (response.status === 401) {
-          alert('Please log in to download this product');
+          toast.error('Please log in to download this product');
           return;
         }
         
         if (response.status === 403) {
-          alert('You need to purchase this product to download it');
+          toast.error('You need to purchase this product to download it');
           return;
         }
         
@@ -240,10 +241,10 @@ export default function OrderConfirmationPage() {
       link.click();
       document.body.removeChild(link);
 
-      alert('Download started! The download link will expire in 5 minutes.');
+      toast.success('Download started! The link will expire in 5 minutes.');
     } catch (error) {
       console.error('Error downloading digital product:', error);
-      alert('Failed to download the file. Please try again.');
+      toast.error('Failed to download the file. Please try again.');
     }
   };
 
