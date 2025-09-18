@@ -41,7 +41,7 @@ interface CheckoutInfo {
 
 export default function CheckoutPage() {
   const { user } = useAuth();
-  const { items: cartItems, buyNowItem, clearCart, removeItem, updateQuantity, getTotalPrice, clearBuyNowItem, updateBuyNowItemQuantity } = useCart();
+  const { items: cartItems, buyNowItem, clearCart, removeItem, updateQuantity, clearBuyNowItem, updateBuyNowItemQuantity } = useCart();
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<'credits' | 'paypal'>('paypal');
   const [checkoutInfo, setCheckoutInfo] = useState<CheckoutInfo | null>(null);
