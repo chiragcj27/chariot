@@ -26,7 +26,7 @@ export default function ProductCard({
       onClick={onClick}
     >
       <div 
-        className="relative w-full rounded  overflow-hidden group transition-all duration-300 hover:scale-105 h hover:-translate-y-1"
+        className="relative w-full   overflow-hidden group transition-all duration-300 hover:scale-105 h hover:-translate-y-1"
         style={{ 
           aspectRatio: aspectRatio,
           height: 'auto'
@@ -54,7 +54,7 @@ export default function ProductCard({
       </div>
       {(title || subtitle) && (
         <div className="w-full text-center mt-3 sm:mt-4 lg:mt-6">
-          <span className="block text-sm sm:text-lg lg:text-xl xl:text-2xl font-secondary font-semibold mb-1 sm:mb-2">{title}</span>
+          <span className="block text-sm sm:text-lg lg:text-xl xl:text-3xl font-secondary mb-1 sm:mb-2">{title}</span>
           {subtitle && (
             <span className="block text-xs sm:text-sm lg:text-base xl:text-lg font-primary text-black/70">{subtitle}</span>
           )}

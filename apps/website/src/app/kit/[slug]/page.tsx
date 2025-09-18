@@ -235,13 +235,13 @@ export default function KitPage({ params }: KitPageProps) {
           </div>
           {/* Info */}
           <div className="absolute top-[calc(130vw)] px-6 md:px-0 w-full md:left-[calc(57vw)] md:w-[30%] md:top-[calc(10vw)] md:flex flex-col items-start">
-            <div className="rounded py-3 mb-[calc(0.5vw)] ">
+            <div className="rounded py-3 w-full mb-[calc(0.5vw)] ">
               <div className="md:text-[calc(3vw)] text-[calc(10vw)] md:leading-[calc(3vw)] leading-[calc(10vw)] text-[#FA7035] font-balgin-regular mb-4">
                 {kit.title.split(' ')[0]}
                 <br />
                 {kit.title.split(' ')[1]}
               </div>
-              <div className="md:text-[calc(2vw)] text-[calc(6vw)] md:leading-[calc(2.5vw)] leading-[calc(7vw)] md:mr-[calc(10vw)] font-secondary text-gray-800">
+              <div className="md:text-[calc(1.5vw)] text-[calc(4.5vw)] md:leading-[calc(2vw)] leading-[calc(7vw)] w-full font-secondary text-gray-800">
                 {kit.description}
               </div>
             </div>
@@ -266,7 +266,7 @@ export default function KitPage({ params }: KitPageProps) {
       </div>
 
       {/* Pack Selection */}
-      <div className='absolute md:top-[50vw] top-[190vw] w-full'>
+      <div className='absolute md:top-[50vw] top-[185vw] w-full'>
         <div id="pack-selection" className=" flex flex-row py-5 items-center justify-center md:justify-start gap-4 px-5 md:px-10 lg:px-18 mt-12 md:mt-16 lg:mt-20"
         >
           <button
@@ -288,7 +288,7 @@ export default function KitPage({ params }: KitPageProps) {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1  w-full sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 px-5 md:px-10 lg:px-18 py-6">
+        <div className="grid grid-cols-1  w-full sm:grid-cols-2 lg:grid-cols-3  gap-4 sm:gap-6 px-5 md:px-10 lg:px-18 py-6">
           {filteredProducts.length > 0 ? (
             filteredProducts.map((product: KitProduct) => (
               <ProductCard
@@ -337,7 +337,7 @@ export default function KitPage({ params }: KitPageProps) {
               <h3 className="text-xl sm:text-2xl md:text-[30px] font-medium mb-4 text-center md:text-left">
                 Make It Yours — Custom Kits, Tailored to You
               </h3>
-              <p className="text-base sm:text-lg md:text-[22px] font-secondary mb-6 md:mb-8 text-center md:text-left md:mr-20 lg:mr-40 xl:mr-80">
+              <p className="text-base sm:text-lg md:text-[22px] font-secondary mb-6 md:mb-8 w-full text-center md:text-left ">
                 Need something tailored to your brand? We offer customization
                 across templates, color palettes, messaging, and layouts.
                 Whether it&apos;s a full kit revamp or small tweaks, we&apos;ll

@@ -195,7 +195,7 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
           {/* Header Section with Catalogs */}
           <div className="pt-8 sm:pt-12 pb-6 sm:pb-8">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-secondary font-bold mb-4 sm:mb-6 leading-tight">
-              Catalogs
+              {itemSlug.charAt(0).toUpperCase() + itemSlug.slice(1)}
             </h1>
           </div>
 
@@ -211,7 +211,7 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
 
             {/* Main Content: Product Grid */}
             <div className="lg:w-3/4">
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4 lg:gap-6 xl:gap-8">
+              <div className="grid grid-cols-2 w-full sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-2 sm:gap-4 lg:gap-6 xl:gap-8">
 
                 {loading && (
                   <p className="text-lg font-secondary mb-8">Loading...</p>
@@ -220,7 +220,7 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
                   <p className="text-red-500 font-secondary mb-8">{error}</p>
                 )}
                 {!loading && !error && allProducts.length === 0 && (
-                  <p className="text-lg font-secondary mb-8">No products found.</p>
+                  <p className="text-lg text-center w-fullfont-secondary mb-8">No products found.</p>
                 )}
                 {!loading && !error && filteredProducts.length === 0 && allProducts.length > 0 && (
                   <p className="text-lg font-secondary mb-8">No products match the selected filters.</p>
