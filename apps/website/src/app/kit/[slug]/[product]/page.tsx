@@ -310,7 +310,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-[#FEFCFB]">
       <div className="container mx-auto px-4 py-8">
-        <div className="mt-30 mx-15 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        <div className="lg:mt-30 lg:mx-15 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left Section - Image Carousel */}
           <div className="relative">
             <div
@@ -402,7 +402,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
             <p className="text-lg mt-5 text-gray-700 leading-relaxed">
               {product.description}
             </p>
-            <div className="flex mr-150 mt-10 flex-col gap-4 pt-4">
+            <div className="flex mr-150 mt-10 flex-row w-full lg:flex-col gap-4 pt-4">
               {/* Show download button if user has purchased this kit product */}
               {(() => {
                 console.log('Kit button render - isPurchased:', isPurchased, 'product:', product);

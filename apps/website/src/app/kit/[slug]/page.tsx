@@ -180,8 +180,8 @@ export default function KitPage({ params }: KitPageProps) {
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <div className="relative w-full min-h-screen overflow-hidden pb-40 md:pb-0">
-        <div className="relative flex flex-col md:flex-row w-full min-h-[85vh]">
+      <div className="relative w-full min-h-screen  pb-40 md:pb-0">
+        <div className="relative flex flex-col md:flex-row w-full min-h-[85vh] ">
           {/* MainIMG */}
           <div className="absolute left-0 top-0 md:w-[42%] w-[100%] z-10">
             <AspectRatio
@@ -259,155 +259,155 @@ export default function KitPage({ params }: KitPageProps) {
             </button>
           </div>
           {/* Bottom Bar */}
-          <div className="absolute md:left-[calc(35vw)] block w-full md:top-[calc(37.7vw)] h-[calc(7vw)] bg-[#B4C6D0] z-0" />
+          <div className="overflow-hidden w-full">
+            <div className="absolute md:left-[calc(35vw)] block w-[calc(65vw)] md:top-[calc(37.7vw)] h-[calc(7vw)] bg-[#B4C6D0] z-0 " />
+          </div>
         </div>
       </div>
 
       {/* Pack Selection */}
-      <div className='absolute md:top-[50vw] top-[200vw] w-full'>
-      <div id="pack-selection" className=" flex flex-row py-5 items-center justify-center md:justify-start gap-4 px-5 md:px-10 lg:px-18 mt-12 md:mt-16 lg:mt-20"
-      >
-        <button
-          className={`border-2 border-[#FCA17A] rounded-md hover:bg-[#FFC1A0] md:text-[calc(1.2vw)] text-[calc(4vw)] hover:border-orange-600 text-black text-gray-700 px-8 py-1 transition-colors shadow mb-2 ${
-            selectedPack === 'premium'
-              ? 'bg-[#FFC1A0]'
-              : 'text-black'
-          }`}
-          onClick={() => setSelectedPack('premium')}
+      <div className='absolute md:top-[50vw] top-[190vw] w-full'>
+        <div id="pack-selection" className=" flex flex-row py-5 items-center justify-center md:justify-start gap-4 px-5 md:px-10 lg:px-18 mt-12 md:mt-16 lg:mt-20"
         >
-          Premium Pack
-        </button>
-        <button
-          className={`border-2 border-[#FCA17A] rounded-md hover:bg-[#FFC1A0] md:text-[calc(1.2vw)] text-[calc(4vw)] hover:border-orange-600 text-black text-gray-700 px-8 py-1 transition-colors shadow mb-2 ${
-            selectedPack === 'basic' ? 'bg-[#FFC1A0]' : 'text-black'
-          }`}
-          onClick={() => setSelectedPack('basic')}
-        >
-          Basic Pack
-        </button>
-      </div>
-
-      {/* Products Grid */}
-      <div className="grid grid-cols-1  w-full sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 px-5 md:px-10 lg:px-18 py-6">
-        {filteredProducts.length > 0 ? (
-          filteredProducts.map((product: KitProduct) => (
-            <ProductCard
-              key={product._id}
-              title={product.name}
-              image={
-                product.images[0]?.url ||
-                'https://placehold.co/400x500/CFDAE9/000000?text=Product'
-              }
-              onHoverImage={
-                product.images[0]?.url ||
-                'https://placehold.co/400x500/CFDAE9/000000?text=Product'
-              }
-              aspectRatio={4 / 3}
-              onClick={() =>
-                router.push(`/kit/${kit?.slug}/${product.slug}`)
-              }
-            />
-          ))
-        ) : (
-          <div className="col-span-full text-center py-10">
-            <p className="text-gray-500">
-              No products available for {selectedPack} pack.
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Customise Section */}
-      <section className="px-5 md:px-10  w-full lg:px-18 py-10 md:py-18 pb-12 md:pb-16">
-        <h2 className="text-2xl md:text-3xl font-medium font-balgin-regular mb-6">
-          CUSTOMIZE
-        </h2>
-        <div className="relative p-6 md:p-10 lg:p-15 flex flex-col items-center overflow-hidden">
-          {kit.mainImage && (
-            <Image
-              src={kit.mainImage.url}
-              alt={kit.mainImage.originalname}
-              fill
-              className="object-cover w-full h-full absolute top-0 left-0 opacity-40 pointer-events-none select-none z-0"
-              sizes="100vw"
-              priority={false}
-            />
-          )}
-          <div className="relative z-10 w-full flex flex-col">
-            <h3 className="text-xl sm:text-2xl md:text-[30px] font-medium mb-4 text-center md:text-left">
-              Make It Yours — Custom Kits, Tailored to You
-            </h3>
-            <p className="text-base sm:text-lg md:text-[22px] font-secondary mb-6 md:mb-8 text-center md:text-left md:mr-20 lg:mr-40 xl:mr-80">
-              Need something tailored to your brand? We offer customization
-              across templates, color palettes, messaging, and layouts.
-              Whether it&apos;s a full kit revamp or small tweaks, we&apos;ll
-              deliver a ready-to-use version that fits perfectly.
-            </p>
-            <div className="flex flex-row items-center justify-center gap-4 sm:gap-6 md:gap-8">
-              <DiscoveryCallButton
-                className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
-                title="Book a Discovery Call"
-                subtitle="Let&apos;s explore how we can customize this kit for your brand"
-              />
-              <AskForQuoteButton
-                className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
-                productName={kit?.title}
-                productType="kit"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="px-5 md:px-10  w-full lg:px-18 pb-12 md:pb-16 bg-white">
-        <h2 className="text-2xl md:text-3xl font-bold font-secondary ">
-          FAQ
-        </h2>
-        <div className="w-full">
-          {faqs.map((faq, idx) => (
-            <div key={idx} className="mb-2">
-              <div
-                className="flex items-start sm:items-center cursor-pointer pt-4 md:pt-6"
-                onClick={() =>
-                  setOpenFaq(openFaq === idx ? null : idx)
-                }
-              >
-                <span
-                  className="text-2xl md:text-3xl text-[#FA7035] font-bold mr-4 md:mr-8 select-none transition-transform flex-shrink-0"
-                  style={{
-                    minWidth: '24px',
-                    textAlign: 'center',
-                  }}
-                >
-                  {openFaq === idx ? '-' : '+'}
-                </span>
-                <span className="text-base sm:text-lg md:text-xl font-secondary text-black leading-relaxed">
-                  {faq.question}
-                </span>
-              </div>
-              {openFaq === idx && (
-                <div className="pl-8 sm:pl-12 md:pl-16 pb-4 text-sm sm:text-base text-gray-700 font-secondary font-semibold">
-                  {faq.answer}
-                </div>
-              )}
-              <div className="border-[1px] border-[#FA7035] w-full" />
-            </div>
-          ))}
-        </div>
-        <div className="flex mt-8 md:mt-10">
           <button
-            className="border border-[#FCA17A] border-2 bg-white hover:bg-[#FCA17A] text-black font-secondary font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-lg transition-colors text-base sm:text-lg"
-            onClick={() => router.push('/')}
+            className={`border-2 border-[#FCA17A] rounded-md hover:bg-[#FFC1A0] md:text-[calc(1.2vw)] text-[calc(4vw)] hover:border-orange-600 text-black text-gray-700 px-8 py-1 transition-colors shadow mb-2 ${selectedPack === 'premium'
+                ? 'bg-[#FFC1A0]'
+                : 'text-black'
+              }`}
+            onClick={() => setSelectedPack('premium')}
           >
-            Back to Home
+            Premium Pack
+          </button>
+          <button
+            className={`border-2 border-[#FCA17A] rounded-md hover:bg-[#FFC1A0] md:text-[calc(1.2vw)] text-[calc(4vw)] hover:border-orange-600 text-black text-gray-700 px-8 py-1 transition-colors shadow mb-2 ${selectedPack === 'basic' ? 'bg-[#FFC1A0]' : 'text-black'
+              }`}
+            onClick={() => setSelectedPack('basic')}
+          >
+            Basic Pack
           </button>
         </div>
-      </section>
-      {/* Footer */}
-      <div className="w-full">
-        <Footer />
-      </div>
+
+        {/* Products Grid */}
+        <div className="grid grid-cols-1  w-full sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 px-5 md:px-10 lg:px-18 py-6">
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map((product: KitProduct) => (
+              <ProductCard
+                key={product._id}
+                title={product.name}
+                image={
+                  product.images[0]?.url ||
+                  'https://placehold.co/400x500/CFDAE9/000000?text=Product'
+                }
+                onHoverImage={
+                  product.images[0]?.url ||
+                  'https://placehold.co/400x500/CFDAE9/000000?text=Product'
+                }
+                aspectRatio={4 / 3}
+                onClick={() =>
+                  router.push(`/kit/${kit?.slug}/${product.slug}`)
+                }
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-10">
+              <p className="text-gray-500">
+                No products available for {selectedPack} pack.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Customise Section */}
+        <section className="px-5 md:px-10  w-full lg:px-18 py-10 md:py-18 pb-12 md:pb-16">
+          <h2 className="text-2xl md:text-3xl font-medium font-balgin-regular mb-6">
+            CUSTOMIZE
+          </h2>
+          <div className="relative p-6 md:p-10 lg:p-15 flex flex-col items-center overflow-hidden">
+            {kit.mainImage && (
+              <Image
+                src={kit.mainImage.url}
+                alt={kit.mainImage.originalname}
+                fill
+                className="object-cover w-full h-full absolute top-0 left-0 opacity-40 pointer-events-none select-none z-0"
+                sizes="100vw"
+                priority={false}
+              />
+            )}
+            <div className="relative z-10 w-full flex flex-col">
+              <h3 className="text-xl sm:text-2xl md:text-[30px] font-medium mb-4 text-center md:text-left">
+                Make It Yours — Custom Kits, Tailored to You
+              </h3>
+              <p className="text-base sm:text-lg md:text-[22px] font-secondary mb-6 md:mb-8 text-center md:text-left md:mr-20 lg:mr-40 xl:mr-80">
+                Need something tailored to your brand? We offer customization
+                across templates, color palettes, messaging, and layouts.
+                Whether it&apos;s a full kit revamp or small tweaks, we&apos;ll
+                deliver a ready-to-use version that fits perfectly.
+              </p>
+              <div className="flex flex-row items-center justify-center gap-4 sm:gap-6 md:gap-8">
+                <DiscoveryCallButton
+                  className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
+                  title="Book a Discovery Call"
+                  subtitle="Let&apos;s explore how we can customize this kit for your brand"
+                />
+                <AskForQuoteButton
+                  className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
+                  productName={kit?.title}
+                  productType="kit"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="px-5 md:px-10  w-full lg:px-18 pb-12 md:pb-16 bg-white">
+          <h2 className="text-2xl md:text-3xl font-bold font-secondary ">
+            FAQ
+          </h2>
+          <div className="w-full">
+            {faqs.map((faq, idx) => (
+              <div key={idx} className="mb-2">
+                <div
+                  className="flex items-start sm:items-center cursor-pointer pt-4 md:pt-6"
+                  onClick={() =>
+                    setOpenFaq(openFaq === idx ? null : idx)
+                  }
+                >
+                  <span
+                    className="text-2xl md:text-3xl text-[#FA7035] font-bold mr-4 md:mr-8 select-none transition-transform flex-shrink-0"
+                    style={{
+                      minWidth: '24px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {openFaq === idx ? '-' : '+'}
+                  </span>
+                  <span className="text-base sm:text-lg md:text-xl font-secondary text-black leading-relaxed">
+                    {faq.question}
+                  </span>
+                </div>
+                {openFaq === idx && (
+                  <div className="pl-8 sm:pl-12 md:pl-16 pb-4 text-sm sm:text-base text-gray-700 font-secondary font-semibold">
+                    {faq.answer}
+                  </div>
+                )}
+                <div className="border-[1px] border-[#FA7035] w-full" />
+              </div>
+            ))}
+          </div>
+          <div className="flex mt-8 md:mt-10">
+            <button
+              className="border border-[#FCA17A] border-2 bg-white hover:bg-[#FCA17A] text-black font-secondary font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-lg transition-colors text-base sm:text-lg"
+              onClick={() => router.push('/')}
+            >
+              Back to Home
+            </button>
+          </div>
+        </section>
+        {/* Footer */}
+        <div className="w-full">
+          <Footer />
+        </div>
       </div>
     </div>
   );
