@@ -41,7 +41,7 @@ interface CheckoutInfo {
 
 export default function CheckoutPage() {
   const { user } = useAuth();
-  const { items: cartItems, buyNowItem, clearCart, removeItem, updateQuantity, getTotalPrice, clearBuyNowItem, updateBuyNowItemQuantity } = useCart();
+  const { items: cartItems, clearCart, removeItem, updateQuantity, getTotalPrice } = useCart();
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<'credits' | 'paypal'>('paypal');
   const [checkoutInfo, setCheckoutInfo] = useState<CheckoutInfo | null>(null);
@@ -66,16 +66,13 @@ export default function CheckoutPage() {
         return;
       }
 
-      // Use buyNowItem if it exists, otherwise use cart items
-      const itemsToCheckout = buyNowItem ? [buyNowItem] : cartItems;
-
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/orders/checkout/info`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ items: itemsToCheckout }),
+        body: JSON.stringify({ items: cartItems }),
       });
 
       if (!response.ok) {
@@ -92,8 +89,8 @@ export default function CheckoutPage() {
     } finally {
       setLoading(false);
     }
-  }, [cartItems, buyNowItem, router]);
-  // Load checkout info when authenticated and has items to checkout
+  }, [cartItems, router]);
+  // Load checkout info when authenticated and cart has items
   useEffect(() => {
     if (!user) {
       // Not logged in: allow viewing cart, don't fetch checkout info
@@ -102,10 +99,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Check if we have items to checkout (either buyNowItem or cart items)
-    const hasItemsToCheckout = buyNowItem || cartItems.length > 0;
-    
-    if (!hasItemsToCheckout) {
+    if (cartItems.length === 0) {
       setLoading(false);
       // Clear any previous checkout info to avoid rendering stale items
       setCheckoutInfo(null);
@@ -113,7 +107,7 @@ export default function CheckoutPage() {
     }
 
     fetchCheckoutInfo();
-  }, [user, cartItems.length, buyNowItem, fetchCheckoutInfo]);
+  }, [user, cartItems.length, fetchCheckoutInfo]);
 
   useEffect(() => {
     // Listen for PayPal payment success
@@ -121,12 +115,8 @@ export default function CheckoutPage() {
       const { orderId, paymentId, result } = event.detail;
       console.log('PayPal payment successful:', { orderId, paymentId, result });
 
-      // Clear cart/buyNowItem and redirect to order confirmation
-      if (buyNowItem) {
-        clearBuyNowItem();
-      } else {
-        clearCart();
-      }
+      // Clear cart and redirect to order confirmation
+      clearCart();
       window.location.href = `/order-confirmation?orderId=${orderId}`;
     };
 
@@ -135,7 +125,7 @@ export default function CheckoutPage() {
     return () => {
       window.removeEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
     };
-  }, [clearCart, clearBuyNowItem, buyNowItem]);
+  }, [clearCart]);
 
 
 
@@ -186,7 +176,7 @@ export default function CheckoutPage() {
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          items: buyNowItem ? [buyNowItem] : cartItems,
+          items: cartItems,
           paymentMethod,
         }),
       });
@@ -218,12 +208,7 @@ export default function CheckoutPage() {
           }
         }, 100);
       } else {
-        // Clear the appropriate state after successful order
-        if (buyNowItem) {
-          clearBuyNowItem();
-        } else {
-          clearCart();
-        }
+        clearCart();
         window.location.href = `/order-confirmation?orderId=${orderData.order._id}`;
       }
     } catch (err) {
@@ -235,28 +220,15 @@ export default function CheckoutPage() {
   };
 
   const handleRemoveItem = (productId: string) => {
-    if (buyNowItem && buyNowItem.productId === productId) {
-      clearBuyNowItem();
-    } else {
-      removeItem(productId);
-    }
+    removeItem(productId);
     // The useEffect above will automatically re-fetch checkout info when cartItems changes
   };
 
   const handleQuantityChange = (productId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
-      if (buyNowItem && buyNowItem.productId === productId) {
-        clearBuyNowItem();
-      } else {
-        removeItem(productId);
-      }
+      removeItem(productId);
     } else {
-      if (buyNowItem && buyNowItem.productId === productId) {
-        // Update buy now item quantity
-        updateBuyNowItemQuantity(newQuantity);
-      } else {
-        updateQuantity(productId, newQuantity);
-      }
+      updateQuantity(productId, newQuantity);
     }
     // The useEffect above will automatically re-fetch checkout info when cartItems changes
   };
@@ -297,8 +269,8 @@ export default function CheckoutPage() {
     );
   }
 
-  // Gracefully handle empty cart/buy now state
-  if (!buyNowItem && cartItems.length === 0) {
+  // Gracefully handle empty cart state
+  if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-4">
@@ -336,18 +308,14 @@ export default function CheckoutPage() {
     );
   }
 
-  // Get items for display and calculations
-  const itemsForCalculation = buyNowItem ? [buyNowItem] : cartItems;
-  const fallbackTotalPrice = itemsForCalculation.reduce((total, item) => total + (item.price * item.quantity), 0);
-  
-  const subtotalForTax = checkoutInfo?.subtotal ?? fallbackTotalPrice;
+  const subtotalForTax = checkoutInfo?.subtotal ?? getTotalPrice();
   const calculatedTax = checkoutInfo?.tax ?? 0;
   const totalWithTax = subtotalForTax + calculatedTax;
 
   const displayTotal = checkoutInfo?.total ?? totalWithTax;
-  const displaySubtotal = checkoutInfo?.subtotal ?? fallbackTotalPrice;
+  const displaySubtotal = checkoutInfo?.subtotal ?? getTotalPrice();
   const displayTax = checkoutInfo?.tax ?? calculatedTax;
-  const itemsToRender = checkoutInfo?.orderItems ?? itemsForCalculation.map(ci => ({
+  const itemsToRender = checkoutInfo?.orderItems ?? cartItems.map(ci => ({
     productId: ci.productId,
     productName: ci.productName,
     productSlug: ci.productSlug,
