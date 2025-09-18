@@ -7,7 +7,10 @@ export default function ConditionalFooter() {
   const pathname = usePathname();
   const noFooterPaths = ['/login', '/signup', '/auth'];
 
-  if (noFooterPaths.includes(pathname)) {
+  // Check if the current path is a kit page (starts with /kit/)
+  const isKitPage = pathname.startsWith('/kit/');
+
+  if (noFooterPaths.includes(pathname) || isKitPage) {
     return null;
   }
 

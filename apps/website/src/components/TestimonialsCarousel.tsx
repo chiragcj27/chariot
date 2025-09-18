@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect } from "react";
 
 interface Testimonial {
   text: string;
@@ -10,21 +10,92 @@ interface TestimonialsCarouselProps {
   testimonials?: string[];
 }
 
+// Auto-fit component
+const AutoFitGroup: React.FC<{
+  children: React.ReactNode;
+  maxFontSize?: number;
+  minFontSize?: number;
+  padding?: number | string;
+}> = ({ children, maxFontSize = 28, minFontSize = 8, padding = 8 }) => {
+  const groupRef = useRef<HTMLDivElement>(null);
+
+  const resize = () => {
+    const el = groupRef.current;
+    if (!el) return;
+    const parent = el.parentElement;
+    if (!parent) return;
+
+    // Use the full parent dimensions since padding is applied to the element itself
+    const availW = parent.clientWidth;
+    const availH = parent.clientHeight;
+
+    let low = minFontSize;
+    let high = maxFontSize;
+    let best = low;
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      el.style.fontSize = `${mid}px`;
+
+      // Force reflow
+      const fits = el.scrollHeight <= availH && el.scrollWidth <= availW;
+
+      if (fits) {
+        best = mid;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+
+    el.style.fontSize = `${best}px`;
+  };
+
+  useLayoutEffect(() => {
+    resize();
+
+    const ro = new ResizeObserver(resize);
+    if (groupRef.current) ro.observe(groupRef.current);
+    if (groupRef.current?.parentElement) ro.observe(groupRef.current.parentElement);
+
+    return () => ro.disconnect();
+  }, [children, maxFontSize, minFontSize, padding]);
+
+  return (
+    <div
+      ref={groupRef}
+      className="w-full h-full flex flex-col items-center justify-center text-center break-words overflow-hidden"
+      style={{
+        lineHeight: 1.3,
+        padding: typeof padding === 'string' ? padding : `${padding}px`
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
+
+
+
+
 const TestimonialsCarousel = ({ testimonials = [] }: TestimonialsCarouselProps) => {
-  // Convert string testimonials to the format expected by the carousel
   const formattedTestimonials: Testimonial[] = testimonials.map((text, index) => ({
     text,
     author: `Customer ${index + 1}`,
-    role: "Verified Buyer"
+    role: "Verified Buyer",
   }));
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (formattedTestimonials.length <= 1) return;
-    
+
     const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % formattedTestimonials.length);
+      setCurrentIndex(
+        (prevIndex) => (prevIndex + 1) % formattedTestimonials.length
+      );
     }, 4000);
 
     return () => clearInterval(interval);
@@ -32,53 +103,62 @@ const TestimonialsCarousel = ({ testimonials = [] }: TestimonialsCarouselProps) 
 
   if (formattedTestimonials.length === 0) {
     return (
-      <div className=" bg-white shadow-2xl bg-opacity-80 rounded-3xl w-full h-full flex flex-col items-center justify-center">
-        <div className="text-lg font-medium mb-1">Testimonials</div>
-        <div className="flex flex-col items-center justify-center w-full px-2">
-          <span className="italic text-gray-700 text-center text-xs sm:text-sm md:text-xs lg:text-xs">No testimonials available</span>
+      <div className="bg-white shadow-2xl bg-opacity-80 w-full h-full flex flex-col items-center justify-center rounded-2xl md:rounded-3xl lg:rounded-4xl">
+        <div className="font-medium text-base sm:text-lg md:text-xl lg:text-2xl mb-2 sm:mb-3 md:mb-4">
+          Testimonials
+        </div>
+        <div className="flex flex-col items-center justify-center w-full px-4 sm:px-6 md:px-8">
+          <span className="italic text-gray-700 text-center text-sm sm:text-base md:text-lg">
+            No testimonials available
+          </span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className=" bg-white border-4 border-[#CFDAE9] bg-opacity-80 rounded-4xl w-full h-full flex flex-col items-center justify-center relative overflow-hidden">
-      
-      {formattedTestimonials.map((testimonial, index) => (
-        <div
-          key={index}
-          className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-            index === currentIndex 
-              ? "opacity-100 transform translate-y-0" 
-              : "opacity-0 transform translate-y-4"
-          }`}
-        >
-          {/* Responsive padding and text sizing */}
-          <div className="pt-8 px-2 sm:pt-10 sm:px-3 md:pt-8 md:px-2 lg:pt-12 lg:px-2">
-            <blockquote className="text-gray-700 mb-1 sm:mb-2 italic leading-relaxed text-center text-xs sm:text-sm md:text-2xl lg:text-lg">
-              &quot;Lorem Ipsum is simply dummy text of the printing and typesetting industry.&quot;
-            </blockquote>
-            <div className="text-center">
-              <div className="font-semibold text-gray-800 text-xs sm:text-xs md:text-xs lg:text-sm">{testimonial.author}</div>
-              <div className="text-gray-600 text-xs sm:text-xs md:text-xs lg:text-sm">{testimonial.role}</div>
-            </div>
+    <div
+      ref={containerRef}
+      className="bg-white bg-opacity-80 w-full h-full flex flex-col items-center justify-center relative overflow-hidden border-2 sm:border-3 md:border-4 rounded-2xl md:rounded-3xl lg:rounded-4xl"
+      style={{ borderColor: "#CFDAE9" }}
+    >
+      {formattedTestimonials.map((testimonial, index) => {
+        let slideClass = "";
+
+        if (index === currentIndex) {
+          // Current slide → center
+          slideClass = "opacity-100 transform translate-x-0 z-10";
+        } else if (
+          index === (currentIndex - 1 + formattedTestimonials.length) % formattedTestimonials.length
+        ) {
+          // Previous slide → exit left
+          slideClass = "opacity-0 transform -translate-x-full z-0";
+        } else {
+          // All other slides → wait on the right
+          slideClass = "opacity-0 transform translate-x-full z-0";
+        }
+
+        return (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-transform transition-opacity duration-700 ease-in-out ${slideClass}`}
+          >
+            <AutoFitGroup maxFontSize={36} minFontSize={10}>
+              <blockquote className="text-gray-700 italic mb-[0.6em]">
+                &quot;{testimonial.text}&quot;
+              </blockquote>
+              <div className="font-semibold text-gray-800 text-sm lg:text-base">
+                {testimonial.author}
+              </div>
+              <div className="text-gray-600 text-xs lg:text-base">
+                {testimonial.role}
+              </div>
+            </AutoFitGroup>
           </div>
-        </div>
-      ))}
-      
-      {/* Progress indicator - responsive positioning */}
-      {formattedTestimonials.length > 1 && (
-        <div className="absolute bottom-1 sm:bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
-          {formattedTestimonials.map((_, index) => (
-            <div
-              key={index}
-              className={`h-1 rounded-full transition-all duration-300 ${
-                index === currentIndex ? "bg-gray-800 w-3 sm:w-4" : "bg-gray-400 w-1 sm:w-2"
-              }`}
-            />
-          ))}
-        </div>
-      )}
+        );
+      })}
+
+
     </div>
   );
 };
