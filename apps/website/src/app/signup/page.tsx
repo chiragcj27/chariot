@@ -154,12 +154,12 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative" style={{ backgroundImage: 'url(/login.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+      <div className="min-h-screen flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative" style={{ backgroundImage: 'url(/login.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
         <div className="absolute inset-0 bg-black/70"></div>
-        <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="relative z-10 mx-4 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center">
             <Link href="/">
-              <Image src="/chariot.svg" alt="The Chariot Logo" width={70} height={70} />
+              <Image src="/chariot.svg" alt="The Chariot Logo" width={100} height={100} />
             </Link>
           </div>
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 text-center">
@@ -168,7 +168,7 @@ export default function SignupPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Registration Successful!</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">Registration Successful!</h2>
             <p className="text-gray-600 mb-6">
               Your buyer account application has been submitted successfully. 
               You will receive an email with your login credentials once your application is approved by our admin team.
@@ -183,26 +183,26 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen py-12 sm:px-6 lg:px-8 relative" style={{ backgroundImage: 'url(/login.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
-      <div className="absolute inset-0 bg-black/70"></div>
-      <div className="relative z-10 sm:mx-auto sm:w-full sm:max-w-4xl">
+    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative" style={{ backgroundImage: 'url(/signup.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+      <div className="absolute inset-0 bg-black/80                  "></div>
+      <div className="relative z-10 mx-4 sm:mx-auto sm:w-full sm:max-w-4xl">
         <div className="flex justify-center">
           <Link href="/">
-            <Image src="/chariot.svg" alt="The Chariot Logo" width={70} height={70} />
+            <Image src="/chariot.svg" alt="The Chariot Logo" width={100} height={100} />
           </Link>
         </div>
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
+        <h2 className="mt-6 text-center text-2xl sm:text-3xl font-extrabold text-white">
           Register as a Buyer
         </h2>
         <p className="mt-2 text-center text-sm text-gray-200">
           Already have an account?{' '}
-          <Link href="/login" className="font-medium text-orange-400 hover:text-orange-300">
+          <Link href="/login" className="font-medium text-sunrise hover:text-orange-500">
             Sign in here
           </Link>
         </p>
       </div>
 
-      <div className="relative z-10 mt-8 sm:mx-auto sm:w-full sm:max-w-4xl">
+      <div className="relative z-10 mt-8 mx-4 sm:mx-auto sm:w-full sm:max-w-4xl">
         <div className="bg-white bg-opacity-95 backdrop-blur-sm py-8 px-4 shadow-xl sm:rounded-lg sm:px-10 border border-white border-opacity-20">
           {error && (
             <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-md text-sm">
@@ -215,8 +215,8 @@ export default function SignupPage() {
             <div className="border-b border-gray-200 pb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Company Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Name *</label>
+                <div className="">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Company :</label>
                   <input
                     type="text"
                     value={formData.companyInformation.name}
@@ -225,17 +225,8 @@ export default function SignupPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Website URL *</label>
-                  <input
-                    type="url"
-                    value={formData.companyInformation.websiteUrl}
-                    onChange={(e) => handleInputChange('companyInformation', 'websiteUrl', e.target.value)}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
-                <div className="md:col-span-2">
+                <div></div>
+                <div className="">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
                   <input
                     type="text"
@@ -277,10 +268,10 @@ export default function SignupPage() {
                 </div>
                 
                 {/* Company Telephone Numbers */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Telephone Numbers *</label>
+                <div className="">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Telephone *</label>
                   {formData.companyInformation.telephone.map((phone, index) => (
-                    <div key={index} className="flex gap-2 mb-2">
+                    <div key={index} className="flex flex-col sm:flex-row gap-2 mb-2">
                       <input
                         type="tel"
                         value={phone}
@@ -293,7 +284,7 @@ export default function SignupPage() {
                         <button
                           type="button"
                           onClick={() => removePhoneNumber('companyInformation', 'telephone', index)}
-                          className="px-3 py-2 text-red-600 hover:text-red-800"
+                          className="px-3 py-2 text-red-600 hover:text-red-800 self-start sm:self-auto"
                         >
                           Remove
                         </button>
@@ -308,37 +299,15 @@ export default function SignupPage() {
                     + Add another phone number
                   </button>
                 </div>
-
-                {/* Company Fax Numbers */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Company Fax Numbers</label>
-                  {formData.companyInformation.fax.map((fax, index) => (
-                    <div key={index} className="flex gap-2 mb-2">
-                      <input
-                        type="tel"
-                        value={fax}
-                        onChange={(e) => updatePhoneNumber('companyInformation', 'fax', index, e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                        placeholder="+1 (555) 123-4567"
-                      />
-                      {formData.companyInformation.fax.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removePhoneNumber('companyInformation', 'fax', index)}
-                          className="px-3 py-2 text-red-600 hover:text-red-800"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => addPhoneNumber('companyInformation', 'fax')}
-                    className="text-orange-600 hover:text-orange-800 text-sm"
-                  >
-                    + Add fax number
-                  </button>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Website URL *</label>
+                  <input
+                    type="url"
+                    value={formData.companyInformation.websiteUrl}
+                    onChange={(e) => handleInputChange('companyInformation', 'websiteUrl', e.target.value)}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
                 </div>
               </div>
             </div>
@@ -389,10 +358,10 @@ export default function SignupPage() {
                 </div>
                 
                 {/* Contact Telephone Numbers */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Contact Telephone Numbers *</label>
+                <div className="">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Telephone *</label>
                   {formData.contactInformation.telephone.map((phone, index) => (
-                    <div key={index} className="flex gap-2 mb-2">
+                    <div key={index} className="flex flex-col sm:flex-row gap-2 mb-2">
                       <input
                         type="tel"
                         value={phone}
@@ -405,7 +374,7 @@ export default function SignupPage() {
                         <button
                           type="button"
                           onClick={() => removePhoneNumber('contactInformation', 'telephone', index)}
-                          className="px-3 py-2 text-red-600 hover:text-red-800"
+                          className="px-3 py-2 text-red-600 hover:text-red-800 self-start sm:self-auto"
                         >
                           Remove
                         </button>
@@ -422,10 +391,10 @@ export default function SignupPage() {
                 </div>
 
                 {/* Contact Fax Numbers */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Contact Fax Numbers</label>
+                <div className="">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Mobile *</label>
                   {formData.contactInformation.fax.map((fax, index) => (
-                    <div key={index} className="flex gap-2 mb-2">
+                    <div key={index} className="flex flex-col sm:flex-row gap-2 mb-2">
                       <input
                         type="tel"
                         value={fax}
@@ -437,7 +406,7 @@ export default function SignupPage() {
                         <button
                           type="button"
                           onClick={() => removePhoneNumber('contactInformation', 'fax', index)}
-                          className="px-3 py-2 text-red-600 hover:text-red-800"
+                          className="px-3 py-2 text-red-600 hover:text-red-800 self-start sm:self-auto"
                         >
                           Remove
                         </button>
@@ -536,17 +505,36 @@ export default function SignupPage() {
             <div className="pb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Chariot Customer Information</h3>
               <div className="space-y-4">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="isChariotCustomer"
-                    checked={formData.isChariotCustomer}
-                    onChange={(e) => handleInputChange('isChariotCustomer', '', e.target.checked)}
-                    className="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="isChariotCustomer" className="ml-2 block text-sm text-gray-900">
-                    I am an existing Chariot customer
-                  </label>
+                <div>
+                  <span className="block text-sm font-medium text-gray-700 mb-2">Are you an existing Chariot customer?</span>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="isChariotCustomerYes"
+                        name="isChariotCustomer"
+                        checked={formData.isChariotCustomer === true}
+                        onChange={() => handleInputChange('isChariotCustomer', '', true)}
+                        className="h-4 w-4 accent-[#FCA17A] focus:ring-orange-500 border-gray-300"
+                      />
+                      <label htmlFor="isChariotCustomerYes" className="ml-2 block text-sm text-gray-900">
+                        Yes
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="isChariotCustomerNo"
+                        name="isChariotCustomer"
+                        checked={!formData.isChariotCustomer}
+                        onChange={() => handleInputChange('isChariotCustomer', '', false)}
+                        className="h-4 w-4 accent-[#FCA17A] focus:ring-orange-500 border-gray-300"
+                      />
+                      <label htmlFor="isChariotCustomerNo" className="ml-2 block text-sm text-gray-900">
+                        No
+                      </label>
+                    </div>
+                  </div>
                 </div>
                 {formData.isChariotCustomer && (
                   <div>
@@ -563,19 +551,19 @@ export default function SignupPage() {
               </div>
             </div>
 
-            <div className="flex justify-end space-x-4">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
               <Link
                 href="/login"
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-200"
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-200 w-full sm:w-auto"
               >
                 Cancel
               </Link>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200"
+                className="px-6 py-2 border-3 border-[#FCA17A]  rounded-md hover:bg-[#FCA17A] disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 w-full sm:w-auto"
               >
-                {loading ? 'Submitting...' : 'Submit Registration'}
+                {loading ? 'Submitting...' : 'Account Request'}
               </button>
             </div>
           </form>
