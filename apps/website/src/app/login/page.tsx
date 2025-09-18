@@ -428,7 +428,7 @@ export default function LoginPage() {
           <div className="bg-white lg:-mr-6 xl:-mr-10 rounded-2xl sm:rounded-4xl py-6 px-4 sm:py-8 sm:px-6 shadow-xl">
             {/* Logo and header */}
             <div className="text-center mb-6">
-              <Image src="/chariot_icon.svg" alt="Chariot Logo" width={500} height={500} className="w-32 h-32 sm:w-40 sm:h-40 lg:w-40 lg:h-40 xl:w-48 xl:h-48 mx-auto -mb-16 -mt-8 lg:-mb-18 lg:-mt-8 xl:-mb-20 xl:-mt-10"/>
+              <Image src="/chariot_icon.svg" alt="Chariot Logo" width={800} height={500} className="w-50 h-32 sm:w-60 sm:h-40 lg:w-67 lg:h-40 xl:w-75 xl:h-48 mx-auto -mb-16 -mt-8 lg:-mb-18 lg:-mt-8 xl:-mb-20 xl:-mt-10"/>
               <p className="text-black text-lg sm:text-xl lg:text-xl xl:text-[24px] font-bold font-balgin-regular">Welcome to</p>
               <h2 className="text-[#FCA17A] text-lg sm:text-xl lg:text-xl xl:text-[24px] -mt-3 font-bold font-balgin-regular">Chariot</h2>
             </div>

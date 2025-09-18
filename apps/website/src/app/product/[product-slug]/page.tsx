@@ -113,9 +113,10 @@ export default function ProductPage({ params }: ProductPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const router = useRouter();
-  const { addItem } = useCart();
+  const { addItem, setBuyNowItem } = useCart();
   
   // Check if the product is purchased
   const { isPurchased, isLoading: purchaseLoading } = useProductPurchase(product?._id || '');
@@ -232,6 +233,32 @@ export default function ProductPage({ params }: ProductPageProps) {
       toast.error('Failed to add product to cart. Please try again.');
     } finally {
       setAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!product) return;
+    
+    try {
+      setBuyingNow(true);
+      
+      setBuyNowItem({
+        productId: product._id,
+        productName: product.name,
+        productSlug: product.slug,
+        price: product.price?.amount || 0,
+        creditsCost: product.creditsCost || 0,
+        imageUrl: product.images?.[0]?.url,
+        category: product.category,
+      });
+      
+      // Navigate to checkout page
+      router.push('/checkout');
+    } catch (error) {
+      console.error('Error setting up buy now:', error);
+      toast.error('Failed to proceed to checkout. Please try again.');
+    } finally {
+      setBuyingNow(false);
     }
   };
 
@@ -447,8 +474,10 @@ export default function ProductPage({ params }: ProductPageProps) {
                   <Button
                     variant="outline"
                     className="flex-1 sm:w-full border-[#FCA17A] border-2 sm:border-2 text-gray-900 font-avenir text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-orange-50 hover:border-orange-600 transition-all duration-200 min-w-0"
+                    onClick={handleBuyNow}
+                    disabled={buyingNow || purchaseLoading}
                   >
-                    Buy Now
+                    {buyingNow ? 'Processing...' : 'Buy Now'}
                   </Button>
 
                   <Button 

@@ -15,10 +15,14 @@ interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
+  buyNowItem: CartItem | null;
   addItem: (item: Omit<CartItem, 'quantity'>) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
+  setBuyNowItem: (item: Omit<CartItem, 'quantity'> | null) => void;
+  updateBuyNowItemQuantity: (quantity: number) => void;
+  clearBuyNowItem: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
   getTotalCreditsCost: () => number;
@@ -40,6 +44,7 @@ interface CartProviderProps {
 
 export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [buyNowItem, setBuyNowItemState] = useState<CartItem | null>(null);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -57,6 +62,25 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
+
+  // Buy now item functions
+  const setBuyNowItem = (item: Omit<CartItem, 'quantity'> | null) => {
+    if (item) {
+      setBuyNowItemState({ ...item, quantity: 1 });
+    } else {
+      setBuyNowItemState(null);
+    }
+  };
+
+  const clearBuyNowItem = () => {
+    setBuyNowItemState(null);
+  };
+
+  const updateBuyNowItemQuantity = (quantity: number) => {
+    if (buyNowItem) {
+      setBuyNowItemState({ ...buyNowItem, quantity });
+    }
+  };
 
   const addItem = (newItem: Omit<CartItem, 'quantity'>) => {
     setItems(prevItems => {
@@ -113,10 +137,14 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const value: CartContextType = {
     items,
+    buyNowItem,
     addItem,
     removeItem,
     updateQuantity,
     clearCart,
+    setBuyNowItem,
+    updateBuyNowItemQuantity,
+    clearBuyNowItem,
     getTotalItems,
     getTotalPrice,
     getTotalCreditsCost,

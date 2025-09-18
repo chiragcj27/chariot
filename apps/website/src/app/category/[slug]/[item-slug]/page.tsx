@@ -293,7 +293,7 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
         <section className="px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
           <div className="container mx-auto">
             {/* <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold font-secondary mb-3 sm:mb-4 lg:mb-6">Customize</h2> */}
-            <div className="bg-[#CFDAE9] p-3 sm:p-4 lg:p-6">
+            <div className="bg-[#CFDAE9] p-3  sm:p-4 lg:p-6 lg:py-18">
               <h3 className="text-base sm:text-lg md:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3">Make It Yours - Custom Kits, Tailored to You</h3>
               <p className="text-sm sm:text-base md:text-lg lg:text-2xl font-secondary mb-4 sm:mb-6">
                 Need something tailored to your brand? We offer customization across templates, color palettes, messaging, and layouts. Whether it&apos;s a full kit revamp or small tweaks, we&apos;ll deliver a ready-to-use version that fits perfectly.
