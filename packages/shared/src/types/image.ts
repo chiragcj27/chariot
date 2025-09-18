@@ -2,6 +2,7 @@ export interface ImageFile {
   file: File;
   previewUrl: string;
   isMain: boolean;
+  isHero: boolean;
 }
 
 export interface ProductImageData {
@@ -11,4 +12,5 @@ export interface ProductImageData {
   originalName: string;
   mimeType: string;
   size: number;
+  isHero: boolean;
 } 
