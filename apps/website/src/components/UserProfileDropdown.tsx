@@ -54,10 +54,10 @@ const UserProfileDropdown: React.FC = () => {
         </div>
         
         {/* Profile icon - visible only on screens smaller than lg */}
-        <div className="lg:hidden">
+        <div className="lg:hidden flex justify-center items-center">
           <button
             onClick={() => router.push('/auth')}
-            className="text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200"
+            className="text-[#FCA17A] hover:text-orange-400 focus:outline-none transition-colors duration-200"
             aria-label="User Profile"
           >
             <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
