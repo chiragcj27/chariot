@@ -9,6 +9,7 @@ import { notFound } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { useProductPurchase } from "@/hooks/useProductPurchase";
 import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 interface ProductImage {
   _id: string;
@@ -223,10 +224,10 @@ export default function KitProductDetailPage({ params }: PageProps) {
         imageUrl: product.images?.[0]?.url,
         category: 'kit',
       });
-      alert("Added to cart!");
+      toast.success("Added to cart");
     } catch (error) {
       console.error("Error adding to cart:", error);
-      alert("Failed to add to cart. Please try again.");
+      toast.error("Failed to add to cart. Please try again.");
     } finally {
       setAddingToCart(false);
     }
@@ -239,7 +240,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
       setDownloading(true);
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        alert('Please log in to download your digital products');
+        toast.error('Please log in to download your digital products');
         return;
       }
       
@@ -255,12 +256,12 @@ export default function KitProductDetailPage({ params }: PageProps) {
         const errorData = await response.json();
         
         if (response.status === 401) {
-          alert('Please log in to download this product');
+          toast.error('Please log in to download this product');
           return;
         }
         
         if (response.status === 403) {
-          alert('You need to purchase this product to download it');
+          toast.error('You need to purchase this product to download it');
           return;
         }
         
@@ -281,10 +282,10 @@ export default function KitProductDetailPage({ params }: PageProps) {
       link.click();
       document.body.removeChild(link);
 
-      alert('Download started! The download link will expire in 5 minutes.');
+      toast.success('Download started! The link will expire in 5 minutes.');
     } catch (error) {
       console.error('Error downloading product:', error);
-      alert('Failed to download the file. Please try again.');
+      toast.error('Failed to download the file. Please try again.');
     } finally {
       setDownloading(false);
     }

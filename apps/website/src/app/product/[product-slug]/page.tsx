@@ -10,6 +10,7 @@ import { useCart } from "@/contexts/CartContext";
 import ProductCard from "@/components/ProductCard";
 import { useProductPurchase } from "@/hooks/useProductPurchase";
 import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -225,10 +226,10 @@ export default function ProductPage({ params }: ProductPageProps) {
         category: product.category,
       });
       
-      alert('Product added to cart successfully!');
+      toast.success('Added to cart');
     } catch (error) {
       console.error('Error adding to cart:', error);
-      alert('Failed to add product to cart. Please try again.');
+      toast.error('Failed to add product to cart. Please try again.');
     } finally {
       setAddingToCart(false);
     }
@@ -245,7 +246,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       setDownloading(true);
       const token = localStorage.getItem('accessToken');
       if (!token) {
-        alert('Please log in to download your digital products');
+        toast.error('Please log in to download your digital products');
         return;
       }
       
@@ -261,12 +262,12 @@ export default function ProductPage({ params }: ProductPageProps) {
         const errorData = await response.json();
         
         if (response.status === 401) {
-          alert('Please log in to download this product');
+          toast.error('Please log in to download this product');
           return;
         }
         
         if (response.status === 403) {
-          alert('You need to purchase this product to download it');
+          toast.error('You need to purchase this product to download it');
           return;
         }
         
@@ -287,10 +288,10 @@ export default function ProductPage({ params }: ProductPageProps) {
       link.click();
       document.body.removeChild(link);
 
-      alert('Download started! The download link will expire in 5 minutes.');
+      toast.success('Download started! The link will expire in 5 minutes.');
     } catch (error) {
       console.error('Error downloading product:', error);
-      alert('Failed to download the file. Please try again.');
+      toast.error('Failed to download the file. Please try again.');
     } finally {
       setDownloading(false);
     }
@@ -422,10 +423,9 @@ export default function ProductPage({ params }: ProductPageProps) {
             </p>
 
             {/* Call-to-Action Buttons */}
-            <div className="flex mt-6 sm:mt-8 lg:mt-10 flex-row sm:flex-col gap-2 sm:gap-4 w-full lg:max-w-3xs">
+            <div className="flex mt-6 sm:mt-8 lg:mt-10 flex-row sm:flex-col gap-2 sm:gap-4 w-full lg:max-w-[30%]">
               {/* Show download button if user has purchased this digital/kit product */}
               {(() => {
-                console.log('Button render - isPurchased:', isPurchased, 'product.type:', product.type, 'product.isKitProduct:', product.isKitProduct);
                 return isPurchased && (product.type === 'digital' || product.isKitProduct);
               })() ? (
                 <Button
@@ -452,14 +452,14 @@ export default function ProductPage({ params }: ProductPageProps) {
                   </Button>
 
                   <Button 
-                    className="flex-1 sm:w-full border-[#FCA17A] border-2 sm:border-2 bg-[#FFC1A0] text-black font-avenir text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-orange-600 transition-all duration-200 min-w-0"
+                    className="flex-1 sm:w-full border-[#FCA17A] border-2 sm:border-2 bg-[#FFC1A0] text-black font-avenir text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-[#FCA17A]/50 transition-all duration-200 min-w-0"
                     onClick={handleAddToCart}
                     disabled={addingToCart || purchaseLoading}
                   >
                     {addingToCart ? 'Adding...' : 'Add To Cart'}
                   </Button>
                 </>
-              )}
+              )}  
             </div>
           </div>
         </div>
@@ -474,15 +474,15 @@ export default function ProductPage({ params }: ProductPageProps) {
 
         {/* Content */}
         <div className="relative z-10">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl pt-8 sm:pt-10 font-bold mb-4 sm:mb-5 text-white">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl pt-8 sm:pt-10 font-bold mb-4 sm:mb-5">
             What&apos;s Included?
           </h2>
           <div className="w-full max-w-2xl">
             <ul className="space-y-3 sm:space-y-4 pt-2">
               {includedItems.map((item, idx) => (
                 <li key={idx} className="flex items-center py-2">
-                  <span className="text-white mr-4 sm:mr-6 flex-shrink-0"><PlayIcon fill="white" className="w-4 h-4 sm:w-5 sm:h-5" /></span>
-                  <span className="text-base sm:text-lg font-semibold text-white uppercase leading-relaxed">{item}</span>
+                  <span className=" mr-4 sm:mr-6 flex-shrink-0"><PlayIcon fill="black" className="w-4 h-4 sm:w-5 sm:h-5" /></span>
+                  <span className="text-base sm:text-lg font-semibold uppercase leading-relaxed">{item}</span>
                 </li>
               ))}
             </ul>
@@ -538,7 +538,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                             imageUrl: relatedProduct.images?.[0]?.url,
                             category: relatedProduct.category,
                           });
-                          alert('Related product added to cart!');
+                          toast.success('Added to cart');
                         }}
                       >
                         Add To Cart

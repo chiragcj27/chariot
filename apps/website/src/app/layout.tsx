@@ -9,6 +9,7 @@ import SmartLoader from "@/components/SmartLoader";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import ConditionalFooter from "@/components/ConditionalFooter";
+import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
             <SmartLoader />
             <CustomScrollbar />
             <NavBar />
+            <Toaster />
             {children}
             <ConditionalFooter />
           </CartProvider>
