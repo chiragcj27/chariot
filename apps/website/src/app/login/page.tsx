@@ -237,7 +237,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#FCA17A] border-3 rounded-md shadow-sm text-sm  text-gray-700 font-medium hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid "
+                className="w-full sm:w-auto flex justify-center py-1 px-10 border-[#FCA17A] border-3 rounded-lg shadow-sm text-sm  text-gray-700 font-medium hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid "
               >
                 {loading ? 'Signing In...' : 'LOG IN'}
               </button>
@@ -430,7 +430,7 @@ export default function LoginPage() {
             <div className="text-center mb-6">
               <Image src="/chariot_icon.svg" alt="Chariot Logo" width={800} height={500} className="w-50 h-32 sm:w-60 sm:h-40 lg:w-67 lg:h-40 xl:w-75 xl:h-48 mx-auto -mb-16 -mt-8 lg:-mb-18 lg:-mt-8 xl:-mb-20 xl:-mt-10"/>
               <p className="text-black text-lg sm:text-xl lg:text-xl xl:text-[24px] font-bold font-balgin-regular">Welcome to</p>
-              <h2 className="text-[#FCA17A] text-lg sm:text-xl lg:text-xl xl:text-[24px] -mt-3 font-bold font-balgin-regular">Chariot</h2>
+              <h2 className="text-[#FCA17A] text-lg sm:text-xl lg:text-xl xl:text-[24px] -mt-1 font-bold font-balgin-regular">Chariot</h2>
             </div>
 
             {error && (

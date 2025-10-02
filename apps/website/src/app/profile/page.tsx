@@ -205,111 +205,111 @@ export default function ProfilePage() {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">COMPANY NAME</label>
+                    <div className='col-span-2'>
+                      <label className="block text-sm font-extrabold font-secondary text-gray-900 mb-2">COMPANY NAME</label>
                       <input
                         type="text"
                         value={formData.companyInformation.name}
                         onChange={(e) => handleInputChange('companyInformation', 'name', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Company name"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">ADDRESS</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">ADDRESS</label>
                       <input
                         type="text"
                         value={formData.companyInformation.address}
                         onChange={(e) => handleInputChange('companyInformation', 'address', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Address"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">COUNTRY</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">COUNTRY</label>
                       <input
                         type="text"
                         value={formData.companyInformation.country}
                         onChange={(e) => handleInputChange('companyInformation', 'country', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Country"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">TELEPHONE 1</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">TELEPHONE 1</label>
                       <input
                         type="text"
                         value={formData.companyInformation.telephone[0] || ''}
                         onChange={(e) => handleArrayInputChange('companyInformation', 'telephone', 0, e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Telephone 1"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">FAX</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">FAX</label>
                       <input
                         type="text"
                         value={formData.companyInformation.fax[0] || ''}
                         onChange={(e) => handleArrayInputChange('companyInformation', 'fax', 0, e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Fax"
                       />
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">STATE</label>
+                        <label className="block text-sm font-extrabold text-gray-900 mb-2">STATE</label>
                         <input
                           type="text"
                           value={formData.companyInformation.state}
                           onChange={(e) => handleInputChange('companyInformation', 'state', e.target.value)}
                           disabled={!isEditing}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                           placeholder="State"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">ZIP CODE</label>
+                        <label className="block text-sm font-extrabold text-gray-900 mb-2">ZIP CODE</label>
                         <input
                           type="text"
                           value={formData.companyInformation.zipcode}
                           onChange={(e) => handleInputChange('companyInformation', 'zipcode', e.target.value)}
                           disabled={!isEditing}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                           placeholder="ZIP Code"
                         />
                       </div>
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">TELEPHONE 2</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">TELEPHONE 2</label>
                       <input
                         type="text"
                         value={formData.companyInformation.telephone[1] || ''}
                         onChange={(e) => handleArrayInputChange('companyInformation', 'telephone', 1, e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Telephone 2"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">WEBSITE URL</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">WEBSITE URL</label>
                       <input
                         type="url"
                         value={formData.companyInformation.websiteUrl}
                         onChange={(e) => handleInputChange('companyInformation', 'websiteUrl', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Website URL"
                       />
                     </div>
@@ -322,85 +322,85 @@ export default function ProfilePage() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">FIRST NAME</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">FIRST NAME</label>
                       <input
                         type="text"
                         value={formData.contactInformation.firstName}
                         onChange={(e) => handleInputChange('contactInformation', 'firstName', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="First name"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">LAST NAME</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">LAST NAME</label>
                       <input
                         type="text"
                         value={formData.contactInformation.lastName}
                         onChange={(e) => handleInputChange('contactInformation', 'lastName', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Last name"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">POSITION</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">POSITION</label>
                       <input
                         type="text"
                         value={formData.contactInformation.position}
                         onChange={(e) => handleInputChange('contactInformation', 'position', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Position"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">EMAIL</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">EMAIL</label>
                       <input
                         type="email"
                         value={formData.contactInformation.email}
                         onChange={(e) => handleInputChange('contactInformation', 'email', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Email"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">TELEPHONE 1</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">TELEPHONE 1</label>
                       <input
                         type="text"
                         value={formData.contactInformation.telephone[0] || ''}
                         onChange={(e) => handleArrayInputChange('contactInformation', 'telephone', 0, e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Telephone 1"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">FAX</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">FAX</label>
                       <input
                         type="text"
                         value={formData.contactInformation.fax[0] || ''}
                         onChange={(e) => handleArrayInputChange('contactInformation', 'fax', 0, e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Fax"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">TELEPHONE 2</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">TELEPHONE 2</label>
                       <input
                         type="text"
                         value={formData.contactInformation.telephone[1] || ''}
                         onChange={(e) => handleArrayInputChange('contactInformation', 'telephone', 1, e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Telephone 2"
                       />
                     </div>
@@ -413,12 +413,12 @@ export default function ProfilePage() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">PRIMARY MARKET SEGMENT</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">PRIMARY MARKET SEGMENT</label>
                       <select
                         value={formData.otherInformation.primaryMarketSegment}
                         onChange={(e) => handleInputChange('otherInformation', 'primaryMarketSegment', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                       >
                         <option value="">Select market segment</option>
                         {MARKET_SEGMENTS.map((segment) => (
@@ -430,12 +430,12 @@ export default function ProfilePage() {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">BUYING ORGANIZATION</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">BUYING ORGANIZATION</label>
                       <select
                         value={formData.otherInformation.buyingOrganization}
                         onChange={(e) => handleInputChange('otherInformation', 'buyingOrganization', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                       >
                         <option value="">Select buying organization</option>
                         {BUYING_ORGANIZATIONS.map((org) => (
@@ -447,37 +447,37 @@ export default function ProfilePage() {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">TAX ID</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">TAX ID</label>
                       <input
                         type="text"
                         value={formData.otherInformation.TaxId}
                         onChange={(e) => handleInputChange('otherInformation', 'TaxId', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Tax ID"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">JBT ID</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">JBT ID</label>
                       <input
                         type="text"
                         value={formData.otherInformation.JBT_id}
                         onChange={(e) => handleInputChange('otherInformation', 'JBT_id', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="JBT ID"
                       />
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">DUNN</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">DUNN</label>
                       <input
                         type="text"
                         value={formData.otherInformation.DUNN}
                         onChange={(e) => handleInputChange('otherInformation', 'DUNN', e.target.value)}
                         disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-gray-100"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="DUNN"
                       />
                     </div>

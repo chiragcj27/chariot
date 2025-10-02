@@ -3,47 +3,79 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import Marquee from "react-fast-marquee";
 import img1 from "../../public/1.png";
-import img2 from "../../public/2.jpg";
+import img2 from "../../public/2.png";
 import img3 from "../../public/3.png";  
 import img4 from "../../public/4.png";
-import img5 from "../../public/5.jpg";
+import img5 from "../../public/5.png";
+import img6 from "../../public/6.png";
+import img7 from "../../public/7.png";
+import img8 from "../../public/8.png";
+import img9 from "../../public/9.png";  
 
 const images = [
   {
     src: img1,
     alt: "Mark Samuels Jwellers",
-    caption: "Mark Samuels Jwellers",
-    w: 960,
-    h: 540,
+    caption: "App Design",
+    w: 584,
+    h: 723,
   },
   {
     src: img3,
-    alt: "what we do",
-    caption: "what we do",
-    w: 416,
-    h: 836,
+    alt: "Stationery",
+    caption: "Stationery",
+    w: 1010.4,
+    h: 548
   },
   {
     src: img2,
-    alt: "Mark Samuels Jwellers",
-    caption: "Mark Samuels Jwellers",
-    w: 675,
-    h: 540,
-  },
+    caption: "Mother's Day Flyer",
+    alt: "Mother's Day Flyer",
+    w: 584,
+    h: 723
+  } ,
   {
     src: img4,
-    alt: "Mother's Day",
-    caption: "Mother's Day",
-    w: 594,
-    h: 844,
+    alt: "Orly Diamonds Ring Box",
+    caption: "Orly Diamonds Ring Box",
+    w: 710,
+    h: 595
   },
   {
     src: img5,
-    alt: "Blind Craft",
-    caption: "Blind Craft",
-    w: 665.06,
-    h: 506.25,
+    alt: "Marc Samuels Jewelers Storefront",
+    caption: "Marc Samuels Jewelers Storefront",
+    w: 702,
+    h: 905
   },
+  {
+    src: img6,
+    alt: "Photography",
+    caption: "Photography",
+    w: 584,
+    h: 723
+  },
+  {
+    src: img7,
+    alt: "Website Design",
+    caption: "Website Design",
+    w: 1010.4,
+    h: 548
+  },
+  {
+    src: img8,
+    alt: "Diamonds Club",
+    caption: "Diamonds Club",
+    w: 710,
+    h: 595,
+  },
+  {
+    src: img9,
+    alt: "Blig Craft Packaging",
+    caption: "Blig Craft Packaging",
+    w: 710,
+    h: 595
+  }
 ];
 
 export default function WhoWeAre() {

@@ -67,7 +67,7 @@ export default function NavBar() {
 
   return (
     <Fragment>
-      <nav className={`sticky top-0 z-50 flex items-center  ${isMenuOpen ? 'bg-black' : 'bg-white'} transition-colors duration-800 px-[clamp(1rem,4vw,2rem)] py-[clamp(0.5rem,1.5vw,0.75rem)] shadow-md justify-between h-[clamp(3.5rem,8vw,4rem)]`}>
+      <nav className={`sticky top-0 z-50 flex items-center  ${isMenuOpen ? 'bg-[#CFDAE9]' : 'bg-white'} ${isMenuOpen ? '' : 'shadow-md'} transition-colors duration-800 px-[clamp(1rem,4vw,2rem)] py-[clamp(0.5rem,1.5vw,0.75rem)] justify-between h-[clamp(3.5rem,8vw,4rem)]`}>
         {/* Left: Logo + Nav Links */}
         <div className="flex items-center gap-[clamp(1rem,4vw,2rem)]">
           {/* Logo */}
@@ -134,17 +134,17 @@ export default function NavBar() {
           >
             <span
               className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
-                isMenuOpen ? 'rotate-45 bg-white group-hover:bg-[#FA7035]' : '-translate-y-1.5 bg-black group-hover:bg-orange-400'
+                isMenuOpen ? 'rotate-45 bg-black group-hover:bg-[#FA7035]' : '-translate-y-1.5 bg-black group-hover:bg-orange-400'
               }`}
             />
             <span
               className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
-                isMenuOpen ? 'opacity-0 bg-white group-hover:bg-[#FA7035]' : 'bg-black group-hover:bg-orange-400'
+                isMenuOpen ? 'opacity-0 bg-black group-hover:bg-[#FA7035]' : 'bg-black group-hover:bg-orange-400'
               }`}
             />
             <span
               className={`absolute w-[clamp(1.125rem,2.5vw,1.5rem)] h-0.5 transition-all duration-300 ${
-                isMenuOpen ? '-rotate-45 bg-white group-hover:bg-[#FA7035]' : 'translate-y-1.5 bg-black group-hover:bg-orange-400'
+                isMenuOpen ? '-rotate-45 bg-black group-hover:bg-[#FA7035]' : 'translate-y-1.5 bg-black group-hover:bg-orange-400'
               }`}
             />
           </button>
@@ -228,7 +228,7 @@ export default function NavBar() {
           borderBottomRightRadius: '50% 10%',
         }}
         transition={{ duration: 0.6, ease: 'easeInOut' }}
-        className="fixed top-0 left-0 w-full z-40 bg-black text-white flex flex-col overflow-hidden"
+        className="fixed top-0 left-0 w-full z-40 bg-gradient-to-b from-[#CFDAE9] to-white text-black flex flex-col overflow-hidden"
       >
         
         {/* Scrollable Content Area */}
@@ -246,7 +246,7 @@ export default function NavBar() {
                   transition={{ delay: index * 0.1, duration: 0.5 }}
                   className="space-y-[clamp(0.75rem,2vw,1rem)]"
                 >
-                  <h2 className="text-white text-[clamp(1.125rem,2.5vw,1.25rem)] font-bold tracking-wide border-b border-gray-700 pb-2">
+                  <h2 className="text-black text-[clamp(1.125rem,2.5vw,1.25rem)] font-bold tracking-wide border-b border-gray-700 pb-2">
                     {cat.title}
                   </h2>
                   <ul className="space-y-2">
@@ -260,7 +260,7 @@ export default function NavBar() {
                         >
                           <Link 
                             href={`/category/${cat.slug}/${item.slug}`} 
-                            className="text-gray-300 text-[clamp(0.875rem,2vw,1rem)] font-medium hover:text-[#FA7035] cursor-pointer transition-colors duration-200 flex items-center group"
+                            className="text-gray-900 text-[clamp(0.875rem,2vw,1rem)] font-medium hover:text-[#FA7035] cursor-pointer transition-colors duration-200 flex items-center group"
                             onClick={handleCloseMenu}
                           >
                             <span className="w-1.5 h-1.5 bg-[#FA7035] rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
@@ -273,7 +273,7 @@ export default function NavBar() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: index * 0.1, duration: 0.3 }}
-                        className="text-gray-500 italic text-[clamp(0.875rem,2vw,1rem)]"
+                        className="text-gray-900 italic text-[clamp(0.875rem,2vw,1rem)]"
                       >
                         No items
                       </motion.li>
@@ -289,7 +289,7 @@ export default function NavBar() {
                 transition={{ delay: 0.6, duration: 0.5 }}
                 className="space-y-[clamp(0.75rem,2vw,1rem)]"
               >
-                <h2 className="text-white text-[clamp(1.125rem,2.5vw,1.25rem)] font-bold tracking-wide border-b border-gray-700 pb-2">
+                <h2 className="text-black text-[clamp(1.125rem,2.5vw,1.25rem)] font-bold tracking-wide border-b border-gray-700 pb-2">
                   Contact
                 </h2>
                 <ul className="space-y-2">
@@ -302,7 +302,7 @@ export default function NavBar() {
                     >
                       <a 
                         href="#" 
-                        className="text-gray-300 text-[clamp(0.875rem,2vw,1rem)] font-medium hover:text-[#FA7035] cursor-pointer transition-colors duration-200 flex items-center group"
+                        className="text-gray-900 text-[clamp(0.875rem,2vw,1rem)] font-medium hover:text-[#FA7035] cursor-pointer transition-colors duration-200 flex items-center group"
                       >
                         <span className="w-1.5 h-1.5 bg-[#FA7035] rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
                         {platform}

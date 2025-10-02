@@ -229,7 +229,7 @@ export default function KitPage({ params }: KitPageProps) {
           </div>
           {/* Testimonials */}
           <div className="absolute left-[calc(35vw)] top-[calc(95vw)] w-[calc(55vw)] md:left-[17%] md:top-[calc(34vw)] md:w-[22%] z-30">
-            <AspectRatio ratio={16 / 9} className="w-full h-full">
+            <AspectRatio ratio={16/9} className="w-full h-full">
               <TestimonialsCarousel testimonials={kit.testimonials} />
             </AspectRatio>
           </div>
@@ -253,7 +253,7 @@ export default function KitPage({ params }: KitPageProps) {
                   packSection.scrollIntoView({ behavior: 'smooth' });
                 }
               }}
-              className="border-2 hidden md:block border-[#FCA17A] rounded-md hover:bg-[#FFC1A0] text-[calc(1.2vw)] hover:border-orange-600 text-black text-gray-700 px-4 py-1 transition-colors shadow mb-2"
+              className="border-2 hidden md:block border-[#FCA17A] mt-10 rounded-md hover:bg-[#FFC1A0] text-[calc(1.2vw)] hover:border-orange-600 text-black px-5 py-1 transition-colors shadow mb-2"
             >
               Explore
             </button>
@@ -345,12 +345,12 @@ export default function KitPage({ params }: KitPageProps) {
               </p>
               <div className="flex flex-row items-center justify-center gap-4 sm:gap-6 md:gap-8">
                 <DiscoveryCallButton
-                  className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
+                  className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-8 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
                   title="Book a Discovery Call"
                   subtitle="Let&apos;s explore how we can customize this kit for your brand"
                 />
                 <AskForQuoteButton
-                  className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
+                  className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-8 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
                   productName={kit?.title}
                   productType="kit"
                 />
@@ -387,7 +387,7 @@ export default function KitPage({ params }: KitPageProps) {
                   </span>
                 </div>
                 {openFaq === idx && (
-                  <div className="pl-8 sm:pl-12 md:pl-16 pb-4 text-sm sm:text-base text-gray-700 font-secondary font-semibold">
+                  <div className="pl-8 sm:pl-12 md:pl-16 pb-4 text-sm sm:text-base text-gray-700 font-secondary font-medium">
                     {faq.answer}
                   </div>
                 )}
@@ -397,7 +397,7 @@ export default function KitPage({ params }: KitPageProps) {
           </div>
           <div className="flex mt-8 md:mt-10">
             <button
-              className="border border-[#FCA17A] border-2 bg-white hover:bg-[#FCA17A] text-black font-secondary font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-lg transition-colors text-base sm:text-lg"
+              className="border-[#FCA17A] border-2 bg-white hover:bg-[#FCA17A] text-black font-secondary font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-lg transition-colors text-base sm:text-lg"
               onClick={() => router.push('/')}
             >
               Back to Home

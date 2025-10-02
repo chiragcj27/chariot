@@ -501,7 +501,7 @@ export default function OrdersPage() {
                   <>
                     {/* Desktop Table View */}
                     <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                      <div className="overflow-x-auto overflow-y-auto max-h-[70vh]">
+                      <div className="overflow-x-auto overflow-y-auto max-h-[70vh] scrollbar-hide">
                         <table className="w-full table-auto">
                           <thead>
                             <tr className="bg-gray-50 border-b border-gray-200">
@@ -720,6 +720,7 @@ export default function OrdersPage() {
           </div>
         </div>
       )}
+      
     </AccountLayout>
   );
 }

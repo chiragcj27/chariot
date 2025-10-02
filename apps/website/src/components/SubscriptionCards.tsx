@@ -102,7 +102,7 @@ export default function SubscriptionCards() {
               <div className="flex-1 flex flex-col">
                 <h2 className="text-3xl font-balgin-regular mt-3 font-bold mb-2">{card.title}</h2>
                 <div className="flex items-end mb-2">
-                  <span className="text-2xl font-bold text-[#FA7035] font-balgin-regular mr-1">{card.price}</span>
+                  <span className="text-2xl font-bold text-[#FA7035] font-balgin-regular mr-1">${card.price}</span>
                   <span className="text-base text-gray-500">{card.period}</span>
                 </div>
                 <div className="font-semibold text-[clamp(0.70rem,2vw,1.15rem)] text-gray-700 mb-4 text-center">{card.description}</div>

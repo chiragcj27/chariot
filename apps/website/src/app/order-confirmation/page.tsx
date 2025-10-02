@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { CheckCircle, FileText, Calendar, DollarSign, CreditCard, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -36,64 +36,6 @@ export default function OrderConfirmationPage() {
   const [orderData, setOrderData] = useState<OrderConfirmationData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Get order data from URL params or localStorage
-    const urlParams = new URLSearchParams(window.location.search);
-    const orderId = urlParams.get('orderId');
-    
-    if (orderId) {
-      fetchOrderDetails(orderId);
-    } else {
-      // Mock order data for demonstration
-      setOrderData({
-        orderNumber: 'ORD-20250101-001',
-        orderDate: new Date().toLocaleDateString('en-GB', { 
-          day: 'numeric', 
-          month: 'short', 
-          year: 'numeric' 
-        }),
-        total: 90,
-        paymentMethod: 'Mixed (Credits + PayPal)',
-        paymentBreakdown: {
-          creditsUsed: 70,
-          creditsAmount: 70,
-          paypalAmount: 20,
-          totalAmount: 90,
-        },
-        items: [
-          {
-            productName: 'Test Product 1',
-            quantity: 1,
-            totalPrice: 25,
-            imageUrl: 'https://placehold.co/80x80',
-          },
-          {
-            productName: 'Test Product 2',
-            quantity: 1,
-            totalPrice: 35,
-            imageUrl: 'https://placehold.co/80x80',
-          },
-          {
-            productName: 'Test Product 3',
-            quantity: 1,
-            totalPrice: 15,
-            imageUrl: 'https://placehold.co/80x80',
-          },
-          {
-            productName: 'Test Product 4',
-            quantity: 1,
-            totalPrice: 15,
-            imageUrl: 'https://placehold.co/80x80',
-          },
-        ],
-      });
-      setLoading(false);
-    }
-
-    // Clear cart after successful order
-    clearCart();
-  }, []);
-
   const fetchOrderDetails = useCallback(async (orderId: string) => {
     try {
       const token = localStorage.getItem('accessToken');
@@ -102,7 +44,8 @@ export default function OrderConfirmationPage() {
       }
 
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/api/orders/user/orders/${orderId}`, {
+      // Use the endpoint that returns product type and kit flags
+      const response = await fetch(`${API_URL}/api/orders/user/orders/all`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -112,7 +55,14 @@ export default function OrderConfirmationPage() {
         throw new Error('Failed to fetch order details');
       }
 
-      const order = await response.json();
+      const allOrders = await response.json();
+      const order = Array.isArray(allOrders)
+        ? allOrders.find((o: { _id: string }) => o._id === orderId)
+        : null;
+
+      if (!order) {
+        throw new Error('Order not found');
+      }
       
       // Transform the order data to match our interface
       setOrderData({
@@ -125,62 +75,37 @@ export default function OrderConfirmationPage() {
         total: order.total,
         paymentMethod: getPaymentMethodDisplay(order.paymentMethod),
         paymentBreakdown: order.paymentBreakdown,
-        items: order.items.map((item: { productName: string; quantity: number; totalPrice: number; imageUrl?: string }) => ({
+        items: order.items.map((item: { productId?: string; productName: string; quantity: number; totalPrice: number; imageUrl?: string; productInfo?: { type?: string; isKitProduct?: boolean } }) => ({
+          productId: item.productId,
           productName: item.productName,
           quantity: item.quantity,
           totalPrice: item.totalPrice,
           imageUrl: item.imageUrl,
+          isDigitalProduct: item.productInfo?.type === 'digital',
+          isKitProduct: item.productInfo?.isKitProduct === true,
         })),
       });
     } catch (error) {
       console.error('Error fetching order details:', error);
-      // Fall back to mock data
-      setOrderData({
-        orderNumber: 'ORD-20250101-001',
-        orderDate: new Date().toLocaleDateString('en-GB', { 
-          day: 'numeric', 
-          month: 'short', 
-          year: 'numeric' 
-        }),
-        total: 90,
-        paymentMethod: 'Mixed (Credits + PayPal)',
-        paymentBreakdown: {
-          creditsUsed: 70,
-          creditsAmount: 70,
-          paypalAmount: 20,
-          totalAmount: 90,
-        },
-        items: [
-          {
-            productName: 'Test Product 1',
-            quantity: 1,
-            totalPrice: 25,
-            imageUrl: 'https://placehold.co/80x80',
-          },
-          {
-            productName: 'Test Product 2',
-            quantity: 1,
-            totalPrice: 35,
-            imageUrl: 'https://placehold.co/80x80',
-          },
-          {
-            productName: 'Test Product 3',
-            quantity: 1,
-            totalPrice: 15,
-            imageUrl: 'https://placehold.co/80x80',
-          },
-          {
-            productName: 'Test Product 4',
-            quantity: 1,
-            totalPrice: 15,
-            imageUrl: 'https://placehold.co/80x80',
-          },
-        ],
-      });
+      toast.error('Failed to fetch order details');
+      setOrderData(null);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    // Get order data from URL params or localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get('orderId');
+    
+    if (orderId) {
+      fetchOrderDetails(orderId);
+    } else {
+      toast.error('Order ID missing');
+      setLoading(false);
+    }
+  }, [fetchOrderDetails]);
 
   const getPaymentMethodDisplay = (method: string) => {
     switch (method) {
@@ -194,6 +119,16 @@ export default function OrderConfirmationPage() {
         return method;
     }
   };
+
+  // Clear cart only once after we have a confirmed order loaded
+  const hasClearedCartRef = useRef(false);
+  useEffect(() => {
+    if (orderData && !hasClearedCartRef.current) {
+      clearCart();
+      hasClearedCartRef.current = true;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orderData]);
 
   const handleDownloadDigitalProduct = async (productId: string, productName: string) => {
     try {

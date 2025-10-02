@@ -74,9 +74,9 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({ children }) => {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         {/* Main Title */}
-        <div className="bg-gray-50 pt-8 pb-4">
+        <div className="pt-8 pb-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-3xl sm:text-4xl font-medium font-balgin-regular text-[#FA7035] text-center">My Account</h1>
           </div>
@@ -114,7 +114,7 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({ children }) => {
             </div>
 
              {/* Main Content with Lazy Loading */}
-             <div className="flex-1 min-w-0 bg-white p-4 sm:p-8 rounded-lg shadow-sm mt-6 md:mt-0 overflow-hidden">
+             <div className="flex-1 min-w-0 p-4 sm:p-8 mt-6 md:mt-0 overflow-hidden">
                <Suspense fallback={
                  <div className="flex items-center justify-center min-h-[400px]">
                    <div className="text-center">

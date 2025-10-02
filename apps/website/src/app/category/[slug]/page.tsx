@@ -103,10 +103,10 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
         {/* Main content with responsive padding */}
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-8 md:gap-12 pt-8 md:pt-12 pb-8">
           <main className="flex-1">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-secondary mb-6 md:mb-8">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[40px] font-extrabold font-secondary mb-6 md:mb-8">
               {category?.title || (slug.charAt(0).toUpperCase() + slug.slice(1))}
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl font-secondary mb-6 md:mb-8">
+            <p className="text-lg sm:text-xl md:text-[36px] font-secondary mb-6 md:mb-8">
               {category?.description || `${slug.charAt(0).toUpperCase() + slug.slice(1)} is a collection of products that are designed to be used in a variety of ways.`}
             </p>
             {loading && (
@@ -178,9 +178,9 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                     </div>
                   ))}
                 </div>
-                <div className="container mx-auto  py-6 sm:py-8">
+                <div className="mt-30">
                   <button
-                    className="border border-[#FCA17A] border-2 bg-white hover:bg-[#FCA17A] text-black font-secondary font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-lg transition-colors text-base sm:text-lg"
+                    className=" border-[#FCA17A] border-2 bg-white hover:bg-[#FCA17A] text-black font-secondary  px-6 sm:px-8 py-2 rounded-lg transition-colors text-base sm:text-lg"
                     onClick={() => router.push('/')}
                   >
                     Back To Home
