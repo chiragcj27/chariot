@@ -180,7 +180,7 @@ export default function LoginPage() {
         return (
           <>
             <div>
-              <label htmlFor="userAccountId" className="block text-sm font-bold text-black mb-2">
+              <label htmlFor="userAccountId" className="block text-sm 2xl:text-base font-bold text-black mb-2">
                 User Account ID
               </label>
               <input
@@ -190,13 +190,13 @@ export default function LoginPage() {
                 value={formData.userAccountId}
                 onChange={handleInputChange}
                 required
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
+                className="appearance-none block w-full px-3 py-2 2xl:px-4 2xl:py-3 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm 2xl:text-base"
                 placeholder="Enter your user account ID"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-bold text-black mb-2">
+              <label htmlFor="password" className="block text-sm 2xl:text-base font-bold text-black mb-2">
                 Password
               </label>
               <input
@@ -206,7 +206,7 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={handleInputChange}
                 required
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
+                className="appearance-none block w-full px-3 py-2 2xl:px-4 2xl:py-3 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm 2xl:text-base"
                 placeholder="Enter your password"
               />
             </div>
@@ -215,13 +215,13 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                className="text-sm text-orange-500 hover:text-orange-600"
+                className="text-sm 2xl:text-base text-orange-500 hover:text-orange-600"
               >
                 Forgot Your Password?
               </button>
             </div>
 
-            <div className="text-xs text-gray-500 text-center">
+            <div className="text-xs 2xl:text-sm text-gray-500 text-center">
               By continuing, you agree to Chariot&apos;s{' '}
               <Link href="/terms" className="hover:text-orange-600 underline">
                 Terms of Service
@@ -237,7 +237,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto flex justify-center py-1 px-10 border-[#FCA17A] border-3 rounded-lg shadow-sm text-sm  text-gray-700 font-medium hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid "
+                className="w-full sm:w-auto flex justify-center py-1 px-10 2xl:py-2 2xl:px-12 border-[#FCA17A] border-3 rounded-lg shadow-sm text-sm 2xl:text-base text-gray-700 font-medium hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid "
               >
                 {loading ? 'Signing In...' : 'LOG IN'}
               </button>
@@ -248,15 +248,15 @@ export default function LoginPage() {
       case 'forgot-password':
         return (
           <>
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-bold text-black">Forgot Password</h3>
-              <p className="text-sm text-gray-600 mt-2">
+            <div className="text-center mb-4 2xl:mb-6">
+              <h3 className="text-lg 2xl:text-xl font-bold text-black">Forgot Password</h3>
+              <p className="text-sm 2xl:text-base text-gray-600 mt-2">
                 Enter your email address and we&apos;ll send you a one-time password to reset your account.
               </p>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-bold text-black mb-2">
+              <label htmlFor="email" className="block text-sm 2xl:text-base font-bold text-black mb-2">
                 Email Address
               </label>
               <input
@@ -266,7 +266,7 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
+                className="appearance-none block w-full px-3 py-2 2xl:px-4 2xl:py-3 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm 2xl:text-base"
                 placeholder="Enter your email address"
               />
             </div>
@@ -275,14 +275,14 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleBackToLogin}
-                className="text-sm text-gray-600 hover:text-gray-800"
+                className="text-sm 2xl:text-base text-gray-600 hover:text-gray-800"
               >
                 ← Back to Login
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 2xl:py-2 2xl:px-6 border-[#D94506] border-3 rounded-lg shadow-sm text-sm 2xl:text-base font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Sending...' : 'SEND OTP'}
               </button>
@@ -293,15 +293,15 @@ export default function LoginPage() {
       case 'otp-verification':
         return (
           <>
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-bold text-black">Verify OTP</h3>
-              <p className="text-sm text-gray-600 mt-2">
+            <div className="text-center mb-4 2xl:mb-6">
+              <h3 className="text-lg 2xl:text-xl font-bold text-black">Verify OTP</h3>
+              <p className="text-sm 2xl:text-base text-gray-600 mt-2">
                 We&apos;ve sent a 6-digit code to {formData.email}
               </p>
             </div>
 
             <div>
-              <label htmlFor="otp" className="block text-sm font-bold text-black mb-2">
+              <label htmlFor="otp" className="block text-sm 2xl:text-base font-bold text-black mb-2">
                 Enter OTP
               </label>
               <input
@@ -312,7 +312,7 @@ export default function LoginPage() {
                 onChange={handleInputChange}
                 required
                 maxLength={6}
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm text-center text-lg tracking-widest"
+                className="appearance-none block w-full px-3 py-2 2xl:px-4 2xl:py-3 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-lg 2xl:text-xl text-center tracking-widest"
                 placeholder="000000"
               />
             </div>
@@ -321,14 +321,14 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                className="text-sm text-gray-600 hover:text-gray-800"
+                className="text-sm 2xl:text-base text-gray-600 hover:text-gray-800"
               >
                 ← Back
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 2xl:py-2 2xl:px-6 border-[#D94506] border-3 rounded-lg shadow-sm text-sm 2xl:text-base font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Verifying...' : 'VERIFY OTP'}
               </button>
@@ -339,15 +339,15 @@ export default function LoginPage() {
       case 'new-password':
         return (
           <>
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-bold text-black">Set New Password</h3>
-              <p className="text-sm text-gray-600 mt-2">
+            <div className="text-center mb-4 2xl:mb-6">
+              <h3 className="text-lg 2xl:text-xl font-bold text-black">Set New Password</h3>
+              <p className="text-sm 2xl:text-base text-gray-600 mt-2">
                 Enter your new password below
               </p>
             </div>
 
             <div>
-              <label htmlFor="newPassword" className="block text-sm font-bold text-black mb-2">
+              <label htmlFor="newPassword" className="block text-sm 2xl:text-base font-bold text-black mb-2">
                 New Password
               </label>
               <input
@@ -357,13 +357,13 @@ export default function LoginPage() {
                 value={formData.newPassword}
                 onChange={handleInputChange}
                 required
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
+                className="appearance-none block w-full px-3 py-2 2xl:px-4 2xl:py-3 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm 2xl:text-base"
                 placeholder="Enter new password"
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-bold text-black mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm 2xl:text-base font-bold text-black mb-2">
                 Confirm Password
               </label>
               <input
@@ -373,7 +373,7 @@ export default function LoginPage() {
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 required
-                className="appearance-none block w-full px-3 py-2 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm"
+                className="appearance-none block w-full px-3 py-2 2xl:px-4 2xl:py-3 -mb-3 border border-black rounded-md placeholder-gray-400 focus:outline-none focus:ring-orange-500 focus:border-orange-500 text-sm 2xl:text-base"
                 placeholder="Confirm new password"
               />
             </div>
@@ -382,14 +382,14 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setFormMode('otp-verification')}
-                className="text-sm text-gray-600 hover:text-gray-800"
+                className="text-sm 2xl:text-base text-gray-600 hover:text-gray-800"
               >
                 ← Back
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 border-[#D94506] border-3 rounded-lg shadow-sm text-sm font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 2xl:py-2 2xl:px-6 border-[#D94506] border-3 rounded-lg shadow-sm text-sm 2xl:text-base font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Resetting...' : 'RESET PASSWORD'}
               </button>
@@ -406,7 +406,7 @@ export default function LoginPage() {
     <div 
       className="min-h-screen flex items-center justify-center py-12 px-6 sm:px-8 relative"
       style={{
-        backgroundImage: 'url(/login.jpg)',
+        backgroundImage: 'url(/login.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
@@ -415,7 +415,7 @@ export default function LoginPage() {
       {/* Overlay for better readability */}
       <div className="absolute inset-0 bg-black/70"></div>
       
-      <div className="relative z-10 w-full max-w-5xl flex flex-col lg:flex-row items-center">
+      <div className="relative z-10 w-full max-w-5xl 2xl:max-w-7xl flex flex-col lg:flex-row items-center">
         {/* Left side - Text content - Hidden on mobile and tablet */}
         <div className="hidden lg:flex flex-1 text-white pr-6 xl:pr-10">
           <h1 className="text-4xl xl:text-5xl h-[50%] -ml-6 xl:-ml-14 font-balgin-regular">
@@ -424,13 +424,13 @@ export default function LoginPage() {
         </div>
 
         {/* Right side - Login form */}
-        <div className="w-full max-w-sm sm:max-w-md lg:w-72 xl:w-80">
-          <div className="bg-white lg:-mr-6 xl:-mr-10 rounded-2xl sm:rounded-4xl py-6 px-4 sm:py-8 sm:px-6 shadow-xl">
+        <div className="w-full max-w-sm sm:max-w-md lg:w-72 xl:w-80 2xl:w-96">
+          <div className="bg-white lg:-mr-6 xl:-mr-10 2xl:-mr-16 rounded-2xl sm:rounded-4xl py-6 px-4 sm:py-8 sm:px-6 2xl:py-10 2xl:px-8 shadow-xl">
             {/* Logo and header */}
-            <div className="text-center mb-6">
-              <Image src="/chariot_icon.svg" alt="Chariot Logo" width={800} height={500} className="w-50 h-32 sm:w-60 sm:h-40 lg:w-67 lg:h-40 xl:w-75 xl:h-48 mx-auto -mb-16 -mt-8 lg:-mb-18 lg:-mt-8 xl:-mb-20 xl:-mt-10"/>
-              <p className="text-black text-lg sm:text-xl lg:text-xl xl:text-[24px] font-bold font-balgin-regular">Welcome to</p>
-              <h2 className="text-[#FCA17A] text-lg sm:text-xl lg:text-xl xl:text-[24px] -mt-1 font-bold font-balgin-regular">Chariot</h2>
+            <div className="text-center mb-6 2xl:mb-8">
+              <Image src="/chariot_icon.svg" alt="Chariot Logo" width={800} height={500} className="w-50 h-32 sm:w-60 sm:h-40 lg:w-67 lg:h-40 xl:w-75 xl:h-48 2xl:w-85 2xl:h-52 mx-auto -mb-16 -mt-8 lg:-mb-18 lg:-mt-8 xl:-mb-20 xl:-mt-10 2xl:-mb-22 2xl:-mt-12"/>
+              <p className="text-black text-lg sm:text-xl lg:text-xl xl:text-[24px] 2xl:text-[28px] font-bold font-balgin-regular">Welcome to</p>
+              <h2 className="text-[#FCA17A] text-lg sm:text-xl lg:text-xl xl:text-[24px] 2xl:text-[28px] -mt-1 font-bold font-balgin-regular">Chariot</h2>
             </div>
 
             {error && (
@@ -445,7 +445,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 2xl:space-y-8">
               {renderForm()}
             </form>
           </div>

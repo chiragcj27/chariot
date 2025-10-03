@@ -98,11 +98,11 @@ export default function SubscriptionCards() {
               priority
             />
             {/* Overlay */}
-            <div className="absolute inset-0 z-10 flex flex-col h-full w-full p-8">
-              <div className="flex-1 flex flex-col">
+            <div className="absolute inset-0 z-10 flex flex-col h-full p-8">
+              <div className="flex-1 flex w-full flex-col">
                 <h2 className="text-3xl font-balgin-regular mt-3 font-bold mb-2">{card.title}</h2>
                 <div className="flex items-end mb-2">
-                  <span className="text-2xl font-bold text-[#FA7035] font-balgin-regular mr-1">${card.price}</span>
+                  <span className="text-2xl font-bold text-[#FA7035] font-secondary mr-1">${card.price}</span>
                   <span className="text-base text-gray-500">{card.period}</span>
                 </div>
                 <div className="font-semibold text-[clamp(0.70rem,2vw,1.15rem)] text-gray-700 mb-4 text-center">{card.description}</div>
@@ -114,7 +114,7 @@ export default function SubscriptionCards() {
               </div>
               <button 
                 onClick={() => handleSubscribe(card)}
-                className="mt-auto py-2 rounded-lg border-2 border-[#FA7035] text-primary font-semibold bg-[#FFC1A0] hover:border-3 focus:outline-none focus:ring-2 focus:ring-[#B73E00] focus:ring-inset focus-visible:ring-2 focus-visible:ring-[#B73E00] focus-visible:ring-inset">
+                className="mt-auto w-[50%] mx-auto py-1 rounded-lg border-2 bg-white border-[#FA7035] text-primary  hover:bg-[#FFC1A0] hover:border-3">
                 {card.button}
               </button>
             </div>

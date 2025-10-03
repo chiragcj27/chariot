@@ -12,7 +12,7 @@ export default function AuthPage() {
     <div 
       className="min-h-screen relative flex flex-col"
       style={{
-        backgroundImage: 'url(/login.jpg)',
+        backgroundImage: 'url(/login.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

@@ -418,12 +418,60 @@ export default function SignupPage() {
                     onClick={() => addPhoneNumber('contactInformation', 'fax')}
                     className="text-orange-600 hover:text-orange-800 text-sm"
                   >
-                    + Add fax number
+                    + Add mobile number
                   </button>
                 </div>
               </div>
             </div>
-
+            {/* Chariot Customer Information */}
+            <div className="pb-8 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Chariot Customer Information</h3>
+              <div className="space-y-4">
+                <div>
+                  <span className="block text-sm font-medium text-gray-700 mb-2">Are you an existing Chariot customer?</span>
+                  <div className="flex items-center gap-6">
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="isChariotCustomerYes"
+                        name="isChariotCustomer"
+                        checked={formData.isChariotCustomer === true}
+                        onChange={() => handleInputChange('isChariotCustomer', '', true)}
+                        className="h-4 w-4 accent-[#FCA17A] focus:ring-orange-500 border-gray-300"
+                      />
+                      <label htmlFor="isChariotCustomerYes" className="ml-2 block text-sm text-gray-900">
+                        Yes
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="radio"
+                        id="isChariotCustomerNo"
+                        name="isChariotCustomer"
+                        checked={!formData.isChariotCustomer}
+                        onChange={() => handleInputChange('isChariotCustomer', '', false)}
+                        className="h-4 w-4 accent-[#FCA17A] focus:ring-orange-500 border-gray-300"
+                      />
+                      <label htmlFor="isChariotCustomerNo" className="ml-2 block text-sm text-gray-900">
+                        No
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                {formData.isChariotCustomer && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Chariot Customer ID</label>
+                    <input
+                      type="text"
+                      value={formData.chariotCustomerId}
+                      onChange={(e) => handleInputChange('chariotCustomerId', '', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      placeholder="Enter your Chariot Customer ID"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
             {/* Business Information */}
             <div className="border-b border-gray-200 pb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Business Information</h3>
@@ -500,57 +548,6 @@ export default function SignupPage() {
                 </div>
               </div>
             </div>
-
-            {/* Chariot Customer Information */}
-            <div className="pb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Chariot Customer Information</h3>
-              <div className="space-y-4">
-                <div>
-                  <span className="block text-sm font-medium text-gray-700 mb-2">Are you an existing Chariot customer?</span>
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="isChariotCustomerYes"
-                        name="isChariotCustomer"
-                        checked={formData.isChariotCustomer === true}
-                        onChange={() => handleInputChange('isChariotCustomer', '', true)}
-                        className="h-4 w-4 accent-[#FCA17A] focus:ring-orange-500 border-gray-300"
-                      />
-                      <label htmlFor="isChariotCustomerYes" className="ml-2 block text-sm text-gray-900">
-                        Yes
-                      </label>
-                    </div>
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        id="isChariotCustomerNo"
-                        name="isChariotCustomer"
-                        checked={!formData.isChariotCustomer}
-                        onChange={() => handleInputChange('isChariotCustomer', '', false)}
-                        className="h-4 w-4 accent-[#FCA17A] focus:ring-orange-500 border-gray-300"
-                      />
-                      <label htmlFor="isChariotCustomerNo" className="ml-2 block text-sm text-gray-900">
-                        No
-                      </label>
-                    </div>
-                  </div>
-                </div>
-                {formData.isChariotCustomer && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Chariot Customer ID</label>
-                    <input
-                      type="text"
-                      value={formData.chariotCustomerId}
-                      onChange={(e) => handleInputChange('chariotCustomerId', '', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                      placeholder="Enter your Chariot Customer ID"
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
               <Link
                 href="/login"

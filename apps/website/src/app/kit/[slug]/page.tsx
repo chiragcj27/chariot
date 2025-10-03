@@ -228,7 +228,7 @@ export default function KitPage({ params }: KitPageProps) {
             </AspectRatio>
           </div>
           {/* Testimonials */}
-          <div className="absolute left-[calc(35vw)] top-[calc(95vw)] w-[calc(55vw)] md:left-[17%] md:top-[calc(34vw)] md:w-[22%] z-30">
+          <div className="absolute left-[calc(35vw)] top-[calc(95vw)] w-[calc(55vw)] md:left-[17%] md:top-[calc(34vw)] md:w-[25%] z-30">
             <AspectRatio ratio={16/9} className="w-full h-full">
               <TestimonialsCarousel testimonials={kit.testimonials} />
             </AspectRatio>

@@ -378,7 +378,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             </h1>
 
             {/* Price */}
-            <div className="text-xl sm:text-2xl lg:text-[24px] text-gray-900 mt-2 sm:mt-3">
+            <div className="text-[18px] lg:text-[20px] text-gray-900 mt-2 sm:mt-3">
               {product.price ? `$${product.price.amount}` : "Contact for pricing"}
             </div>
 

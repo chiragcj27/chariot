@@ -3,29 +3,29 @@
 import React, { useState, useEffect } from 'react';
 import AccountLayout from '../../components/AccountLayout';
 
-const MARKET_SEGMENTS = [
-  'Single Store Retailer',
-  '2-5 Store Chains',
-  '6-14 Store Chains',
-  '15-29 Store Chains',
-  '30+ Store Chains',
-  'Wholesale/Distributor',
-  'Buying Group',
-  'Government Facilities',
-  'Other',
-];
+// const MARKET_SEGMENTS = [
+//   'Single Store Retailer',
+//   '2-5 Store Chains',
+//   '6-14 Store Chains',
+//   '15-29 Store Chains',
+//   '30+ Store Chains',
+//   'Wholesale/Distributor',
+//   'Buying Group',
+//   'Government Facilities',
+//   'Other',
+// ];
 
-const BUYING_ORGANIZATIONS = [
-  'AGS - American Gem Society',
-  'BIG - Buyers International Group',
-  'CBG - Continental Buying Group',
-  'CJG - Canadian Jewellery Group',
-  'IJO - Independent Jewelers Organization',
-  'LJG - Leading Jewelers Guild',
-  'RJO - Retail Jewelers Organization',
-  'SJO - Southeastern Jewelers Organization',
-  'Other',
-];
+// const BUYING_ORGANIZATIONS = [
+//   'AGS - American Gem Society',
+//   'BIG - Buyers International Group',
+//   'CBG - Continental Buying Group',
+//   'CJG - Canadian Jewellery Group',
+//   'IJO - Independent Jewelers Organization',
+//   'LJG - Leading Jewelers Guild',
+//   'RJO - Retail Jewelers Organization',
+//   'SJO - Southeastern Jewelers Organization',
+//   'Other',
+// ];
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
@@ -204,7 +204,7 @@ export default function ProfilePage() {
                     </button>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex flex-col md:grid grid-cols-2 gap-6">
                     <div className='col-span-2'>
                       <label className="block text-sm font-extrabold font-secondary text-gray-900 mb-2">COMPANY NAME</label>
                       <input
@@ -250,18 +250,6 @@ export default function ProfilePage() {
                         disabled={!isEditing}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Telephone 1"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-extrabold text-gray-900 mb-2">FAX</label>
-                      <input
-                        type="text"
-                        value={formData.companyInformation.fax[0] || ''}
-                        onChange={(e) => handleArrayInputChange('companyInformation', 'fax', 0, e.target.value)}
-                        disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
-                        placeholder="Fax"
                       />
                     </div>
                     
@@ -382,18 +370,6 @@ export default function ProfilePage() {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-extrabold text-gray-900 mb-2">FAX</label>
-                      <input
-                        type="text"
-                        value={formData.contactInformation.fax[0] || ''}
-                        onChange={(e) => handleArrayInputChange('contactInformation', 'fax', 0, e.target.value)}
-                        disabled={!isEditing}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
-                        placeholder="Fax"
-                      />
-                    </div>
-                    
-                    <div>
                       <label className="block text-sm font-extrabold text-gray-900 mb-2">TELEPHONE 2</label>
                       <input
                         type="text"
@@ -407,7 +383,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
 
-                {/* Other Information */}
+                {/* Other Information
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 mb-6">Other Information</h3>
                   
@@ -482,7 +458,7 @@ export default function ProfilePage() {
                       />
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 {/* Save Button */}
                 {isEditing && (

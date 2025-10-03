@@ -1,8 +1,37 @@
 import { FacebookIcon, InstagramIcon, LinkedinIcon } from 'lucide-react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
+interface Category {
+  _id: string;
+  slug: string;
+  title: string;
+  items?: CategoryItem[];
+}
+
+interface CategoryItem {
+  _id: string;
+  slug: string;
+  title: string;
+}
 
 export default function Footer() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch(`${API_URL}/api/menu/structure`);
+        if (!res.ok) throw new Error("Failed to fetch categories");
+        const data = await res.json();
+        setCategories(data);
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      }
+    }
+    fetchCategories();
+  }, [API_URL]);
   return (
     <footer className="bg-seafoam min-w-full text-gray-800">
       {/* Main Footer Content */}
@@ -13,8 +42,7 @@ export default function Footer() {
             <div className="space-y-4 col-span-2 sm:space-y-6 sm:col-span-2 lg:col-span-1">
               <h3 className="text-xl font-semibold text-gray-900">Chariot</h3>
               <p className="text-base font-secondary text-gray-700 leading-relaxed">
-                Empowering businesses with innovative solutions and cutting-edge technology.
-                Building the future, one project at a time.
+              Empowering jewelry businesses with innovative solutions and cutting-edge technology. Building the future, one project at a time.
               </p>
               <div className="flex space-x-4">
                 <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">
@@ -46,7 +74,7 @@ export default function Footer() {
                     About Us
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link href="/services" className="text-base font-secondary text-gray-700 hover:text-gray-900 transition-colors">
                     Services
                   </Link>
@@ -55,7 +83,7 @@ export default function Footer() {
                   <Link href="/help" className="text-base font-secondary text-gray-700 hover:text-gray-900 transition-colors">
                     Help
                   </Link>
-                </li>
+                </li> */}
                 <li>
                   <Link href="/contact" className="text-base font-secondary text-gray-700 hover:text-gray-900 transition-colors">
                     Contact
@@ -64,35 +92,17 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Services */}
+            {/* Categories */}
             <div className="space-y-4 sm:space-y-6">
               <h3 className="text-xl font-semibold text-gray-900">Services</h3>
               <ul className="space-y-2 sm:space-y-3">
-                <li>
-                  <Link href="/web-development" className="text-base font-secondary text-gray-700 hover:text-gray-900 transition-colors">
-                    Web Development
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/mobile-apps" className="text-base font-secondary text-gray-700 hover:text-gray-900 transition-colors">
-                    Mobile Apps
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/consulting" className="text-base font-secondary text-gray-700 hover:text-gray-900 transition-colors">
-                    Consulting
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/design" className="text-base font-secondary text-gray-700 hover:text-gray-900 transition-colors">
-                    UI/UX Design
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/maintenance" className="text-base font-secondary text-gray-700 hover:text-gray-900 transition-colors">
-                    Maintenance
-                  </Link>
-                </li>
+                {categories.map((category) => (
+                  <li key={category._id}>
+                    <Link href={`/category/${category.slug}`} className="text-base font-secondary text-gray-700 hover:text-gray-900 transition-colors">
+                      {category.title}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -138,9 +148,9 @@ export default function Footer() {
                 <Link href="/terms" className="font-secondary text-gray-700 hover:text-gray-900 transition-colors">
                   Terms of Service
                 </Link>
-                <Link href="/cookies" className="font-secondary text-gray-700 hover:text-gray-900 transition-colors">
+                {/* <Link href="/cookies" className="font-secondary text-gray-700 hover:text-gray-900 transition-colors">
                   Cookie Policy
-                </Link>
+                </Link> */}
               </div>
             </div>
           </div>
