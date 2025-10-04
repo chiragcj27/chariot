@@ -300,14 +300,14 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
               </p>
               <div className="flex flex-row justify-center gap-2 sm:gap-4">
                 <DiscoveryCallButton
-                  className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
+                  className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-8 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
                   title="Discovery Call"
                   subtitle="Let&apos;s discuss how we can customize this product for your brand"
                 >
                   Discovery Call
                 </DiscoveryCallButton>
                 <AskForQuoteButton
-                  className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-6 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
+                  className="bg-white text-sm sm:text-base border-2 rounded-md border-[#FCA17A] px-3 sm:px-4 lg:px-8 py-2 transition-colors hover:bg-[#FCA17A]/70 focus:outline-none focus:ring-2 focus:ring-[#FCA17A]/40 whitespace-nowrap"
                   productName={allProducts[0]?.name}
                   productType="product"
                 >
@@ -330,7 +330,7 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
          </div>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <button
-            className="border border-[#FCA17A] border-2 bg-white hover:bg-[#FCA17A] text-black font-secondary font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-lg transition-colors text-base sm:text-lg"
+            className="border-[#FCA17A] border-2 bg-white hover:bg-[#FCA17A] text-black font-secondary font-semibold px-6 sm:px-8 py-2 rounded-lg transition-colors text-base sm:text-lg"
             onClick={() => router.push('/')}
           >
             Back To Home

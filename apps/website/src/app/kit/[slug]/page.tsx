@@ -253,7 +253,7 @@ export default function KitPage({ params }: KitPageProps) {
                   packSection.scrollIntoView({ behavior: 'smooth' });
                 }
               }}
-              className="border-2 hidden md:block border-[#FCA17A] mt-10 rounded-md hover:bg-[#FFC1A0] text-[calc(1.2vw)] hover:border-orange-600 text-black px-5 py-1 transition-colors shadow mb-2"
+              className="border-2 hidden md:block border-[#FCA17A] mt-10 rounded-md hover:bg-[#FFC1A0] text-[calc(1.2vw)] hover:border-orange-600 text-black px-8 py-1 transition-colors shadow mb-2"
             >
               Explore
             </button>
@@ -270,7 +270,7 @@ export default function KitPage({ params }: KitPageProps) {
         <div id="pack-selection" className=" flex flex-row py-5 items-center justify-center md:justify-start gap-4 px-5 md:px-10 lg:px-18 mt-12 md:mt-16 lg:mt-20"
         >
           <button
-            className={`border-2 border-[#FCA17A] rounded-md hover:bg-[#FFC1A0] md:text-[calc(1.2vw)] text-[calc(4vw)] hover:border-orange-600 text-black text-gray-700 px-8 py-1 transition-colors shadow mb-2 ${selectedPack === 'premium'
+            className={`border-2 border-[#FCA17A] rounded-md hover:bg-[#FFC1A0] md:text-[calc(1.2vw)] text-[calc(4vw)] hover:border-orange-600 text-black px-6 py-1 transition-colors shadow mb-2 ${selectedPack === 'premium'
                 ? 'bg-[#FFC1A0]'
                 : 'text-black'
               }`}
@@ -279,7 +279,7 @@ export default function KitPage({ params }: KitPageProps) {
             Premium Pack
           </button>
           <button
-            className={`border-2 border-[#FCA17A] rounded-md hover:bg-[#FFC1A0] md:text-[calc(1.2vw)] text-[calc(4vw)] hover:border-orange-600 text-black text-gray-700 px-8 py-1 transition-colors shadow mb-2 ${selectedPack === 'basic' ? 'bg-[#FFC1A0]' : 'text-black'
+            className={`border-2 border-[#FCA17A] rounded-md hover:bg-[#FFC1A0] md:text-[calc(1.2vw)] text-[calc(4vw)] hover:border-orange-600 text-black px-8 py-1 transition-colors shadow mb-2 ${selectedPack === 'basic' ? 'bg-[#FFC1A0]' : 'text-black'
               }`}
             onClick={() => setSelectedPack('basic')}
           >
@@ -395,9 +395,9 @@ export default function KitPage({ params }: KitPageProps) {
               </div>
             ))}
           </div>
-          <div className="flex mt-8 md:mt-10">
+          <div className="flex mt-10 md:mt-25">
             <button
-              className="border-[#FCA17A] border-2 bg-white hover:bg-[#FCA17A] text-black font-secondary font-semibold px-6 sm:px-8 py-2 sm:py-3 rounded-lg transition-colors text-base sm:text-lg"
+              className="border-[#FCA17A] border-2 bg-white hover:bg-[#FCA17A] text-black font-secondary px-6 sm:px-8 py-2 rounded-lg transition-colors text-base sm:text-lg"
               onClick={() => router.push('/')}
             >
               Back to Home
