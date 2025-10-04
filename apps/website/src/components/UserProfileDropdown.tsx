@@ -11,7 +11,7 @@ const UserProfileDropdown: React.FC = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const { setIsMenuOpen, isMenuOpen } = useStore();
+  const { setIsMenuOpen} = useStore();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -40,14 +40,14 @@ const UserProfileDropdown: React.FC = () => {
           <Button
             type="button"
             onClick={() => {setIsMenuOpen(false);router.push('/login')} }
-            className={`text-gray-700 center w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,1.5vw,0.8rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-2 rounded-md  ${isMenuOpen ? 'bg-[#FFC1A0] hover:bg-[#FFC1A0] hover:border-orange-400 hover:border-2' : 'bg-[#FFFFFF] hover:bg-[#FFC1A0]'} `}
+            className={`text-gray-700 center w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,1.5vw,0.8rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-2 rounded-md bg-[#FFFFFF] hover:bg-[#FFC1A0]`}
           >
             LOG IN
           </Button>
           <Button
             type="button"
             onClick={() => {setIsMenuOpen(false);router.push('/signup')} }
-            className={`text-gray-700 center w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,1.5vw,0.8rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-2 rounded-md  ${isMenuOpen ? 'bg-[#FFC1A0] hover:bg-[#FFC1A0] hover:border-orange-400 hover:border-2' : 'bg-[#FFFFFF] hover:bg-[#FFC1A0]'} `}
+            className={`text-gray-700 center w-[clamp(5.25rem,8vw,7rem)] h-[clamp(1.50rem,3vw,2.25rem)] text-[clamp(0.75rem,1.5vw,0.8rem)] border-2 border-[#FCA17A] focus:outline-none transition-colors duration-200 px-2 py-2 rounded-md bg-[#FFFFFF] hover:bg-[#FFC1A0]`}
           >
             SIGN UP
           </Button>

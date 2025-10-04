@@ -114,7 +114,7 @@ export default function SubscriptionCards() {
               </div>
               <button 
                 onClick={() => handleSubscribe(card)}
-                className="mt-auto w-[50%] mx-auto py-1 rounded-lg border-2 bg-white border-[#FA7035] text-primary  hover:bg-[#FFC1A0] hover:border-3">
+                className="mt-auto w-[50%] mx-auto py-2 rounded-lg border-2 bg-white border-sunrise text-primary  hover:bg-[#FFC1A0]">
                 {card.button}
               </button>
             </div>

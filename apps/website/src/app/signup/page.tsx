@@ -192,7 +192,7 @@ export default function SignupPage() {
           </Link>
         </div>
         <h2 className="mt-6 text-center text-2xl sm:text-3xl font-extrabold text-white">
-          Register as a Buyer
+          Create an Account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-200">
           Already have an account?{' '}
@@ -558,7 +558,7 @@ export default function SignupPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 border-3 border-[#FCA17A]  rounded-md hover:bg-[#FCA17A] disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 w-full sm:w-auto"
+                className="px-6 py-2 border-2 border-[#FCA17A]  rounded-md hover:bg-[#FCA17A] disabled:bg-gray-400 disabled:cursor-not-allowed transition duration-200 w-full sm:w-auto"
               >
                 {loading ? 'Submitting...' : 'Account Request'}
               </button>

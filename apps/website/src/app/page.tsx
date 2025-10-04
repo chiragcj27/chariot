@@ -54,7 +54,7 @@ export default function Home() {
       </div>
       {/* Who we are Section */}
       <WhoWeAre />
-      <div className="px-5 sm:px-8 md:px-12 lg:px-16 xl:px-24 flex flex-col lg:flex-row mt-5 sm:mt-12 md:mt-20 lg:mt-28 xl:mt-32 pt-6 sm:pt-8 md:pt-10 lg:pt-11 xl:pt-12 gap-4 sm:gap-5 md:gap-6 lg:gap-6 xl:gap-7">
+      <div className="px-5 sm:px-8 md:px-12 lg:px-16 xl:px-24 flex flex-col lg:flex-row mt-5 sm:mt-12 md:mt-20 lg:mt-20 pt-6 sm:pt-8 md:pt-10 lg:pt-7 gap-4 sm:gap-5 md:gap-6 lg:gap-6 xl:gap-7">
         <div className="w-full lg:w-[33%] lg:pr-6 xl:pr-12">
           <span className="text-sunrise text-xl sm:text-2xl md:text-[28px] lg:text-[30px] xl:text-[32px] 2xl:text-[36px] font-secondary leading-[1.3]">Real Industry<br/>Experience</span>
         </div>
