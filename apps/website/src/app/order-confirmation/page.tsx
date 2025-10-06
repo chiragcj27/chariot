@@ -212,7 +212,7 @@ export default function OrderConfirmationPage() {
       <div className="max-w-2xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+          <CheckCircle className="w-16 h-16 text-sunrise mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Order Confirmed!</h1>
           <p className="text-gray-600">Thank you for your purchase. Your order has been successfully placed.</p>
         </div>
@@ -252,7 +252,7 @@ export default function OrderConfirmationPage() {
                 <DollarSign className="w-4 h-4 text-gray-500" />
                 <span className="text-gray-700">Total Amount</span>
               </div>
-              <span className="font-semibold text-lg text-gray-900">${orderData.total}</span>
+              <span className="font-semibold text-lg text-gray-900">${orderData.total.toFixed(2)}</span>
             </div>
           </CardContent>
         </Card>
@@ -266,8 +266,8 @@ export default function OrderConfirmationPage() {
             {orderData.paymentBreakdown.creditsUsed > 0 && (
               <div className="flex items-center justify-between">
                 <span className="text-gray-700">Credits Used</span>
-                <span className="text-green-600 font-medium">
-                  {orderData.paymentBreakdown.creditsUsed} credits (${orderData.paymentBreakdown.creditsAmount})
+                <span className="text-sunrise font-medium">
+                  {orderData.paymentBreakdown.creditsUsed.toFixed(2)} credits (${orderData.paymentBreakdown.creditsAmount.toFixed(2)})
                 </span>
               </div>
             )}
@@ -275,13 +275,13 @@ export default function OrderConfirmationPage() {
             {orderData.paymentBreakdown.paypalAmount > 0 && (
               <div className="flex items-center justify-between">
                 <span className="text-gray-700">PayPal Payment</span>
-                <span className="text-blue-600 font-medium">${orderData.paymentBreakdown.paypalAmount}</span>
+                <span className="text-sunrise font-medium">${orderData.paymentBreakdown.paypalAmount.toFixed(2)}</span>
               </div>
             )}
 
             <div className="border-t pt-3 flex items-center justify-between">
               <span className="font-semibold text-gray-900">Total</span>
-              <span className="font-semibold text-lg text-gray-900">${orderData.paymentBreakdown.totalAmount}</span>
+              <span className="font-semibold text-lg text-gray-900">${orderData.paymentBreakdown.totalAmount.toFixed(2)}</span>
             </div>
           </CardContent>
         </Card>
@@ -328,14 +328,14 @@ export default function OrderConfirmationPage() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link href="/orders">
-            <Button variant="outline" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto py-2 px-10">
               <FileText className="w-4 h-4 mr-2" />
               View All Orders
             </Button>
           </Link>
           
           <Link href="/">
-            <Button className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600">
+            <Button className="w-full sm:w-auto py-2 px-10 border-2 text-black bg-white border-sunrise hover:bg-sunrise">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Continue Shopping
             </Button>

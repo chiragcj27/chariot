@@ -247,9 +247,9 @@ export default function CheckoutPage() {
         const availableCredits = checkoutInfo?.userCredits || 0;
         const totalAmount = checkoutInfo?.total || 0;
         if (availableCredits >= totalAmount) {
-          return `Credits (${availableCredits} available)`;
+          return `Credits (${availableCredits.toFixed(2)} available)`;
         } else {
-          return `${availableCredits} Credits + $${totalAmount - availableCredits}`;
+          return `${availableCredits.toFixed(2)} Credits + $${(totalAmount - availableCredits).toFixed(2)}`;
         }
       case 'paypal':
         return 'PayPal / Credit Card';
@@ -376,7 +376,7 @@ export default function CheckoutPage() {
                 <span className="text-gray-700 text-sm sm:text-base block">Payment Method</span>
                 <div className="flex items-center space-x-2 relative">
                   <CreditCard className="w-4 h-4 text-gray-600 flex-shrink-0" />
-                  <span className="text-gray-900 text-sm sm:text-base flex-1 truncate">{getPaymentMethodDisplay()}</span>
+                  <span className="text-gray-900 text-sm sm:text-base">{getPaymentMethodDisplay()}</span>
                   <button
                     type="button"
                     onClick={() => setShowPaymentMethods(!showPaymentMethods)}
@@ -405,7 +405,7 @@ export default function CheckoutPage() {
                       >
                         <div className="flex items-center space-x-2">
                           <span className="text-green-600 flex-shrink-0">💰</span>
-                          <span className="truncate">Credits ({checkoutInfo?.userCredits || 0} available)</span>
+                          <span className="truncate">Credits ({(checkoutInfo?.userCredits || 0).toFixed(2)} available)</span>
                         </div>
                       </button>
                     </div>
@@ -439,7 +439,7 @@ export default function CheckoutPage() {
               <span className="text-gray-700">Payment Method</span>
               <div className="flex items-center space-x-2 relative">
                 <CreditCard className="w-4 h-4 text-gray-600" />
-                <span className="text-gray-900 text-base flex-1 truncate">{getPaymentMethodDisplay()}</span>
+                <span className="text-gray-900 text-base">{getPaymentMethodDisplay()}</span>
                 <button
                   type="button"
                   onClick={() => setShowPaymentMethods(!showPaymentMethods)}
@@ -468,7 +468,7 @@ export default function CheckoutPage() {
                     >
                       <div className="flex items-center space-x-2">
                         <span className="text-green-600">💰</span>
-                        <span>Credits ({checkoutInfo?.userCredits || 0} available)</span>
+                        <span>Credits ({(checkoutInfo?.userCredits || 0).toFixed(2)} available)</span>
                       </div>
                     </button>
                   </div>
@@ -591,14 +591,13 @@ export default function CheckoutPage() {
           <Link href="/" className="w-full sm:w-auto">
             <Button
               variant="outline"
-              className="border-orange-500 text-orange-500 hover:bg-orange-50 rounded-lg w-full sm:w-auto px-6 py-2.5 text-sm sm:text-base"
+              className="border-2 border-sunrise bg-white text-black hover:bg-sunrise rounded-lg w-full sm:w-auto px-6 py-2 text-sm sm:text-base"
             >
               Back To Home
             </Button>
           </Link>
         </div>
       </div>
-
       {/* Credit Confirmation Dialog */}
       {showCreditConfirmation && checkoutInfo && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -609,34 +608,34 @@ export default function CheckoutPage() {
               // Full credit payment
               <>
                 <p className="text-gray-600 mb-4">
-                  You are about to use <strong>{checkoutInfo.total} credits</strong> from your account to complete this purchase.
+                  You are about to use <strong>{checkoutInfo.total.toFixed(2)} credits</strong> from your account to complete this purchase.
                 </p>
                 <p className="text-gray-600 mb-6">
-                  Your remaining credits after this purchase: <strong>{checkoutInfo.userCredits - checkoutInfo.total} credits</strong>
+                  Your remaining credits after this purchase: <strong>{(checkoutInfo.userCredits - checkoutInfo.total).toFixed(2)} credits</strong>
                 </p>
               </>
             ) : (
               // Mixed payment (credits + PayPal)
               <>
                 <p className="text-gray-600 mb-4">
-                  You will use <strong>{checkoutInfo.userCredits} credits</strong> and pay the remaining <strong>${checkoutInfo.total - checkoutInfo.userCredits}</strong> via PayPal.
+                  You will use <strong>{checkoutInfo.userCredits.toFixed(2)} credits</strong> and pay the remaining <strong>${(checkoutInfo.total - checkoutInfo.userCredits).toFixed(2)}</strong> via PayPal.
                 </p>
                 <div className="bg-gray-50 p-3 rounded-lg mb-6">
                   <div className="flex justify-between text-sm">
                     <span>Total Amount:</span>
-                    <span>${checkoutInfo.total}</span>
+                    <span>${checkoutInfo.total.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-green-600">
                     <span>Credits Used:</span>
-                    <span>-{checkoutInfo.userCredits}</span>
+                    <span>-{checkoutInfo.userCredits.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm font-semibold border-t pt-2 mt-2">
                     <span>PayPal Payment:</span>
-                    <span>${checkoutInfo.total - checkoutInfo.userCredits}</span>
+                    <span>${(checkoutInfo.total - checkoutInfo.userCredits).toFixed(2)}</span>
                   </div>
                 </div>
                 <p className="text-gray-600 mb-6">
-                  Your remaining credits after this purchase: <strong>0 credits</strong>
+                  Your remaining credits after this purchase: <strong>0.00 credits</strong>
                 </p>
               </>
             )}
@@ -645,13 +644,13 @@ export default function CheckoutPage() {
               <Button
                 onClick={() => setShowCreditConfirmation(false)}
                 variant="outline"
-                className="flex-1 py-2.5 text-sm sm:text-base"
+                className="flex-1 py-2 px-6 text-sm sm:text-base"
               >
                 Cancel
               </Button>
               <Button
                 onClick={processOrder}
-                className="flex-1 bg-orange-500 hover:bg-orange-600 py-2.5 text-sm sm:text-base"
+                className="flex-1 border-2 border-sunrise bg-white text-black hover:bg-sunrise py-2 px-6 text-sm sm:text-base"
                 disabled={processing}
               >
                 {processing ? 'Processing...' : 'Confirm Payment'}
@@ -680,7 +679,7 @@ export default function CheckoutPage() {
               <Button
                 onClick={() => setShowPayPalPayment(false)}
                 variant="outline"
-                className="w-full py-2.5 text-sm sm:text-base"
+                className="w-full py-2 px-6 text-sm sm:text-base"
               >
                 Cancel
               </Button>

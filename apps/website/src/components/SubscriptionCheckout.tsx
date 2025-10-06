@@ -126,7 +126,7 @@ export default function SubscriptionCheckout({
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Credits:</span>
                   <span className="text-green-600 font-semibold">
-                    +{plan.credits} credits
+                    +{plan.credits.toFixed(2)} credits
                   </span>
                 </div>
               </div>
@@ -135,13 +135,13 @@ export default function SubscriptionCheckout({
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Current Credits:</span>
                   <span className="text-blue-600 font-semibold">
-                    {user?.credits || 0}
+                    {(user?.credits || 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center mt-1">
                   <span className="font-semibold">After Purchase:</span>
                   <span className="text-green-600 font-semibold">
-                    {(user?.credits || 0) + plan.credits}
+                    {((user?.credits || 0) + plan.credits).toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -197,11 +197,11 @@ export default function SubscriptionCheckout({
               Subscription Successful!
             </h3>
             <p className="text-gray-600 mb-4">
-              You&apos;ve been granted {plan.credits} credits to your account.
+              You&apos;ve been granted {plan.credits.toFixed(2)} credits to your account.
             </p>
             <div className="bg-green-50 rounded-lg p-3">
               <p className="text-green-700 text-sm">
-                New credit balance: {(user?.credits || 0) + plan.credits}
+                New credit balance: {((user?.credits || 0) + plan.credits).toFixed(2)}
               </p>
             </div>
           </div>

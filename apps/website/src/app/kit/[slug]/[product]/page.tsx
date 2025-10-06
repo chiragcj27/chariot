@@ -99,10 +99,11 @@ export default function KitProductDetailPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; title?: string; description?: string } | null>(null);
   
   const router = useRouter();
-  const { addItem } = useCart();
+  const { addItem, setBuyNowItem } = useCart();
   
 
   useEffect(() => {
@@ -228,6 +229,28 @@ export default function KitProductDetailPage({ params }: PageProps) {
     }
   };
 
+  const handleBuyNow = async () => {
+    if (!product) return;
+    try {
+      setBuyingNow(true);
+      setBuyNowItem({
+        productId: product._id,
+        productName: product.name,
+        productSlug: product.slug,
+        price: product.price?.amount || 0,
+        creditsCost: product.creditsCost || 0,
+        imageUrl: product.images?.[0]?.url,
+        category: 'kit',
+      });
+      router.push('/checkout');
+    } catch (error) {
+      console.error('Error setting up buy now:', error);
+      toast.error('Failed to proceed to checkout. Please try again.');
+    } finally {
+      setBuyingNow(false);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -253,7 +276,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
           <div className="relative">
             <div
               className="relative overflow-hidden  bg-gray-100"
-              style={{ aspectRatio: "3/2" }}
+              style={{ aspectRatio: "4/3" }}
             >
               {/* Image Container */}
               {imageUrls.length === 0 ? (
@@ -277,7 +300,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
                         alt={`Product image ${index + 1}`}
                         className="object-cover"
                         fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        sizes="(max-width: 1024px) 100vw, 50vw"
                       />
                     </div>
                   ))}
@@ -343,13 +366,15 @@ export default function KitProductDetailPage({ params }: PageProps) {
             <div className="flex mr-150 mt-10 flex-row w-full lg:flex-col gap-4 pt-4">
               <Button
                 variant="outline"
-                className="flex-1 border-[#FCA17A] border-2 text-gray-900 font-avenir text-[16px] py-1 w-[160] hover:bg-[#FFC1A0] transition-all duration-200"
+                className="flex-1 border-[#FCA17A] border-2 text-gray-900 font-avenir text-[16px] py-2 w-[160] hover:bg-[#FFC1A0] transition-all duration-200"
+                onClick={handleBuyNow}
+                disabled={buyingNow}
               >
-                Buy Now
+                {buyingNow ? 'Processing...' : 'Buy Now'}
               </Button>
 
               <Button 
-                className="flex-1 border-[#FCA17A] border-2 bg-[#FFC1A0] text-black font-avenir text-[16px] py-1 w-[160] hover:bg-sunrise transition-all duration-200"
+                className="flex-1 border-[#FCA17A] border-2 bg-[#FFC1A0] text-black font-avenir text-[16px] py-2 w-[160] hover:bg-sunrise transition-all duration-200"
                 onClick={handleAddToCart}
                 disabled={addingToCart}
               >
@@ -476,7 +501,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
           className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4"
           onClick={() => setSelectedImage(null)}
         >
-          <div className="relative max-w-[90vw] max-h-[90vh]">
+          <div className="relative w-[90vw] h-[90vh] max-w-[90vw] max-h-[90vh]">
             <button
               onClick={() => setSelectedImage(null)}
               className="absolute -top-12 right-0 text-white text-4xl hover:text-gray-300 transition-colors"
@@ -487,27 +512,16 @@ export default function KitProductDetailPage({ params }: PageProps) {
             <Image
               src={selectedImage.url}
               alt={selectedImage.title || "Kit Image"}
-              width={800}
-              height={600}
-              className="max-w-full max-h-full object-contain"
+              fill
+              className="object-contain w-full h-full"
             />
-            {(selectedImage.title || selectedImage.description) && (
-              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-white p-4 text-center">
-                {selectedImage.title && (
-                  <h3 className="text-xl font-semibold mb-2">{selectedImage.title}</h3>
-                )}
-                {selectedImage.description && (
-                  <p className="text-sm">{selectedImage.description}</p>
-                )}
-              </div>
-            )}
           </div>
         </div>
       )}
 
       <div className="flex mt-12 mb-12 px-18">
         <button
-          className="border-2 border-[#D94506] rounded-xl bg-transparent text-black font-semibold px-8 py-3 transition-colors shadow-lg text-lg hover:bg-white hover:text-black"
+          className="border-2 border-sunrise bg-white rounded-xl hover:bg-sunrise text-black font-semibold px-8 py-2 transition-colors shadow-lg text-lg hover:text-black"
           onClick={() => router.push("/")}
         >
           Back to Home

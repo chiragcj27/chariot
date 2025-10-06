@@ -445,7 +445,7 @@ export default function OrdersPage() {
                           <div className="space-y-1 text-sm">
                             <div className="flex justify-between">
                               <span>Credits Used:</span>
-                              <span className="text-green-600">-${order.paymentBreakdown.creditsUsed.toFixed(2)}</span>
+                              <span className="text-green-600">-{order.paymentBreakdown.creditsUsed.toFixed(2)} credits (${order.paymentBreakdown.creditsAmount.toFixed(2)})</span>
                             </div>
                             <div className="flex justify-between">
                               <span>PayPal Payment:</span>

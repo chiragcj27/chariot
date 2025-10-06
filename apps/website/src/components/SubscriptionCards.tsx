@@ -60,7 +60,7 @@ export default function SubscriptionCards() {
   };
 
   const handleCheckoutSuccess = (subscriptionId: string, newCredits: number) => {
-    setSuccessMessage(`Successfully subscribed! You now have ${newCredits} credits.`);
+    setSuccessMessage(`Successfully subscribed! You now have ${newCredits.toFixed(2)} credits.`);
     setShowSuccess(true);
     
     // Hide success message after 5 seconds

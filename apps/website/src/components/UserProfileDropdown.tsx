@@ -105,7 +105,7 @@ const UserProfileDropdown: React.FC = () => {
                   <p className="text-xs text-gray-500">ID: {user.userAccountId}</p>
                 )}
                 <p className="text-xs text-[#FCA17A] font-medium">
-                  Credits: {user.credits}
+                  Credits: {user.credits.toFixed(2)}
                 </p>
               </div>
             </div>
