@@ -1,11 +1,8 @@
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 import { Order } from '@chariot/db';
 import { User } from '@chariot/db';
-
-const execAsync = promisify(exec);
 
 export interface InvoiceData {
   order: any;
@@ -51,40 +48,37 @@ export class InvoiceService {
     }
 
     const htmlContent = this.generateInvoiceHTML(invoiceData, embeddedLogoDataUrl);
-    const tempDir = path.join(__dirname, '../../temp');
-    const htmlFile = path.join(tempDir, `invoice-${Date.now()}.html`);
-    const pdfFile = path.join(tempDir, `invoice-${Date.now()}.pdf`);
     
     try {
-      // Ensure temp directory exists
-      if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
+      // Launch Puppeteer (compatible with Linux/Render). Use env executable if provided.
+      const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      };
+      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
       }
-      
-      // Write HTML to file
-      fs.writeFileSync(htmlFile, htmlContent);
-      
-      // Use Chrome headless to generate PDF (works on macOS)
-      const chromeCommand = `/Applications/Google\\ Chrome.app/Contents/MacOS/Google\\ Chrome --headless --disable-gpu --no-sandbox --print-to-pdf="${pdfFile}" "${htmlFile}"`;
-      
-      await execAsync(chromeCommand);
-      
-      // Read the generated PDF
-      const pdfBuffer = fs.readFileSync(pdfFile);
-      
-      // Clean up temp files
-      fs.unlinkSync(htmlFile);
-      fs.unlinkSync(pdfFile);
-      
+
+      const browser = await puppeteer.launch(launchOptions);
+      const page = await browser.newPage();
+
+      // Set HTML directly to the page
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+
+      // Generate PDF
+      const pdfUint8Array = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        preferCSSPageSize: true
+      });
+
+      // Ensure Node Buffer for downstream consumers
+      const pdfBuffer = Buffer.from(pdfUint8Array);
+
+      await browser.close();
+
       return pdfBuffer;
     } catch (error) {
-      // Clean up temp files on error
-      try {
-        if (fs.existsSync(htmlFile)) fs.unlinkSync(htmlFile);
-        if (fs.existsSync(pdfFile)) fs.unlinkSync(pdfFile);
-      } catch (cleanupError) {
-        console.error('Error cleaning up temp files:', cleanupError);
-      }
       throw error;
     }
   }
