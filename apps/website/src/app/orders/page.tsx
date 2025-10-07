@@ -54,6 +54,7 @@ export default function OrdersPage() {
   const countdownRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const [currentPageState, setCurrentPageState] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const DESKTOP_PAGE_SIZE = 10;
   const MOBILE_PAGE_SIZE = 5;
 
@@ -151,8 +152,10 @@ export default function OrdersPage() {
     }
   }, [user, fetchAllOrders]);
 
-  // Handle screen size changes
+  // Handle client-side hydration and screen size changes
   useEffect(() => {
+    setIsClient(true);
+    
     const handleResize = () => {
       setIsMobile(window.innerWidth < 1024);
     };
@@ -269,19 +272,26 @@ export default function OrdersPage() {
 
     setCurrentPendingOrder(order);
     setShowPayPalPayment(true);
-    
-    // Render PayPal button after modal is shown
-    setTimeout(() => {
-      if (paypalButtonRef.current) {
-        paypalService.renderPayPalPaymentButton({
-          orderId: order._id,
-          amount: order.paymentBreakdown.paypalAmount,
-          currency: 'USD',
-          description: `Complete payment for order ${order.orderNumber}`
-        }, paypalButtonRef.current);
-      }
-    }, 100);
   };
+
+  // Handle PayPal button rendering when modal opens
+  useEffect(() => {
+    if (showPayPalPayment && currentPendingOrder && paypalButtonRef.current) {
+      // Clear any existing button
+      paypalButtonRef.current.innerHTML = '';
+      
+      // Render PayPal button
+      paypalService.renderPayPalPaymentButton({
+        orderId: currentPendingOrder._id,
+        amount: currentPendingOrder.paymentBreakdown.paypalAmount,
+        currency: 'USD',
+        description: `Complete payment for order ${currentPendingOrder.orderNumber}`
+      }, paypalButtonRef.current).catch(error => {
+        console.error('Error rendering PayPal button:', error);
+        toast.error('Failed to load payment system. Please try again.');
+      });
+    }
+  }, [showPayPalPayment, currentPendingOrder]);
 
   const handleCancelOrder = async (orderId: string) => {
     try {
@@ -358,7 +368,11 @@ export default function OrdersPage() {
       // Add to DOM, click, and remove
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      
+      // Safely remove the link element
+      if (link.parentNode) {
+        document.body.removeChild(link);
+      }
       
       // Clean up the URL object
       window.URL.revokeObjectURL(url);
@@ -544,8 +558,19 @@ export default function OrdersPage() {
                   </div>
                 ) : (
                   <>
+                    {/* Loading state during hydration */}
+                    {!isClient && (
+                      <div className="flex items-center justify-center min-h-[400px]">
+                        <div className="text-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                          <p className="text-gray-600">Loading...</p>
+                        </div>
+                      </div>
+                    )}
+                    
                     {/* Desktop Table View */}
-                    <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                    {isClient && !isMobile && (
+                      <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                       <div className="overflow-x-auto overflow-y-auto max-h-[70vh] scrollbar-hide">
                         <table className="w-full table-auto">
                           <thead>
@@ -605,9 +630,11 @@ export default function OrdersPage() {
                           </tbody>
                         </table>
                       </div>
-                    </div>
+                      </div>
+                    )}
 
                     {/* Tablet Card View */}
+                    {isClient && !isMobile && (
                     <div className="hidden md:block lg:hidden space-y-4">
                       {paginatedOrders.map((order) => (
                         <div key={order._id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
@@ -652,10 +679,12 @@ export default function OrdersPage() {
                           </div>
                         </div>
                       ))}
-                    </div>
+                      </div>
+                    )}
 
                     {/* Mobile Card View */}
-                    <div className="md:hidden space-y-4">
+                    {isClient && isMobile && (
+                      <div className="md:hidden space-y-4">
                       {paginatedOrders.map((order) => (
                         <div key={order._id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
                           <div className="flex justify-between items-start mb-3">
@@ -707,7 +736,8 @@ export default function OrdersPage() {
                           </div>
                         </div>
                       ))}
-                    </div>
+                      </div>
+                    )}
 
                     {/* Pagination */}
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 mt-4">

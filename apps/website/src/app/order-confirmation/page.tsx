@@ -173,7 +173,11 @@ export default function OrderConfirmationPage() {
       // Add to DOM, click, and remove
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      
+      // Safely remove the link element
+      if (link.parentNode) {
+        document.body.removeChild(link);
+      }
       
       // Clean up the URL object
       window.URL.revokeObjectURL(url);
@@ -229,7 +233,11 @@ export default function OrderConfirmationPage() {
       // Add to DOM, click, and remove
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      
+      // Safely remove the link element
+      if (link.parentNode) {
+        document.body.removeChild(link);
+      }
 
       toast.success('Download started! The link will expire in 5 minutes.');
     } catch (error) {

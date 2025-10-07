@@ -67,7 +67,11 @@ export default function DigitalProductDownload({
       // Add to DOM, click, and remove
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      
+      // Safely remove the link element
+      if (link.parentNode) {
+        document.body.removeChild(link);
+      }
 
       // Show success message
       

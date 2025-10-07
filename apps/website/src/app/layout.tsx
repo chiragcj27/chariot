@@ -10,6 +10,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import { Toaster } from "@/components/ui/sonner"
+import { DOMErrorBoundary } from "@/components/DOMErrorBoundary"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,17 +37,59 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.addEventListener('error', function(e) {
+                if (e.error && e.error.message && 
+                    (e.error.message.includes('insertBefore') || 
+                     e.error.message.includes('removeChild') ||
+                     e.error.message.includes('appendChild'))) {
+                  e.preventDefault();
+                  console.warn('DOM manipulation error suppressed:', e.error.message);
+                  return false;
+                }
+              });
+              
+              window.addEventListener('unhandledrejection', function(e) {
+                if (e.reason && e.reason.message && 
+                    (e.reason.message.includes('insertBefore') || 
+                     e.reason.message.includes('removeChild') ||
+                     e.reason.message.includes('appendChild'))) {
+                  e.preventDefault();
+                  console.warn('DOM manipulation error suppressed (promise):', e.reason.message);
+                  return false;
+                }
+              });
+              
+              // Override console.error to catch DOM errors
+              const originalConsoleError = console.error;
+              console.error = function(...args) {
+                const message = args.join(' ');
+                if (message.includes('insertBefore') || 
+                    message.includes('removeChild') ||
+                    message.includes('appendChild')) {
+                  console.warn('DOM manipulation error suppressed:', message);
+                  return;
+                }
+                originalConsoleError.apply(console, args);
+              };
+            `,
+          }}
+        />
         <LoaderOverlay />
-        <AuthProvider>
-          <CartProvider>
-            <SmartLoader />
-            <CustomScrollbar />
-            <NavBar />
-            <Toaster />
-            {children}
-            <ConditionalFooter />
-          </CartProvider>
-        </AuthProvider>
+        <DOMErrorBoundary>
+          <AuthProvider>
+            <CartProvider>
+              <SmartLoader />
+              <CustomScrollbar />
+              <NavBar />
+              <Toaster />
+              {children}
+              <ConditionalFooter />
+            </CartProvider>
+          </AuthProvider>
+        </DOMErrorBoundary>
         <Script 
           src="https://assets.calendly.com/assets/external/widget.js"
           strategy="afterInteractive"

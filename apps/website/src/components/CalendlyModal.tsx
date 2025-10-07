@@ -31,29 +31,60 @@ export default function CalendlyModal({
   subtitle = "Let&apos;s discuss your jewelry business needs"
 }: CalendlyModalProps) {
   const [mounted, setMounted] = useState(false);
+  const [widgetInitialized, setWidgetInitialized] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (isOpen && typeof window !== 'undefined') {
+    if (isOpen && typeof window !== 'undefined' && !widgetInitialized) {
       // Wait for Calendly to be available and then initialize
       const initCalendly = () => {
-        if (window.Calendly) {
-          window.Calendly.initInlineWidget({
-            url: 'https://calendly.com/chiragcj27-work/30min?primary_color=fca17a',
-            parentElement: document.getElementById('calendly-widget'),
-            prefill: {},
-            utm: {}
-          });
-        } else {
+        const widgetElement = document.getElementById('calendly-widget');
+        if (window.Calendly && widgetElement) {
+          // Check if widget is already initialized to prevent duplicates
+          const existingWidget = widgetElement.querySelector('[data-calendly-widget]');
+          if (!existingWidget) {
+            try {
+              window.Calendly.initInlineWidget({
+                url: 'https://calendly.com/chiragcj27-work/30min?primary_color=fca17a',
+                parentElement: widgetElement,
+                prefill: {},
+                utm: {}
+              });
+              setWidgetInitialized(true);
+            } catch (error) {
+              console.warn('Failed to initialize Calendly widget:', error);
+            }
+          }
+        } else if (!window.Calendly) {
           // If Calendly is not loaded yet, wait a bit and try again
           setTimeout(initCalendly, 100);
         }
       };
       
       initCalendly();
+    }
+  }, [isOpen, widgetInitialized]);
+
+  // Reset widget initialization when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setWidgetInitialized(false);
+      // Clean up any existing Calendly widgets
+      const widgetElement = document.getElementById('calendly-widget');
+      if (widgetElement && typeof window !== 'undefined' && window.Calendly) {
+        try {
+          // Clear the widget content safely
+          const existingWidget = widgetElement.querySelector('[data-calendly-widget]');
+          if (existingWidget && existingWidget.parentNode) {
+            existingWidget.parentNode.removeChild(existingWidget);
+          }
+        } catch (error) {
+          console.warn('Failed to cleanup Calendly widget:', error);
+        }
+      }
     }
   }, [isOpen]);
 

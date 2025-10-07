@@ -25,9 +25,11 @@ export default function SmartLoader() {
     function hideLoader() {
       if (cssLoader) {
         cssLoader.classList.add('hidden');
-        // Remove from DOM after transition
+        // Remove from DOM after transition - but check if it still exists
         setTimeout(() => {
-          cssLoader.remove();
+          if (cssLoader && cssLoader.parentNode) {
+            cssLoader.remove();
+          }
         }, 500);
       }
     }

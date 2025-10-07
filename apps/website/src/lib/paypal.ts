@@ -84,7 +84,20 @@ export class PayPalService {
         resolve();
       };
       script.onerror = reject;
-      document.head.appendChild(script);
+      
+      // Check if script is already added to prevent duplicates
+      const existingScript = document.querySelector(`script[src="${script.src}"]`);
+      if (!existingScript) {
+        // Add script with a unique ID to prevent conflicts
+        script.id = `paypal-script-${Date.now()}`;
+        document.head.appendChild(script);
+      } else {
+        // If script exists, check if PayPal is loaded
+        if (window.paypal) {
+          this.paypal = window.paypal;
+        }
+        resolve();
+      }
     });
   }
 
@@ -114,7 +127,20 @@ export class PayPalService {
         resolve();
       };
       script.onerror = reject;
-      document.head.appendChild(script);
+      
+      // Check if script is already added to prevent duplicates
+      const existingScript = document.querySelector(`script[src="${script.src}"]`);
+      if (!existingScript) {
+        // Add script with a unique ID to prevent conflicts
+        script.id = `paypal-payment-script-${Date.now()}`;
+        document.head.appendChild(script);
+      } else {
+        // If script exists, check if PayPal is loaded
+        if (window.paypal) {
+          this.paypal = window.paypal;
+        }
+        resolve();
+      }
     });
   }
 
