@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import AccountLayout from '@/components/AccountLayout'
 import { paypalService } from '@/lib/paypal'
 import { Button } from '@/components/ui/button'
-import { Clock, XCircle, CreditCard } from 'lucide-react'
+import { Clock, XCircle, CreditCard, Download } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface Order {
@@ -319,10 +319,55 @@ export default function OrdersPage() {
 
 
 
-  const handleDownloadInvoice = (orderId: string) => {
-    // TODO: Implement invoice download
-    console.log('Downloading invoice for order:', orderId);
-    // This would typically call an API endpoint to generate and download the invoice
+  const handleDownloadInvoice = async (orderId: string) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        toast.error('Please log in to download your invoice');
+        return;
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/invoices/${orderId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          toast.error('Invoice not found');
+          return;
+        }
+        throw new Error('Failed to download invoice');
+      }
+
+      // Get the PDF blob
+      const blob = await response.blob();
+      
+      // Find the order to get the order number for filename
+      const order = orders.find(o => o._id === orderId);
+      const orderNumber = order?.orderNumber || 'unknown';
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice-${orderNumber}.pdf`;
+      
+      // Add to DOM, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the URL object
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Invoice downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast.error('Failed to download invoice. Please try again.');
+    }
   };
 
   // Build flattened row data for pagination
@@ -651,8 +696,9 @@ export default function OrdersPage() {
                           <div className="flex justify-between items-center pt-3 border-t border-gray-200">
                             <button
                               onClick={() => handleDownloadInvoice(order._id)}
-                              className="text-[#D94506] hover:underline text-sm font-medium"
+                              className="flex items-center gap-1 text-[#D94506] hover:underline text-sm font-medium"
                             >
+                              <Download className="w-4 h-4" />
                               Download Invoice
                             </button>
                             <div className="text-xs text-gray-500">

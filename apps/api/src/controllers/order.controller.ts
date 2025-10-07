@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { Order, PaymentMethod, PaymentStatus, OrderStatus, User, Product, Kit, IUser, MarketplaceSettings } from '@chariot/db';
 import { marketplaceService } from '../services/marketplace.service';
+import { generateInvoiceForOrder } from './invoice.controller';
 
 interface CartItem {
   productId: string;
@@ -529,6 +530,21 @@ export const updateOrderPaymentStatus = async (req: Request, res: Response) => {
       } catch (marketplaceError) {
         console.error('❌ Error processing marketplace sale:', marketplaceError);
         // Don't fail the payment status update if marketplace processing fails
+      }
+
+      // Generate invoice PDF when payment is completed
+      try {
+        console.log('🔄 Generating invoice for order:', order.orderNumber);
+        const invoiceBuffer = await generateInvoiceForOrder((order as any)._id.toString(), order.userId.toString());
+        if (invoiceBuffer) {
+          // Store the invoice in the order document for future reference
+          order.invoiceGenerated = true;
+          order.invoiceGeneratedAt = new Date();
+          console.log('✅ Invoice generated successfully for order:', order.orderNumber);
+        }
+      } catch (invoiceError) {
+        console.error('❌ Error generating invoice:', invoiceError);
+        // Don't fail the payment status update if invoice generation fails
       }
     }
 

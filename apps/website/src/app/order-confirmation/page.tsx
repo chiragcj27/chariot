@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { CheckCircle, FileText, Calendar, DollarSign, CreditCard, ArrowLeft } from 'lucide-react'
+import { CheckCircle, FileText, Calendar, DollarSign, CreditCard, ArrowLeft, Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCart } from '@/contexts/CartContext'
@@ -129,6 +129,61 @@ export default function OrderConfirmationPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderData]);
+
+  const handleDownloadInvoice = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        toast.error('Please log in to download your invoice');
+        return;
+      }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const orderId = urlParams.get('orderId');
+      
+      if (!orderId) {
+        toast.error('Order ID missing');
+        return;
+      }
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/invoices/${orderId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          toast.error('Invoice not found');
+          return;
+        }
+        throw new Error('Failed to download invoice');
+      }
+
+      // Get the PDF blob
+      const blob = await response.blob();
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `invoice-${orderData?.orderNumber || 'unknown'}.pdf`;
+      
+      // Add to DOM, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the URL object
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Invoice downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading invoice:', error);
+      toast.error('Failed to download invoice. Please try again.');
+    }
+  };
 
   const handleDownloadDigitalProduct = async (productId: string, productName: string) => {
     try {
@@ -327,6 +382,15 @@ export default function OrderConfirmationPage() {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button 
+            onClick={handleDownloadInvoice}
+            variant="outline" 
+            className="w-full sm:w-auto py-2 px-10"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Download Invoice
+          </Button>
+          
           <Link href="/orders">
             <Button variant="outline" className="w-full sm:w-auto py-2 px-10">
               <FileText className="w-4 h-4 mr-2" />

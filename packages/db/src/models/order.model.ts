@@ -57,6 +57,8 @@ export interface IOrder extends Document {
   updatedAt: Date;
   paypalOrderId?: string;
   paypalPaymentId?: string;
+  invoiceGenerated?: boolean;
+  invoiceGeneratedAt?: Date;
 }
 
 const orderItemSchema = new Schema<IOrderItem>({
@@ -187,6 +189,13 @@ const orderSchema = new Schema<IOrder>(
     },
     paypalPaymentId: {
       type: String,
+    },
+    invoiceGenerated: {
+      type: Boolean,
+      default: false,
+    },
+    invoiceGeneratedAt: {
+      type: Date,
     },
   },
   {

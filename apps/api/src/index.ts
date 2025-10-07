@@ -22,6 +22,7 @@ import buyerRoutes from './routes/buyer.routes';
 import orderRoutes from './routes/order.routes';
 import passwordResetRoutes from './routes/password-reset.routes';
 import marketplaceRoutes from './routes/marketplace.routes';
+import invoiceRoutes from './routes/invoice.routes';
 
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
@@ -100,6 +101,7 @@ app.use('/api/buyers', buyerRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/password-reset', passwordResetRoutes);
 app.use('/api/marketplace', marketplaceRoutes);
+app.use('/api/invoices', invoiceRoutes);
 // Connect to MongoDB
 mongoose.connect(MONGO_URI)
   .then(() => {
