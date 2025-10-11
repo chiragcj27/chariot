@@ -152,10 +152,10 @@ export default function NavBar() {
       </nav>
       {/* Mobile Menu (dropdown style) */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col lg:hidden transition-all duration-500 ease-in-out">
+        <div className="fixed inset-0 z-50 bg-gradient-to-b from-[#CFDAE9] to-white flex flex-col lg:hidden transition-all duration-500 ease-in-out">
           {/* Close Button */}
           <button
-            className="absolute top-4 right-4 z-60 w-8 h-8 flex items-center justify-center text-white hover:text-[#FA7035] transition-colors duration-200"
+            className="absolute top-4 right-4 z-60 w-8 h-8 flex items-center justify-center text-black hover:text-[#FA7035] transition-colors duration-200"
             onClick={() => setIsMenuOpen(false)}
             aria-label="Close menu"
           >
@@ -168,7 +168,7 @@ export default function NavBar() {
             {categories.map((cat) => (
               <div key={cat._id}>
                 <button
-                  className="w-full text-left text-white text-[clamp(1.125rem,3vw,1.25rem)] font-semibold flex justify-between items-center py-2"
+                  className="w-full text-left text-black text-[clamp(1.125rem,3vw,1.25rem)] font-semibold flex justify-between items-center py-2"
                   onClick={() => handleCategoryClick(cat._id)}
                 >
                   {cat.title}
@@ -181,7 +181,7 @@ export default function NavBar() {
                         <li key={item._id}>
                           <Link
                             href={`/category/${cat.slug}/${item.slug}`}
-                            className="text-gray-300 font-secondary hover:text-[#FA7035] cursor-pointer text-[clamp(0.875rem,2.2vw,1rem)] block py-1"
+                            className="text-gray-900 font-secondary hover:text-[#FA7035] cursor-pointer text-[clamp(0.875rem,2.2vw,1rem)] block py-1"
                             onClick={handleCloseMenu}
                           >
                             {item.title}
@@ -197,12 +197,12 @@ export default function NavBar() {
             ))}
             {/* Contact Section */}
             <div className="mt-[clamp(1.5rem,4vw,2rem)]">
-              <h2 className="text-white text-[clamp(1.125rem,3vw,1.25rem)] font-semibold mb-2">Contact</h2>
+              <h2 className="text-black text-[clamp(1.125rem,3vw,1.25rem)] font-semibold mb-2">Contact</h2>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">Email</a></li>
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">LinkedIn</a></li>
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">Twitter</a></li>
-                <li><a href="#" className="text-gray-300 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">Instagram</a></li>
+                <li><a href="#" className="text-gray-900 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">Email</a></li>
+                <li><a href="#" className="text-gray-900 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">LinkedIn</a></li>
+                <li><a href="#" className="text-gray-900 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">Twitter</a></li>
+                <li><a href="#" className="text-gray-900 font-secondary hover:text-[#FA7035] text-[clamp(0.875rem,2.2vw,1rem)]">Instagram</a></li>
               </ul>
             </div>
           </div>

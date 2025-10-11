@@ -37,11 +37,11 @@ export async function registerBuyer(req: Request, res: Response) {
       });
     }
 
-    // Validate other information
-    const { primaryMarketSegment, buyingOrganization, TaxId, JBT_id, DUNN } = otherInformation;
-    if (!primaryMarketSegment || !buyingOrganization || !TaxId || !JBT_id || !DUNN) {
+    // Validate other information (only market segment and buying organization are required)
+    const { primaryMarketSegment, buyingOrganization } = otherInformation;
+    if (!primaryMarketSegment || !buyingOrganization) {
       return res.status(400).json({
-        message: 'All other information fields are required.',
+        message: 'Primary market segment and buying organization are required.',
       });
     }
 

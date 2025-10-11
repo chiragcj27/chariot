@@ -44,9 +44,9 @@ interface BuyerRegistrationData {
   otherInformation: {
     primaryMarketSegment: string;
     buyingOrganization: string;
-    TaxId: string;
-    JBT_id: string;
-    DUNN: string;
+    TaxId?: string;
+    JBT_id?: string;
+    DUNN?: string;
   };
   isChariotCustomer?: boolean;
   chariotCustomerId?: string;

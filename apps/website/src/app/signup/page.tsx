@@ -184,7 +184,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative" style={{ backgroundImage: 'url(/signup.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
-      <div className="absolute inset-0 bg-black/80                  "></div>
+      <div className="absolute inset-0 bg-black/60"></div>
       <div className="relative z-10 mx-4 sm:mx-auto sm:w-full sm:max-w-4xl">
         <div className="flex justify-center">
           <Link href="/">
@@ -516,36 +516,7 @@ export default function SignupPage() {
                     <option value="Other">Other</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Tax ID *</label>
-                  <input
-                    type="text"
-                    value={formData.otherInformation.TaxId}
-                    onChange={(e) => handleInputChange('otherInformation', 'TaxId', e.target.value)}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">JBT ID *</label>
-                  <input
-                    type="text"
-                    value={formData.otherInformation.JBT_id}
-                    onChange={(e) => handleInputChange('otherInformation', 'JBT_id', e.target.value)}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">DUNS Number *</label>
-                  <input
-                    type="text"
-                    value={formData.otherInformation.DUNN}
-                    onChange={(e) => handleInputChange('otherInformation', 'DUNN', e.target.value)}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  />
-                </div>
+                {/* Removed Tax ID, JBT ID, and DUNS Number fields from UI per requirements */}
               </div>
             </div>
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">

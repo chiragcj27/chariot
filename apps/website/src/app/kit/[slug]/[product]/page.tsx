@@ -271,12 +271,12 @@ export default function KitProductDetailPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-[#FEFCFB]">
       <div className="container mx-auto px-4 py-8">
-        <div className="lg:mt-30 lg:mx-15 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        <div className="lg:mt-5 lg:mx-15 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
           {/* Left Section - Image Carousel */}
           <div className="relative">
             <div
               className="relative overflow-hidden  bg-gray-100"
-              style={{ aspectRatio: "4/3" }}
+              style={{ aspectRatio: "1/1" }}
             >
               {/* Image Container */}
               {imageUrls.length === 0 ? (
@@ -354,7 +354,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
 
           {/* Right Section - Product Information */}
           <div className="flex flex-col justify-center">
-            <h1 className="text-4xl font-balgin-regular lg:text-[32px] text-[#FA7035]">
+            <h1 className="text-4xl font-balgin-regular lg:text-[32px] text-black">
               {product.name}
             </h1>
             <div className="text-[20px] 2xl:text-[24px] text-gray-900">
@@ -366,7 +366,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
             <div className="flex mr-150 mt-10 flex-row w-full lg:flex-col gap-4 pt-4">
               <Button
                 variant="outline"
-                className="flex-1 border-[#FCA17A] border-2 text-gray-900 font-avenir text-[16px] py-2 w-[160] hover:bg-[#FFC1A0] transition-all duration-200"
+                className="flex-1 border-black border-2 text-gray-900 font-avenir text-[16px] py-2 w-[160] hover:bg-gray-900 hover:text-white transition-all duration-200"
                 onClick={handleBuyNow}
                 disabled={buyingNow}
               >
@@ -374,7 +374,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
               </Button>
 
               <Button 
-                className="flex-1 border-[#FCA17A] border-2 bg-[#FFC1A0] text-black font-avenir text-[16px] py-2 w-[160] hover:bg-sunrise transition-all duration-200"
+                className="flex-1 border-black border-2 bg-gray-900 text-white font-avenir text-[16px] py-2 w-[160] hover:bg-gray-900 transition-all duration-200"
                 onClick={handleAddToCart}
                 disabled={addingToCart}
               >

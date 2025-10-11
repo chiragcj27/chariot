@@ -85,7 +85,7 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({ children }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col md:flex-row gap-8">
             {/* Left Sidebar */}
-            <div className="w-full md:min-w-64 md:w-64 bg-gray-100 p-4 sm:p-6 rounded-lg md:sticky md:top-24 h-fit">
+            <div className="hidden md:block w-full md:min-w-64 md:w-64 bg-gray-100 p-4 sm:p-6 rounded-lg md:sticky md:top-24 h-fit">
               <h2 className="font-bold text-gray-900 mb-4">
                 Account ID: {userAccountId || 'Loading...'}
               </h2>
@@ -97,8 +97,8 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({ children }) => {
                     href={item.href}
                     className={`block font-medium transition-colors ${
                       isActive(item.href)
-                        ? 'text-orange-600 px-3 py-2 rounded-md'
-                        : 'text-gray-700 hover:text-orange-600 px-3 py-2 rounded-md hover:bg-orange-50'
+                        ? 'text-[#FA7035] px-3 py-2 rounded-md'
+                        : 'text-gray-700 hover:text-[#FA7035] px-3 py-2 rounded-md hover:bg-orange-50'
                     }`}
                   >
                     {item.label}
@@ -106,7 +106,7 @@ const AccountLayout: React.FC<AccountLayoutProps> = ({ children }) => {
                 ))}
                 <button 
                   onClick={handleLogout}
-                  className="block text-gray-600 hover:text-orange-600 px-3 py-2 rounded-md hover:bg-orange-50 font-medium w-full text-left transition-colors"
+                  className="block text-gray-600 hover:text-[#FA7035] px-3 py-2 rounded-md hover:bg-orange-50 font-medium w-full text-left transition-colors"
                 >
                   Log Out
                 </button>

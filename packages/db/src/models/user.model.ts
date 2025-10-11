@@ -276,7 +276,7 @@ const buyerSchema = new Schema<IBuyer>({
     },
     country: {
       type: String,
-      required: true,
+      required: false,
     },
     state: {
       type: String,
@@ -310,7 +310,7 @@ const buyerSchema = new Schema<IBuyer>({
     },
     position: {
       type: String,
-      required: true,
+      required: false,
     },
     email: {
       type: String,
@@ -374,19 +374,19 @@ const buyerSchema = new Schema<IBuyer>({
         'SJO - Southeastern Jewelers Organization',
         'Other',
       ],
-      required: true,
+      required: false,
     },
     TaxId: {
       type: String,
-      required: true,
+      required: false,
     },
     JBT_id: {
       type: String,
-      required: true,
+      required: false,
     },
     DUNN: {
       type: String,
-      required: true,
+      required: false,
     },
   },
 }, {
