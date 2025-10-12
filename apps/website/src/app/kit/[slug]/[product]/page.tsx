@@ -386,7 +386,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
       </div>
 
       {/* What's Included Points Section */}
-      <section className="relative px-5 md:px-10 lg:px-18 pb-16 mt-20">
+      <section className="relative px-5 md:px-10 lg:px-18 pb-16 mt-5">
         {/* Background color using product.kitColorHex (fallback to theme color) */}
         <div
           className="absolute inset-0"

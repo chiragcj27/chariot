@@ -353,7 +353,7 @@ export default function KitPage({ params }: KitPageProps) {
                   }
                 >
                   <span
-                    className="text-2xl md:text-3xl text-[#FA7035] font-bold mr-4 md:mr-8 select-none transition-transform flex-shrink-0"
+                    className="text-2xl md:text-3xl text-sunrise font-bold mr-4 md:mr-8 select-none transition-transform flex-shrink-0"
                     style={{
                       minWidth: '24px',
                       textAlign: 'center',
@@ -370,7 +370,7 @@ export default function KitPage({ params }: KitPageProps) {
                     {faq.answer}
                   </div>
                 )}
-                <div className="border-[1px] border-[#FA7035] w-full" />
+                <div className="border-[0.9px] border-sunrise w-full" />
               </div>
             ))}
           </div>

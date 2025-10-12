@@ -36,14 +36,14 @@ export default function AuthPage() {
             <div className="space-y-4 mb-6 flex flex-col items-center">
               <button
                 onClick={() => router.push('/login')}
-                className="w-[80%] bg-white border-3 border-[#FCA17A] hover:bg-[#F0F0D0] text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-200 uppercase tracking-wide text-sm"
+                className="w-[80%] bg-white border-2 border-sunrise hover:bg-sunrise text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-200 uppercase tracking-wide text-sm"
               >
                 LOG IN
               </button>
               
               <button
                 onClick={() => router.push('/signup')}
-                className="w-[80%] bg-[#FFCCB6] hover:bg-[#FFB366] text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-200 uppercase tracking-wide text-sm"
+                className="w-[80%] bg-sunrise hover:bg-sunrise text-gray-800 font-semibold py-3 px-6 rounded-lg transition duration-200 uppercase tracking-wide text-sm"
               >
                 SIGN UP
               </button>
@@ -52,11 +52,11 @@ export default function AuthPage() {
             {/* Terms and privacy */}
             <div className="text-xs text-gray-300 text-center leading-relaxed">
               By continuing, you agree to Chariot&apos;s{' '}
-              <Link href="/terms" className="text-orange-400 hover:text-orange-300 underline">
+              <Link href="/terms" className="text-sunrise hover:text-orange-300 underline">
                 Terms of Service
               </Link>{' '}
               and acknowledge that you&apos;ve read our{' '}
-              <Link href="/privacy" className="text-orange-400 hover:text-orange-300 underline">
+              <Link href="/privacy" className="text-sunrise hover:text-orange-300 underline">
                 Privacy Policy
               </Link>
               . Notice at collection.

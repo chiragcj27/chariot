@@ -186,20 +186,20 @@ export default function SignupPage() {
     <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 relative" style={{ backgroundImage: 'url(/signup.png)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
       <div className="absolute inset-0 bg-black/60"></div>
       <div className="relative z-10 mx-4 sm:mx-auto sm:w-full sm:max-w-4xl">
-        <div className="flex justify-center">
+        {/* <div className="flex justify-center">
           <Link href="/">
             <Image src="/chariot.svg" alt="The Chariot Logo" width={100} height={100} />
           </Link>
-        </div>
+        </div> */}
         <h2 className="mt-6 text-center text-2xl sm:text-3xl font-extrabold text-white">
-          Create an Account
+          CREATE A NEW ACCOUNT
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-200">
+        {/* <p className="mt-2 text-center text-sm text-gray-200">
           Already have an account?{' '}
           <Link href="/login" className="font-medium text-sunrise hover:text-orange-500">
             Sign in here
           </Link>
-        </p>
+        </p>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   */}
       </div>
 
       <div className="relative z-10 mt-8 mx-4 sm:mx-auto sm:w-full sm:max-w-4xl">
@@ -522,7 +522,7 @@ export default function SignupPage() {
             <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
               <Link
                 href="/login"
-                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-200 w-full sm:w-auto"
+                className="px-6 py-2 border text-center border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-200 w-full sm:w-auto"
               >
                 Cancel
               </Link>

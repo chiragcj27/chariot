@@ -225,7 +225,7 @@ export default function ProfilePage() {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-extrabold text-gray-900 mb-2">TELEPHONE 1</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">TELEPHONE</label>
                       <input
                         type="text"
                         value={formData.companyInformation.telephone[0] || ''}
@@ -261,7 +261,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     
-                    <div>
+                    {/* <div>
                       <label className="block text-sm font-extrabold text-gray-900 mb-2">TELEPHONE 2</label>
                       <input
                         type="text"
@@ -271,7 +271,7 @@ export default function ProfilePage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Telephone 2"
                       />
-                    </div>
+                    </div> */}
                     
                     <div>
                       <label className="block text-sm font-extrabold text-gray-900 mb-2">WEBSITE URL</label>
@@ -341,7 +341,7 @@ export default function ProfilePage() {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-extrabold text-gray-900 mb-2">TELEPHONE 1</label>
+                      <label className="block text-sm font-extrabold text-gray-900 mb-2">TELEPHONE</label>
                       <input
                         type="text"
                         value={formData.contactInformation.telephone[0] || ''}
@@ -352,7 +352,7 @@ export default function ProfilePage() {
                       />
                     </div>
                     
-                    <div>
+                    {/* <div>
                       <label className="block text-sm font-extrabold text-gray-900 mb-2">TELEPHONE 2</label>
                       <input
                         type="text"
@@ -362,7 +362,7 @@ export default function ProfilePage() {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:bg-white"
                         placeholder="Telephone 2"
                       />
-                    </div>
+                    </div> */}
                   </div>
                 </div>
 
@@ -449,7 +449,7 @@ export default function ProfilePage() {
                     <button
                       type="submit"
                       disabled={isUpdating}
-                      className="w-full sm:w-auto px-6 py-3 bg-orange-600 text-white rounded-md hover:bg-orange-700 disabled:bg-gray-400 transition-colors font-medium"
+                      className="w-full sm:w-auto px-6 py-3 border-sunrise border-2 rounded-md hover:bg-sunrise disabled:bg-gray-400 transition-colors font-medium"
                     >
                       {isUpdating ? 'Saving...' : 'Save The Changes'}
                     </button>

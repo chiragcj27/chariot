@@ -112,7 +112,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                         className="flex items-center cursor-pointer pt-4 sm:pt-6"
                         onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
                       >
-                        <span className="text-2xl sm:text-3xl text-[#FA7035] font-bold mr-4 sm:mr-6 md:mr-8 select-none transition-transform flex-shrink-0" style={{ minWidth: '24px', textAlign: 'center' }}>
+                        <span className="text-2xl sm:text-3xl text-sunrise font-bold mr-4 sm:mr-6 md:mr-8 select-none transition-transform flex-shrink-0" style={{ minWidth: '24px', textAlign: 'center' }}>
                           {openFaq === idx ? '-' : '+'}
                         </span>
                         <span className="text-lg sm:text-xl font-secondary text-black">
@@ -124,7 +124,7 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
                           {faq.answer}
                         </div>
                       )}
-                      <div className="border-[1px] border-[#FA7035] w-full" />
+                      <div className="border-[0.9px] border-sunrise w-full" />
                     </div>
                   ))}
                 </div>

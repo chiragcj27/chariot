@@ -15,7 +15,7 @@ export default function Footer() {
             <div className="space-y-4 col-span-2 sm:space-y-6 sm:col-span-2 lg:col-span-1">
               <h3 className="text-xl font-semibold text-gray-900">Chariot</h3>
               <p className="text-base font-secondary text-gray-700 leading-relaxed">
-              Empowering jewelry businesses with innovative solutions and cutting-edge technology. Building the future, one project at a time.
+              Design. Marketing. Momentum. Everything your jewelry brand needs to stay ahead of the game.  
               </p>
               <div className="flex space-x-4">
                 <a href="#" className="text-gray-600 hover:text-gray-900 transition-colors">
