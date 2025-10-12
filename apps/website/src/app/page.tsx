@@ -12,7 +12,7 @@ export default function Home() {
         <p className="text-black font-balgin-regular font-medium leading-[1] text-xl sm:text-2xl md:text-3xl lg:text-[36px] xl:text-[40px] 2xl:text-[48px] max-w-full">
           Hi, we are <span className="text-[#FA7035] italic">Chariot</span><br />Built for Jewelers,<br/>by Jewelers.
         </p>
-        <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-secondary leading-[1] max-w-[90%] lg:max-w-full">Branding, websites, catalogs, campaigns — everything your jewelry business needs to grow, all in one place.</p>
+        <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-secondary leading-[1] max-w-[90%] lg:max-w-full">Branding, websites, catalogs, campaigns everything your jewelry business needs to grow, all in one place.</p>
       </div>
       {/* Kits Section */}
       <div className="flex flex-col">
