@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, PlayIcon } from "lucide-react";
 import Image from "next/image";
@@ -9,67 +9,11 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import ProductCard from "@/components/ProductCard";
 import { toast } from "sonner";
+import { useProduct } from "@/hooks/useProducts";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-interface ProductImage {
-  _id: string;
-  url: string;
-  originalname?: string;
-  filename?: string;
-}
 
-interface Product {
-  _id: string;
-  name: string;
-  description: string;
-  slug: string;
-  sku: string; // Added SKU field
-  price?: {
-    amount: number;
-    currency: string;
-  };
-  creditsCost?: number;
-  images: ProductImage[];
-  flipbookUrl?: string;
-  category?: string;
-  subcategory?: string;
-  relatedProducts?: RelatedProduct[];
-  type?: string; // Product type: 'digital', 'physical', 'service', 'kitProduct'
-  isKitProduct?: boolean; // Whether this is a kit product
-}
 
-interface RelatedProduct {
-  _id: string;
-  name: string;
-  description: string;
-  slug: string;
-  price?: {
-    amount: number;
-    currency: string;
-  };
-  creditsCost?: number;
-  images: ProductImage[];
-  category?: string;
-  subcategory?: string;
-}
-
-interface ApiRelatedProduct {
-  _id: string;
-  name: string;
-  description: string;
-  slug: string;
-  price?: {
-    amount: number;
-    currency: string;
-  };
-  creditsCost?: number;
-  images?: ProductImage[];
-  categoryId?: { slug: string };
-  itemId?: { slug: string };
-  category?: string;
-  subcategory?: string;
-}
 
 
 
@@ -106,87 +50,34 @@ const FlipbookEmbed = ({
 
 export default function ProductPage({ params }: ProductPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [product, setProduct] = useState<Product | null>(null);
-  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
   const [buyingNow, setBuyingNow] = useState(false);
+  const [slug, setSlug] = useState<string | null>(null);
   const router = useRouter();
   const { addItem, setBuyNowItem } = useCart();
-  
 
-  useEffect(() => {
-    const fetchProductAndRelated = async () => {
-      try {
-        setLoading(true);
-
-        const resolvedParams = await params;
-        const slug = resolvedParams["product-slug"];
-        if (!slug) {
-          console.error("Slug is undefined or empty");
-          throw new Error("Product slug is required");
-        }
-        
-        const productResponse = await fetch(`${API_URL}/api/products/slug/${slug}`);
-        
-        if (!productResponse.ok) {
-          if (productResponse.status === 404) {
-            throw new Error("Product not found");
-          }
-          throw new Error("Failed to fetch product");
-        }
-        
-        const productData = await productResponse.json();
-        const fetchedProduct = productData.product;
-        const fetchedRelatedProducts = productData.relatedProducts || [];
-        
-        // Transform the API response to match our interface
-        const transformedProduct: Product = {
-          _id: fetchedProduct._id,
-          name: fetchedProduct.name,
-          description: fetchedProduct.description,
-          slug: fetchedProduct.slug,
-          sku: fetchedProduct.sku || "", // Ensure sku is included
-          price: fetchedProduct.price,
-          creditsCost: fetchedProduct.creditsCost,
-          images: fetchedProduct.images || [],
-          flipbookUrl: fetchedProduct.flipbookUrl,
-          category: fetchedProduct.categoryId?.slug || fetchedProduct.category,
-          subcategory: fetchedProduct.itemId?.slug || fetchedProduct.subcategory,
-          relatedProducts: fetchedRelatedProducts,
-          type: fetchedProduct.type,
-          isKitProduct: fetchedProduct.isKitProduct
-        };
-        
-        console.log('Product data from API:', fetchedProduct);
-        console.log('Transformed product:', transformedProduct);
-        setProduct(transformedProduct);
-
-        // Transform related products from API response
-        const transformedRelatedProducts: RelatedProduct[] = fetchedRelatedProducts.map((p: ApiRelatedProduct) => ({
-          _id: p._id,
-          name: p.name,
-          description: p.description,
-          slug: p.slug,
-          price: p.price,
-          creditsCost: p.creditsCost,
-          images: p.images || [],
-          category: p.categoryId?.slug || p.category,
-          subcategory: p.itemId?.slug || p.subcategory
-        }));
-        
-        setRelatedProducts(transformedRelatedProducts);
-      } catch (err) {
-        console.error("Error fetching product:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch product");
-      } finally {
-        setLoading(false);
+  // Get slug from params
+  React.useEffect(() => {
+    params.then((resolvedParams) => {
+      const productSlug = resolvedParams["product-slug"];
+      if (productSlug) {
+        setSlug(productSlug);
       }
-    };
-
-    fetchProductAndRelated();
+    });
   }, [params]);
+
+  // Use SWR hook to fetch product data
+  const { product, relatedProducts, isLoading, error } = useProduct(slug || "");
+
+  // Helper function to get price amount
+  const getPriceAmount = (price: unknown): number => {
+    if (typeof price === 'number') return price;
+    if (price && typeof price === 'object' && 'amount' in price) {
+      const priceObj = price as { amount: number };
+      return priceObj.amount;
+    }
+    return 0;
+  };
 
   // Use product images or fallback to placeholder
   const images = product?.images?.map(img => img.url) || [
@@ -216,7 +107,7 @@ export default function ProductPage({ params }: ProductPageProps) {
         productId: product._id,
         productName: product.name,
         productSlug: product.slug,
-        price: product.price?.amount || 0,
+        price: getPriceAmount(product.price) || 0,
         creditsCost: product.creditsCost || 0,
         imageUrl: product.images?.[0]?.url,
         category: product.category,
@@ -241,7 +132,7 @@ export default function ProductPage({ params }: ProductPageProps) {
         productId: product._id,
         productName: product.name,
         productSlug: product.slug,
-        price: product.price?.amount || 0,
+        price: getPriceAmount(product.price) || 0,
         creditsCost: product.creditsCost || 0,
         imageUrl: product.images?.[0]?.url,
         category: product.category,
@@ -262,7 +153,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   };
 
 
-  if (loading) {
+  if (isLoading || !slug) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sunrise"></div>
@@ -273,7 +164,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   if (error || !product) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-red-500">Error: {error || "Product not found"}</p>
+        <p className="text-red-500">Error: {error?.message || "Product not found"}</p>
       </div>
     );
   }
@@ -379,7 +270,7 @@ export default function ProductPage({ params }: ProductPageProps) {
 
             {/* Price */}
             <div className="text-[18px] lg:text-[20px] text-gray-900 mt-2 sm:mt-3">
-              {product.price ? `$${product.price.amount}` : "Contact for pricing"}
+              {product.price ? `$${getPriceAmount(product.price)}` : "Contact for pricing"}
             </div>
 
             {/* Description */}
@@ -472,7 +363,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                             productId: relatedProduct._id,
                             productName: relatedProduct.name,
                             productSlug: relatedProduct.slug,
-                            price: relatedProduct.price?.amount || 0,
+                            price: getPriceAmount(relatedProduct.price) || 0,
                             creditsCost: relatedProduct.creditsCost || 0,
                             imageUrl: relatedProduct.images?.[0]?.url,
                             category: relatedProduct.category,

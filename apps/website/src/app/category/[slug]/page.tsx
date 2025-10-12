@@ -1,8 +1,9 @@
 "use client"
 import ProductCard from "@/components/ProductCard";
-import { use, useEffect, useState } from "react";
+import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useCategory } from "@/hooks/useCategories";
 
 const faqs = [
   {
@@ -27,68 +28,17 @@ const faqs = [
   },
 ];
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
-type ImageType = {
-  url: string;
-  filename: string;
-  originalname: string;
-  size: number;
-  mimetype: string;
-  bucket: string;
-  imageType: string;
-  status: string;
-};
 
-type ItemType = {
-  _id: string;
-  title: string;
-  slug: string;
-  description?: string;
-  image?: ImageType;
-  onHover?: ImageType;
-};
 
-type CategoryType = {
-  _id: string;
-  title: string;
-  slug: string;
-  description?: string;
-  items?: ItemType[];
-};
 
 export default function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [category, setCategory] = useState<CategoryType | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    let isMounted = true;
-    const fetchCategory = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await fetch(`${API_URL}/api/menu/structure`);
-        if (!res.ok) {
-          throw new Error(`Failed to fetch categories: ${res.status} ${res.statusText}`);
-        }
-        const data: CategoryType[] = await res.json();
-        const found = data.find((c) => c.slug === slug);
-        if (isMounted) setCategory(found || null);
-      } catch (err) {
-        if (isMounted) setError(err instanceof Error ? err.message : 'Failed to fetch category');
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-    fetchCategory();
-    return () => {
-      isMounted = false;
-    };
-  }, [slug]);
+  // Use SWR hook to fetch category data
+  const { category, isLoading, error } = useCategory(slug);
 
   // Calculate full rows and last row from dynamic items
   const productsPerRow = 3;
@@ -109,11 +59,11 @@ export default function CategoryPage({ params }: { params: Promise<{ slug: strin
             <p className="text-lg sm:text-xl md:text-[36px] font-secondary mb-6 md:mb-8">
               {category?.description || `${slug.charAt(0).toUpperCase() + slug.slice(1)} is a collection of products that are designed to be used in a variety of ways.`}
             </p>
-            {loading && (
+            {isLoading && (
               <p className="text-lg font-secondary mb-8">Loading...</p>
             )}
             {error && (
-              <p className="text-red-500 font-secondary mb-8">{error}</p>
+              <p className="text-red-500 font-secondary mb-8">{error.message || 'Failed to load category'}</p>
             )}
             {/* Product Grid with responsive spacing */}
             {/* Full rows */}

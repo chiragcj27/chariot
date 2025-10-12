@@ -11,6 +11,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import ConditionalFooter from "@/components/ConditionalFooter";
 import { Toaster } from "@/components/ui/sonner"
 import { DOMErrorBoundary } from "@/components/DOMErrorBoundary"
+import SWRProvider from "@/components/providers/SWRProvider"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,16 +80,18 @@ export default function RootLayout({
         />
         <LoaderOverlay />
         <DOMErrorBoundary>
-          <AuthProvider>
-            <CartProvider>
-              <SmartLoader />
-              <CustomScrollbar />
-              <NavBar />
-              <Toaster />
-              {children}
-              <ConditionalFooter />
-            </CartProvider>
-          </AuthProvider>
+          <SWRProvider>
+            <AuthProvider>
+              <CartProvider>
+                <SmartLoader />
+                <CustomScrollbar />
+                <NavBar />
+                <Toaster />
+                {children}
+                <ConditionalFooter />
+              </CartProvider>
+            </AuthProvider>
+          </SWRProvider>
         </DOMErrorBoundary>
         <Script 
           src="https://assets.calendly.com/assets/external/widget.js"

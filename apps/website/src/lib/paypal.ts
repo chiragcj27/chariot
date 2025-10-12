@@ -40,21 +40,99 @@ interface PayPalButtonConfig {
   createSubscription: (data: unknown, actions: PayPalActions) => Promise<string>;
   onApprove: (data: unknown, actions: PayPalActions) => Promise<void>;
   onError: (err: unknown) => void;
+  onCancel?: (data: unknown) => void;
 }
 
 interface PayPalPaymentButtonConfig {
   createOrder: (data: unknown, actions: PayPalActions) => Promise<string>;
   onApprove: (data: { orderID: string }, actions: PayPalActions) => Promise<void>;
   onError: (err: unknown) => void;
+  onCancel?: (data: unknown) => void;
 }
 
 export class PayPalService {
   private static instance: PayPalService;
   private paypal!: Window['paypal'];
   private planCache: Map<string, string> = new Map();
+  private activeWindows: Set<Window> = new Set();
 
   private constructor() {
     // Don't load script in constructor to avoid SSR issues
+    this.setupWindowCleanup();
+  }
+
+  private setupWindowCleanup() {
+    // Monitor for closed windows and clean up references
+    const checkClosedWindows = () => {
+      this.activeWindows.forEach(window => {
+        if (window.closed) {
+          this.activeWindows.delete(window);
+        }
+      });
+    };
+
+    // Check for closed windows periodically
+    setInterval(checkClosedWindows, 1000);
+
+    // Clean up on page unload
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', () => {
+        this.cleanupAllWindows();
+      });
+
+      // Global error handler for PayPal-related errors
+      window.addEventListener('error', (event) => {
+        if (event.error && typeof event.error.message === 'string') {
+          const message = event.error.message;
+          if (message.includes('postrobot_method') || 
+              message.includes('Target window is closed') ||
+              message.includes('Can not send postrobot_method')) {
+            console.warn('Caught PayPal window error:', message);
+            // Prevent the error from propagating
+            event.preventDefault();
+            return false;
+          }
+        }
+      });
+
+      // Handle unhandled promise rejections
+      window.addEventListener('unhandledrejection', (event) => {
+        if (event.reason && typeof event.reason.message === 'string') {
+          const message = event.reason.message;
+          if (message.includes('postrobot_method') || 
+              message.includes('Target window is closed') ||
+              message.includes('Can not send postrobot_method')) {
+            console.warn('Caught PayPal promise rejection:', message);
+            // Prevent the unhandled rejection
+            event.preventDefault();
+            return false;
+          }
+        }
+      });
+    }
+  }
+
+  private cleanupAllWindows() {
+    this.activeWindows.forEach(window => {
+      try {
+        if (!window.closed) {
+          window.close();
+        }
+      } catch (error) {
+        // Ignore errors when closing windows
+        console.warn('Error closing PayPal window:', error);
+      }
+    });
+    this.activeWindows.clear();
+  }
+
+  private isValidWindow(window: Window): boolean {
+    try {
+      // Check if window is still valid and not closed
+      return window && !window.closed && typeof window.postMessage === 'function';
+    } catch (error) {
+      return false;
+    }
   }
 
   public static getInstance(): PayPalService {
@@ -229,6 +307,11 @@ export class PayPalService {
           },
           onApprove: async (data: unknown, actions: PayPalActions) => {
             try {
+              // Validate that actions and subscription are still available
+              if (!actions || !actions.subscription || !actions.subscription.get) {
+                throw new Error('PayPal subscription actions are no longer available');
+              }
+
               // Get subscription details
               const subscription = await actions.subscription.get();
               
@@ -264,11 +347,76 @@ export class PayPalService {
               
               resolve();
             } catch (error) {
-              reject(error);
+              console.error('Error in PayPal subscription approval:', error);
+              
+              // Check if it's a window-related error
+              if (error instanceof Error && (
+                error.message.includes('Target window is closed') ||
+                error.message.includes('postrobot_method') ||
+                error.message.includes('window is closed')
+              )) {
+                console.warn('PayPal subscription window was closed during process');
+                // Trigger cancellation event instead of error
+                const event = new CustomEvent('paypal-subscription-cancelled', {
+                  detail: {
+                    planKey: planKey,
+                    reason: 'window_closed'
+                  }
+                });
+                window.dispatchEvent(event);
+                resolve();
+              } else {
+                reject(error);
+              }
             }
           },
+          onCancel: (data: unknown) => {
+            // Handle user cancellation gracefully
+            console.log('PayPal subscription cancelled by user:', data);
+            
+            // Trigger cancellation event
+            const event = new CustomEvent('paypal-subscription-cancelled', {
+              detail: {
+                planKey: planKey,
+                reason: 'user_cancelled'
+              }
+            });
+            window.dispatchEvent(event);
+            
+            // Resolve instead of reject to prevent uncaught promise errors
+            resolve();
+          },
           onError: (err: unknown) => {
-            reject(err);
+            // Handle payment errors
+            console.error('PayPal subscription error:', err);
+            
+            // Check if it's a window-related error
+            if (err instanceof Error && (
+              err.message.includes('Target window is closed') ||
+              err.message.includes('postrobot_method') ||
+              err.message.includes('window is closed')
+            )) {
+              console.warn('PayPal subscription window error - treating as cancellation');
+              // Trigger cancellation event instead of error
+              const event = new CustomEvent('paypal-subscription-cancelled', {
+                detail: {
+                  planKey: planKey,
+                  reason: 'window_error'
+                }
+              });
+              window.dispatchEvent(event);
+              resolve();
+            } else {
+              // Trigger error event for other types of errors
+              const event = new CustomEvent('paypal-subscription-error', {
+                detail: {
+                  planKey: planKey,
+                  error: err
+                }
+              });
+              window.dispatchEvent(event);
+              reject(err);
+            }
           },
         }).render(container);
       } catch (error) {
@@ -318,7 +466,13 @@ export class PayPalService {
               reject(error);
             }
           },
+          onCancel: (data: unknown) => {
+            // Handle user cancellation gracefully
+            console.log('PayPal subscription cancelled by user:', data);
+            resolve(''); // Return empty string to indicate cancellation
+          },
           onError: (err: unknown) => {
+            console.error('PayPal subscription error:', err);
             reject(err);
           },
         }).render('#paypal-button-container');
@@ -349,7 +503,13 @@ export class PayPalService {
               reject(error);
             }
           },
+          onCancel: (data: unknown) => {
+            // Handle user cancellation gracefully
+            console.log('PayPal subscription cancelled by user:', data);
+            resolve(''); // Return empty string to indicate cancellation
+          },
           onError: (err: unknown) => {
+            console.error('PayPal subscription error:', err);
             reject(err);
           },
         }).render('#paypal-button-container');
@@ -400,18 +560,28 @@ export class PayPalService {
         
         this.paypal.Buttons({
           createOrder: (data: unknown, actions: PayPalActions) => {
-            return actions.order.create({
-              purchase_units: [{
-                amount: {
-                  value: paymentData.amount.toFixed(2),
-                  currency_code: paymentData.currency
-                },
-                description: paymentData.description
-              }]
-            });
+            try {
+              return actions.order.create({
+                purchase_units: [{
+                  amount: {
+                    value: paymentData.amount.toFixed(2),
+                    currency_code: paymentData.currency
+                  },
+                  description: paymentData.description
+                }]
+              });
+            } catch (error) {
+              console.error('Error creating PayPal order:', error);
+              throw error;
+            }
           },
           onApprove: async (data: { orderID: string }, actions: PayPalActions) => {
             try {
+              // Validate that actions and order are still available
+              if (!actions || !actions.order || !actions.order.capture) {
+                throw new Error('PayPal actions are no longer available');
+              }
+
               // Capture the payment
               const captureResult = await actions.order.capture(data.orderID);
               
@@ -448,20 +618,76 @@ export class PayPalService {
               
               resolve();
             } catch (error) {
-              reject(error);
+              console.error('Error in PayPal payment approval:', error);
+              
+              // Check if it's a window-related error
+              if (error instanceof Error && (
+                error.message.includes('Target window is closed') ||
+                error.message.includes('postrobot_method') ||
+                error.message.includes('window is closed')
+              )) {
+                console.warn('PayPal window was closed during payment process');
+                // Trigger cancellation event instead of error
+                const event = new CustomEvent('paypal-payment-cancelled', {
+                  detail: {
+                    orderId: paymentData.orderId,
+                    reason: 'window_closed'
+                  }
+                });
+                window.dispatchEvent(event);
+                resolve();
+              } else {
+                reject(error);
+              }
             }
           },
-
-          onError: (err: unknown) => {
-            // Handle payment errors
-            const event = new CustomEvent('paypal-payment-error', {
+          onCancel: (data: unknown) => {
+            // Handle user cancellation gracefully
+            console.log('PayPal payment cancelled by user:', data);
+            
+            // Trigger cancellation event
+            const event = new CustomEvent('paypal-payment-cancelled', {
               detail: {
                 orderId: paymentData.orderId,
-                error: err
+                reason: 'user_cancelled'
               }
             });
             window.dispatchEvent(event);
-            reject(err);
+            
+            // Resolve instead of reject to prevent uncaught promise errors
+            resolve();
+          },
+          onError: (err: unknown) => {
+            // Handle payment errors
+            console.error('PayPal payment error:', err);
+            
+            // Check if it's a window-related error
+            if (err instanceof Error && (
+              err.message.includes('Target window is closed') ||
+              err.message.includes('postrobot_method') ||
+              err.message.includes('window is closed')
+            )) {
+              console.warn('PayPal window error - treating as cancellation');
+              // Trigger cancellation event instead of error
+              const event = new CustomEvent('paypal-payment-cancelled', {
+                detail: {
+                  orderId: paymentData.orderId,
+                  reason: 'window_error'
+                }
+              });
+              window.dispatchEvent(event);
+              resolve();
+            } else {
+              // Trigger error event for other types of errors
+              const event = new CustomEvent('paypal-payment-error', {
+                detail: {
+                  orderId: paymentData.orderId,
+                  error: err
+                }
+              });
+              window.dispatchEvent(event);
+              reject(err);
+            }
           },
         }).render(container);
       } catch (error) {

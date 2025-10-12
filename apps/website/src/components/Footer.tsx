@@ -1,37 +1,10 @@
 import { FacebookIcon, InstagramIcon, LinkedinIcon } from 'lucide-react'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-
-interface Category {
-  _id: string;
-  slug: string;
-  title: string;
-  items?: CategoryItem[];
-}
-
-interface CategoryItem {
-  _id: string;
-  slug: string;
-  title: string;
-}
+import { useMenuStructure } from '@/hooks/useCategories'
 
 export default function Footer() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const res = await fetch(`${API_URL}/api/menu/structure`);
-        if (!res.ok) throw new Error("Failed to fetch categories");
-        const data = await res.json();
-        setCategories(data);
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-      }
-    }
-    fetchCategories();
-  }, [API_URL]);
+  // Use SWR hook to fetch categories
+  const { categories } = useMenuStructure();
   return (
     <footer className="bg-seafoam min-w-full text-gray-800">
       {/* Main Footer Content */}

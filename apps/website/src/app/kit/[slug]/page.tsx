@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { notFound, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import Image from 'next/image';
 import TestimonialsCarousel from '@/components/TestimonialsCarousel';
@@ -9,6 +9,7 @@ import ProductCard from '@/components/ProductCard';
 import DiscoveryCallButton from '@/components/DiscoveryCallButton';
 import AskForQuoteButton from '@/components/AskForQuoteButton';
 import Footer from '@/components/Footer';
+import { useKit } from '@/hooks/useKits';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -19,19 +20,6 @@ interface KitImage {
   filename: string;
 }
 
-interface Kit {
-  _id: string;
-  title: string;
-  slug: string;
-  description: string;
-  thumbnail?: KitImage;
-  onHoverImage?: KitImage;
-  mainImage?: KitImage;
-  carouselImages?: KitImage[];
-  testimonials?: string[];
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface KitProduct {
   _id: string;
@@ -58,14 +46,22 @@ interface KitPageProps {
 }
 
 export default function KitPage({ params }: KitPageProps) {
-  const [kit, setKit] = useState<Kit | null>(null);
   const [allKitProducts, setAllKitProducts] = useState<KitProduct[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [selectedPack, setSelectedPack] = useState<'premium' | 'basic'>('basic');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [slug, setSlug] = useState<string | null>(null);
   const router = useRouter();
+
+  // Get slug from params
+  useEffect(() => {
+    params.then((resolvedParams) => {
+      setSlug(resolvedParams.slug);
+    });
+  }, [params]);
+
+  // Use SWR hook to fetch kit data
+  const { kit, isLoading, error } = useKit(slug || "");
 
   const filteredProducts = allKitProducts.filter(
     (product) => product.typeOfKit === selectedPack
@@ -98,26 +94,14 @@ export default function KitPage({ params }: KitPageProps) {
     },
   ];
 
+  // Fetch kit products when kit is loaded
   useEffect(() => {
-    const fetchKitAndProducts = async () => {
+    if (!kit) return;
+
+    const fetchKitProducts = async () => {
       try {
-        setLoading(true);
-        const { slug } = await params;
-
-        const kitResponse = await fetch(`${API_URL}/api/kits/slug/${slug}`);
-
-        if (!kitResponse.ok) {
-          if (kitResponse.status === 404) {
-            notFound();
-          }
-          throw new Error('Failed to fetch kit');
-        }
-
-        const kitData = await kitResponse.json();
-        setKit(kitData);
-
         const productsResponse = await fetch(
-          `${API_URL}/api/products/kit/${slug}`
+          `${API_URL}/api/products/kit/${kit.slug}`
         );
 
         if (productsResponse.ok) {
@@ -125,17 +109,12 @@ export default function KitPage({ params }: KitPageProps) {
           setAllKitProducts(productsData.products || []);
         }
       } catch (err) {
-        console.error('Error fetching kit and products:', err);
-        setError(
-          err instanceof Error ? err.message : 'Failed to fetch kit and products'
-        );
-      } finally {
-        setLoading(false);
+        console.error('Error fetching kit products:', err);
       }
     };
 
-    fetchKitAndProducts();
-  }, [params]);
+    fetchKitProducts();
+  }, [kit]);
 
   useEffect(() => {
     setCurrentImageIndex(0);
@@ -153,7 +132,7 @@ export default function KitPage({ params }: KitPageProps) {
     return () => clearInterval(interval);
   }, [kit?.carouselImages]);
 
-  if (loading) {
+  if (isLoading || !slug) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sunrise"></div>
@@ -164,7 +143,7 @@ export default function KitPage({ params }: KitPageProps) {
   if (error) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-red-500">Error: {error}</p>
+        <p className="text-red-500">Error: {error.message || 'Failed to load kit'}</p>
       </div>
     );
   }

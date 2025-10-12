@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCart } from '@/contexts/CartContext'
 import { paypalService } from '@/lib/paypal'
+import { toast } from 'sonner'
 
 interface OrderItem {
   productId: string;
@@ -120,10 +121,40 @@ export default function CheckoutPage() {
       window.location.href = `/order-confirmation?orderId=${orderId}`;
     };
 
+    // Listen for PayPal payment cancellation
+    const handlePayPalPaymentCancelled = (event: CustomEvent) => {
+      const { orderId, reason } = event.detail;
+      console.log('PayPal payment cancelled:', { orderId, reason });
+      
+      // Close PayPal payment modal
+      setShowPayPalPayment(false);
+      setCurrentOrder(null);
+      
+      // Show user-friendly message
+      toast.info('Payment was cancelled. You can try again anytime.');
+    };
+
+    // Listen for PayPal payment errors
+    const handlePayPalPaymentError = (event: CustomEvent) => {
+      const { orderId, error } = event.detail;
+      console.error('PayPal payment error:', { orderId, error });
+      
+      // Close PayPal payment modal
+      setShowPayPalPayment(false);
+      setCurrentOrder(null);
+      
+      // Show user-friendly error message
+      toast.error('Payment failed. Please try again or contact support if the issue persists.');
+    };
+
     window.addEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+    window.addEventListener('paypal-payment-cancelled', handlePayPalPaymentCancelled as EventListener);
+    window.addEventListener('paypal-payment-error', handlePayPalPaymentError as EventListener);
 
     return () => {
       window.removeEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+      window.removeEventListener('paypal-payment-cancelled', handlePayPalPaymentCancelled as EventListener);
+      window.removeEventListener('paypal-payment-error', handlePayPalPaymentError as EventListener);
     };
   }, [clearCart]);
 

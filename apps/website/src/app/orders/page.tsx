@@ -8,33 +8,8 @@ import { paypalService } from '@/lib/paypal'
 import { Button } from '@/components/ui/button'
 import { Clock, XCircle, CreditCard, Download } from 'lucide-react'
 import { toast } from 'sonner'
+import { useCompletedOrders, useAllOrders, type Order } from '@/hooks/useOrders'
 
-interface Order {
-  _id: string;
-  orderNumber: string;
-  createdAt: string;
-  total: number;
-  paymentMethod: string;
-  paymentStatus: string;
-  status: string;
-  items: Array<{
-    productId: string;
-    productName: string;
-    quantity: number;
-    totalPrice: number;
-    imageUrl?: string;
-    productInfo?: {
-      type: 'physical' | 'digital' | 'service';
-      isKitProduct?: boolean;
-    };
-  }>;
-  paymentBreakdown: {
-    creditsUsed: number;
-    creditsAmount: number;
-    paypalAmount: number;
-    totalAmount: number;
-  };
-}
 
 interface PendingOrder extends Order {
   timeRemaining: number; // seconds remaining
@@ -43,10 +18,7 @@ interface PendingOrder extends Order {
 
 export default function OrdersPage() {
   const { user } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showPayPalPayment, setShowPayPalPayment] = useState(false);
   const [currentPendingOrder, setCurrentPendingOrder] = useState<PendingOrder | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
@@ -55,102 +27,64 @@ export default function OrdersPage() {
   const [currentPageState, setCurrentPageState] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const DESKTOP_PAGE_SIZE = 10;
   const MOBILE_PAGE_SIZE = 5;
 
   const PAYMENT_TIMEOUT_MINUTES = 5;
   const PAYMENT_TIMEOUT_SECONDS = PAYMENT_TIMEOUT_MINUTES * 60;
 
-  const fetchAllOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        setError('Authentication required. Please log in.');
-        return;
+  // Use SWR hooks to fetch orders
+  const { orders, isLoading: ordersLoading, error: ordersError, mutate: mutateOrders } = useCompletedOrders();
+  const { orders: allOrders, isLoading: allOrdersLoading, error: allOrdersError, mutate: mutateAllOrders } = useAllOrders();
+
+  // Process pending orders from SWR data
+  const processPendingOrders = useCallback(() => {
+    if (!allOrders) return;
+
+    // Process pending orders and filter out already expired ones
+    const pending = allOrders.filter((order: Order) => 
+      order.status === 'pending' && order.paymentStatus === 'pending'
+    );
+
+    const processedPendingOrders = pending.map((order: Order): PendingOrder => {
+      const createdAt = new Date(order.createdAt).getTime();
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - createdAt) / 1000);
+      const timeRemaining = Math.max(0, PAYMENT_TIMEOUT_SECONDS - elapsedSeconds);
+      const isExpired = timeRemaining <= 0;
+
+      return {
+        ...order,
+        timeRemaining,
+        isExpired
+      };
+    });
+
+    // Filter out already expired orders from pending display
+    const activePendingOrders = processedPendingOrders.filter((order: PendingOrder) => !order.isExpired);
+    setPendingOrders(activePendingOrders);
+
+    // Start countdown timers for non-expired pending orders
+    activePendingOrders.forEach((order: PendingOrder) => {
+      startCountdownTimer(order._id);
+    });
+
+    // Auto-cancel any expired orders that are still in the database
+    processedPendingOrders.forEach((order: PendingOrder) => {
+      if (order.isExpired) {
+        handleAutoCancelOrder(order._id);
       }
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      
-      // Fetch completed orders
-      const completedResponse = await fetch(`${API_URL}/api/orders/user/orders`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      // Fetch all orders including pending ones
-      const allOrdersResponse = await fetch(`${API_URL}/api/orders/user/orders/all`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!completedResponse.ok || !allOrdersResponse.ok) {
-        const errorData = await completedResponse.json().catch(() => ({ message: 'Failed to fetch orders' }));
-        throw new Error(errorData.message || 'Failed to load orders');
-      }
-
-      const completedData = await completedResponse.json();
-      const allOrdersData = await allOrdersResponse.json();
-
-      setOrders(completedData);
-
-      // Process pending orders and filter out already expired ones
-      const pending = allOrdersData.filter((order: Order) => 
-        order.status === 'pending' && order.paymentStatus === 'pending'
-      );
-
-      const processedPendingOrders = pending.map((order: Order): PendingOrder => {
-        const createdAt = new Date(order.createdAt).getTime();
-        const now = Date.now();
-        const elapsedSeconds = Math.floor((now - createdAt) / 1000);
-        const timeRemaining = Math.max(0, PAYMENT_TIMEOUT_SECONDS - elapsedSeconds);
-        const isExpired = timeRemaining <= 0;
-
-        return {
-          ...order,
-          timeRemaining,
-          isExpired
-        };
-      });
-
-      // Filter out already expired orders from pending display
-      const activePendingOrders = processedPendingOrders.filter((order: PendingOrder) => !order.isExpired);
-      setPendingOrders(activePendingOrders);
-
-      // Start countdown timers for non-expired pending orders
-      activePendingOrders.forEach((order: PendingOrder) => {
-        startCountdownTimer(order._id);
-      });
-
-      // Auto-cancel any expired orders that are still in the database
-      processedPendingOrders.forEach((order: PendingOrder) => {
-        if (order.isExpired) {
-          handleAutoCancelOrder(order._id);
-        }
-      });
-
-    } catch (err) {
-      console.error('Error fetching orders:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load orders');
-    } finally {
-      setLoading(false);
-    }
-  }, [PAYMENT_TIMEOUT_SECONDS]);
+    });
+  }, [allOrders, PAYMENT_TIMEOUT_SECONDS]);
 
   useEffect(() => {
     if (user) {
-      fetchAllOrders();
+      processPendingOrders();
     } else {
-      setLoading(false);
       setError('Please log in to view your orders');
     }
-  }, [user, fetchAllOrders]);
+  }, [user, processPendingOrders]);
 
   // Handle client-side hydration and screen size changes
   useEffect(() => {
@@ -180,7 +114,7 @@ export default function OrdersPage() {
     };
   }, []);
 
-  // Listen for PayPal payment success
+  // Listen for PayPal payment events
   useEffect(() => {
     const handlePayPalPaymentSuccess = (event: CustomEvent) => {
       const { orderId, paymentId, result } = event.detail;
@@ -191,18 +125,47 @@ export default function OrdersPage() {
       setCurrentPendingOrder(null);
       
       // Refresh orders to update status
-      fetchAllOrders();
+      mutateOrders();
+      mutateAllOrders();
       
       // Show success message
       toast.success('Payment completed! Your order has been processed.');
     };
 
+    const handlePayPalPaymentCancelled = (event: CustomEvent) => {
+      const { orderId, reason } = event.detail;
+      console.log('PayPal payment cancelled:', { orderId, reason });
+      
+      // Close payment modal
+      setShowPayPalPayment(false);
+      setCurrentPendingOrder(null);
+      
+      // Show user-friendly message
+      toast.info('Payment was cancelled. You can try again anytime.');
+    };
+
+    const handlePayPalPaymentError = (event: CustomEvent) => {
+      const { orderId, error } = event.detail;
+      console.error('PayPal payment error:', { orderId, error });
+      
+      // Close payment modal
+      setShowPayPalPayment(false);
+      setCurrentPendingOrder(null);
+      
+      // Show user-friendly error message
+      toast.error('Payment failed. Please try again or contact support if the issue persists.');
+    };
+
     window.addEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+    window.addEventListener('paypal-payment-cancelled', handlePayPalPaymentCancelled as EventListener);
+    window.addEventListener('paypal-payment-error', handlePayPalPaymentError as EventListener);
 
     return () => {
       window.removeEventListener('paypal-payment-success', handlePayPalPaymentSuccess as EventListener);
+      window.removeEventListener('paypal-payment-cancelled', handlePayPalPaymentCancelled as EventListener);
+      window.removeEventListener('paypal-payment-error', handlePayPalPaymentError as EventListener);
     };
-  }, [fetchAllOrders]);
+  }, [mutateOrders, mutateAllOrders]);
 
 
 
@@ -258,12 +221,13 @@ export default function OrdersPage() {
       if (response.ok) {
         // Remove from pending orders and refresh
         setPendingOrders(prev => prev.filter(order => order._id !== orderId));
-        fetchAllOrders(); // Refresh to update completed orders if any
+        mutateOrders();
+      mutateAllOrders(); // Refresh to update completed orders if any
       }
     } catch (error) {
       console.error('Error auto-cancelling order:', error);
     }
-  }, [fetchAllOrders]);
+  }, [mutateOrders, mutateAllOrders]);
 
   const handleCompletePayment = async (order: PendingOrder) => {
     if (order.paymentBreakdown.paypalAmount <= 0) {
@@ -311,7 +275,8 @@ export default function OrdersPage() {
       if (response.ok) {
         // Remove from pending orders and refresh
         setPendingOrders(prev => prev.filter(order => order._id !== orderId));
-        fetchAllOrders(); // Refresh to update completed orders if any
+        mutateOrders();
+      mutateAllOrders(); // Refresh to update completed orders if any
       }
     } catch (error) {
       console.error('Error cancelling order:', error);
@@ -413,7 +378,7 @@ export default function OrdersPage() {
   const paginatedRows = flattenedRows.slice(startIndex, startIndex + currentPageSize);
   const paginatedOrders = ordersWithItems.slice(startIndex, startIndex + currentPageSize);
 
-  if (loading) {
+  if (ordersLoading || allOrdersLoading) {
     return (
       <AccountLayout>
         <div className="flex items-center justify-center min-h-[400px]">
@@ -426,12 +391,12 @@ export default function OrdersPage() {
     );
   }
 
-  if (error) {
+  if (ordersError || allOrdersError || error) {
     return (
       <AccountLayout>
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center max-w-md mx-auto px-4">
-            <p className="text-red-600 mb-4">{error}</p>
+            <p className="text-red-600 mb-4">{ordersError?.message || allOrdersError?.message || error}</p>
             <Link href="/login" className="text-orange-500 hover:text-orange-600">
               Go to Login
             </Link>

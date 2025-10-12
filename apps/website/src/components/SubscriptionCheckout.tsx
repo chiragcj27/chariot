@@ -33,7 +33,7 @@ export default function SubscriptionCheckout({
   const { user, updateCredits } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState<'checkout' | 'processing' | 'success'>('checkout');
-  const [loading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const paypalButtonRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -65,7 +65,7 @@ export default function SubscriptionCheckout({
     }
   }, [isOpen, step, plan.planKey]);
 
-  // Listen for PayPal subscription success
+  // Listen for PayPal subscription events
   useEffect(() => {
     const handleSubscriptionSuccess = (event: CustomEvent) => {
       if (event.detail.planKey === plan.planKey) {
@@ -85,10 +85,34 @@ export default function SubscriptionCheckout({
       }
     };
 
+    const handleSubscriptionCancelled = (event: CustomEvent) => {
+      if (event.detail.planKey === plan.planKey) {
+        console.log('PayPal subscription cancelled:', event.detail);
+        
+        // Reset to initial step and allow user to try again
+        setStep('checkout');
+        setLoading(false);
+      }
+    };
+
+    const handleSubscriptionError = (event: CustomEvent) => {
+      if (event.detail.planKey === plan.planKey) {
+        console.error('PayPal subscription error:', event.detail);
+        
+        // Reset to initial step and allow user to try again
+        setStep('checkout');
+        setLoading(false);
+      }
+    };
+
     window.addEventListener('paypal-subscription-success', handleSubscriptionSuccess as EventListener);
+    window.addEventListener('paypal-subscription-cancelled', handleSubscriptionCancelled as EventListener);
+    window.addEventListener('paypal-subscription-error', handleSubscriptionError as EventListener);
     
     return () => {
       window.removeEventListener('paypal-subscription-success', handleSubscriptionSuccess as EventListener);
+      window.removeEventListener('paypal-subscription-cancelled', handleSubscriptionCancelled as EventListener);
+      window.removeEventListener('paypal-subscription-error', handleSubscriptionError as EventListener);
     };
   }, [plan.planKey, user?.credits, plan.credits, updateCredits, onSuccess, onClose]);
 

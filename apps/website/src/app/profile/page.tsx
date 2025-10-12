@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import AccountLayout from '../../components/AccountLayout';
+import { useBuyerProfile } from '@/hooks/useBuyerProfile';
 
 // const MARKET_SEGMENTS = [
 //   'Single Store Retailer',
@@ -29,7 +30,6 @@ import AccountLayout from '../../components/AccountLayout';
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState('');
   const [formData, setFormData] = useState({
@@ -60,58 +60,41 @@ export default function ProfilePage() {
     },
   });
 
-  useEffect(() => {
-    fetchBuyerProfile();
-  }, []);
+  // Use SWR hook to fetch profile data
+  const { profile, isLoading } = useBuyerProfile();
 
-  const fetchBuyerProfile = async () => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-      const response = await fetch(`${API_URL}/api/buyers/profile`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
+  // Update form data when profile is loaded
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        companyInformation: {
+          name: profile.companyInformation?.name || '',
+          address: profile.companyInformation?.address || '',
+          country: profile.companyInformation?.country || '',
+          state: profile.companyInformation?.state || '',
+          zipcode: profile.companyInformation?.zipcode || '',
+          telephone: profile.companyInformation?.telephone || [''],
+          fax: profile.companyInformation?.fax || [''],
+          websiteUrl: profile.companyInformation?.websiteUrl || '',
+        },
+        contactInformation: {
+          firstName: profile.contactInformation?.firstName || '',
+          lastName: profile.contactInformation?.lastName || '',
+          position: profile.contactInformation?.position || '',
+          email: profile.contactInformation?.email || '',
+          telephone: profile.contactInformation?.telephone || [''],
+          fax: profile.contactInformation?.fax || [''],
+        },
+        otherInformation: {
+          primaryMarketSegment: profile.otherInformation?.primaryMarketSegment || '',
+          buyingOrganization: profile.otherInformation?.buyingOrganization || '',
+          TaxId: profile.otherInformation?.TaxId || '',
+          JBT_id: profile.otherInformation?.JBT_id || '',
+          DUNN: profile.otherInformation?.DUNN || '',
         },
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setFormData({
-          companyInformation: {
-            name: data.buyer.companyInformation?.name || '',
-            address: data.buyer.companyInformation?.address || '',
-            country: data.buyer.companyInformation?.country || '',
-            state: data.buyer.companyInformation?.state || '',
-            zipcode: data.buyer.companyInformation?.zipcode || '',
-            telephone: data.buyer.companyInformation?.telephone || [''],
-            fax: data.buyer.companyInformation?.fax || [''],
-            websiteUrl: data.buyer.companyInformation?.websiteUrl || '',
-          },
-          contactInformation: {
-            firstName: data.buyer.contactInformation?.firstName || '',
-            lastName: data.buyer.contactInformation?.lastName || '',
-            position: data.buyer.contactInformation?.position || '',
-            email: data.buyer.contactInformation?.email || '',
-            telephone: data.buyer.contactInformation?.telephone || [''],
-            fax: data.buyer.contactInformation?.fax || [''],
-          },
-          otherInformation: {
-            primaryMarketSegment: data.buyer.otherInformation?.primaryMarketSegment || '',
-            buyingOrganization: data.buyer.otherInformation?.buyingOrganization || '',
-            TaxId: data.buyer.otherInformation?.TaxId || '',
-            JBT_id: data.buyer.otherInformation?.JBT_id || '',
-            DUNN: data.buyer.otherInformation?.DUNN || '',
-          },
-        });
-      } else {
-        console.error('Failed to fetch profile');
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [profile]);
 
   const handleInputChange = (section: string, field: string, value: string | string[]) => {
     setFormData(prev => ({

@@ -77,6 +77,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Balgin-light';
+  src: url('/fonts/Balgin-light.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-pearl: oklch(0.9839 0.015 106.68); 
   --color-gold: oklch(0.8646 0.0448 80.55);
@@ -86,6 +94,7 @@
   --font-primary: "Belleza", ui-sans-serif, system-ui, sans-serif;
   --font-balgin: "Balgin", ui-sans-serif, system-ui, sans-serif;
   --font-balgin-regular: "Balgin-regular", ui-sans-serif, system-ui, sans-serif;
+  --font-balgin-light: "Balgin-light", ui-sans-serif, system-ui, sans-serif;
   --font-avenir: "Avenir", ui-sans-serif, system-ui, sans-serif;
   --font-secondary: "Glacial", ui-sans-serif, system-ui, sans-serif;
 }

@@ -1,22 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import SubscriptionCheckout from "./SubscriptionCheckout";
-
-interface SubscriptionCard {
-  _id?: string;
-  title: string;
-  price: string;
-  period: string;
-  description: string;
-  features: string[];
-  button: string;
-  paypalPlanId: string;
-  planKey: string;
-  credits: number;
-}
+import { useSubscriptionCards, type SubscriptionCard } from "@/hooks/useSubscriptionCards";
 
 const bgMap: Record<string, string> = {
   Starter: "/starter.png",
@@ -24,30 +12,13 @@ const bgMap: Record<string, string> = {
   Elite: "/Elite.png",
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
 export default function SubscriptionCards() {
   const { user } = useAuth();
-  const [cards, setCards] = useState<SubscriptionCard[]>([]);
+  const { cards } = useSubscriptionCards();
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionCard | null>(null);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-
-  useEffect(() => {
-    fetch(`${API_URL}/api/subscription-cards`)
-      .then((res) => res.json())
-      .then((data) => {
-        // Sort cards by price (low to high)
-        const sortedCards = data.sort((a: SubscriptionCard, b: SubscriptionCard) => {
-          // Extract numeric value from price string (e.g., "$29" -> 29)
-          const priceA = parseFloat(String(a.price || "0").replace(/[^0-9.]/g, ''));
-          const priceB = parseFloat(String(b.price || "0").replace(/[^0-9.]/g, ''));
-          return priceA - priceB;
-        });
-        setCards(sortedCards);
-      });
-  }, []);
 
   const handleSubscribe = (plan: SubscriptionCard) => {
     if (!user) {

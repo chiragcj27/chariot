@@ -1,56 +1,12 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import KitCard from './KitCard';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-interface KitImage {
-  _id: string;
-  url: string;
-  originalname: string;
-}
-
-interface Kit {
-  _id: string;
-  title: string;
-  slug: string;
-  description: string;
-  thumbnail?: KitImage;
-  onHoverImage?: KitImage;
-  mainImage?: KitImage;
-  carouselImages?: KitImage[];
-}
+import { useKits } from '@/hooks/useKits';
 
 export default function KitGrid() {
-  const [kits, setKits] = useState<Kit[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { kits, isLoading, error } = useKits();
 
-  useEffect(() => {
-    const fetchKits = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${API_URL}/api/kits`);
-        
-        if (!response.ok) {
-          throw new Error('Failed to fetch kits');
-        }
-        
-        const data = await response.json();
-        setKits(data);
-      } catch (err) {
-        console.error('Error fetching kits:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch kits');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchKits();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sunrise"></div>
@@ -61,7 +17,7 @@ export default function KitGrid() {
   if (error) {
     return (
       <div className="flex justify-center items-center py-20">
-        <p className="text-red-500">Error: {error}</p>
+        <p className="text-red-500">Error: {error.message || 'Failed to fetch kits'}</p>
       </div>
     );
   }

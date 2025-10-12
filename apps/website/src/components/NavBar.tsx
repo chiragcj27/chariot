@@ -6,41 +6,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from "@/contexts/CartContext";
 import UserProfileDropdown from './UserProfileDropdown';
 import { useStore } from "@/store/store";
-
-interface Category {
-  _id: string;
-  slug: string;
-  title: string;
-  items?: CategoryItem[];
-}
-
-// Add type for item
-interface CategoryItem {
-  _id: string;
-  slug: string;
-  title: string;
-}
+import { useMenuStructure, type CategoryItem } from "@/hooks/useCategories";
+import { useScrollDetection } from "@/hooks/useScrollDetection";
 
 export default function NavBar() {
-  const [categories, setCategories] = useState<Category[]>([]);
   const { isMenuOpen, setIsMenuOpen } = useStore();
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
   const { getTotalItems } = useCart();
+  const isScrolled = useScrollDetection(100); // Change logo after 100px scroll
 
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const res = await fetch(`${API_URL}/api/menu/structure`);
-        if (!res.ok) throw new Error("Failed to fetch categories");
-        const data = await res.json();
-        setCategories(data);
-      } catch (err) {
-        console.error("Error fetching categories:", err);
-      }
-    }
-    fetchCategories();
-  }, [API_URL]);
+  // Use SWR hook to fetch categories
+  const { categories } = useMenuStructure();
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -71,15 +47,39 @@ export default function NavBar() {
         {/* Left: Logo + Nav Links */}
         <div className="flex items-center gap-[clamp(1rem,4vw,2rem)]">
           {/* Logo */}
-          <div className="flex items-center z-50 gap-2">
+          <div className="flex items-center z-50 gap-2 relative">
             <Link href="/">
-              <Image 
-                src="/chariot.svg" 
-                alt="The Chariot Logo" 
-                width={114} 
-                height={66} 
-                className="w-[clamp(4rem,8vw,4.375rem)] h-[clamp(4rem,8vw,4.375rem)]"
-              />
+              <div className="relative w-[clamp(4rem,8vw,4.375rem)] h-[clamp(4rem,8vw,4.375rem)]">
+                <AnimatePresence mode="wait">
+                  {!isScrolled ? (
+                    <motion.div
+                      key="original-logo"
+                      initial={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="absolute inset-0"
+                    >
+                      <Image 
+                        src="/chariot.svg" 
+                        alt="The Chariot Logo" 
+                        width={114} 
+                        height={66} 
+                        className="w-full h-full"
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="scroll-logo"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="absolute inset-0"
+                    >
+                      <h1 className="text-sunrise text-[15px] sm:text-[12px] sm:mt-7 mt-6 font-bold font-balgin-light whitespace-nowrap">THE CHARIOT</h1>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </Link>
           </div>
           {/* Navigation Links (fade) */}
