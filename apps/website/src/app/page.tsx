@@ -31,22 +31,22 @@ export default function Home() {
             <div className="space-y-3 sm:space-y-4 md:space-y-5">
               <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-[32px] 2xl:text-[36px] text-sunrise ml-3 sm:ml-4 lg:ml-5 font-medium">1. Branding</h3>
               <div className="border-b-2 border-sunrise" />
-              <p className="text-[#8A8A8A] font-secondary text-sm sm:text-base md:text-lg lg:text-xl xl:text-xl leading-[1.5]">Logos, taglines, tone of voice — with deep jewelry industry insight at the core</p>
+              <p className="text-[#8A8A8A] font-secondary text-sm sm:text-base md:text-lg lg:text-xl xl:text-xl leading-[1.5]">Logos, taglines, tone of voice with deep jewelry industry insight at the core</p>
             </div>
             <div className="space-y-3 sm:space-y-4 md:space-y-5">
               <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-[32px] 2xl:text-[36px] text-sunrise ml-3 sm:ml-4 lg:ml-5 font-medium">2. Websites</h3>
               <div className="border-b-2 border-sunrise" />
-              <p className="text-[#8A8A8A] font-secondary text-sm sm:text-base md:text-lg lg:text-xl xl:text-xl leading-[1.5]">Copy, design, development — everything you need to make your storefront shine</p>
+              <p className="text-[#8A8A8A] font-secondary text-sm sm:text-base md:text-lg lg:text-xl xl:text-xl leading-[1.5]">Copy, design, development everything you need to make your storefront shine</p>
             </div>
             <div className="space-y-3 sm:space-y-4 md:space-y-5">
               <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-[32px] 2xl:text-[36px] text-sunrise ml-3 sm:ml-4 lg:ml-5 font-medium">3. Social Media</h3>
               <div className="border-b-2 border-sunrise" />
-              <p className="text-[#8A8A8A] font-secondary text-sm sm:text-base md:text-lg lg:text-xl xl:text-xl leading-[1.5]">Instagram grids, Reels, captions, hashtags — designed to grow your jewelry brand, not just fill the feed</p>
+              <p className="text-[#8A8A8A] font-secondary text-sm sm:text-base md:text-lg lg:text-xl xl:text-xl leading-[1.5]">Instagram grids, Reels, captions, hashtags designed to grow your jewelry brand, not just fill the feed</p>
             </div>
             <div className="space-y-3 sm:space-y-4 md:space-y-5">
               <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-[32px] 2xl:text-[36px] text-sunrise ml-3 sm:ml-4 lg:ml-5 font-medium">4. Design support</h3>
               <div className="border-b-2 border-sunrise" />
-              <p className="text-[#8A8A8A] font-secondary text-sm sm:text-base md:text-lg lg:text-xl xl:text-xl leading-[1.5]">Catalogs, social posts, renders, packaging, POS — if you need it, we&apos;ve probably done it</p>
+              <p className="text-[#8A8A8A] font-secondary text-sm sm:text-base md:text-lg lg:text-xl xl:text-xl leading-[1.5]">Catalogs, social posts, renders, packaging, POS if you need it, we&apos;ve probably done it</p>
             </div>
           </div>
         </div>
@@ -60,7 +60,7 @@ export default function Home() {
         </div>
         <div className="w-full lg:w-[67%] space-y-8 sm:space-y-10 md:space-y-12 lg:space-y-14 xl:space-y-16">
           <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-[24px] 2xl:text-[30px] leading-[1.4] max-w-full">
-          Built on real industry experience <br/>Over three decades of first hand knowledge in the jewelry business — across markets, mediums, and formats.
+          Built on real industry experience <br/>Over three decades of first hand knowledge in the jewelry business across markets, mediums, and formats.
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 md:gap-12 lg:gap-14 xl:gap-16">
             <div className="space-y-3 sm:space-y-4 md:space-y-5">

@@ -101,7 +101,7 @@ export default function WhoWeAre() {
           <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-[24px] 2xl:text-[30px] leading-[1.4] lg:pl-4 mb-[clamp(2rem,5vw,3rem)]">
             We&apos;re a creative team born out of the jewelry trade, from
             Mumbai to LA. We&apos;ve lived the chaos of exhibitions, product
-            drops, and client deadlines — and built Chariot to make it all a
+            drops, and client deadlines and built Chariot to make it all a
             little easier.
           </h2>
         </div>

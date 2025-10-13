@@ -230,7 +230,6 @@ export default function LoginPage() {
               <Link href="/privacy" className="hover:text-orange-600 underline">
                 Privacy Policy
               </Link>
-              . Notice at collection.
             </div>
 
             <div className="flex justify-center">

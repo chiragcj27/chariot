@@ -59,7 +59,6 @@ export default function AuthPage() {
               <Link href="/privacy" className="text-sunrise hover:text-orange-300 underline">
                 Privacy Policy
               </Link>
-              . Notice at collection.
             </div>
           </div>
         </div>

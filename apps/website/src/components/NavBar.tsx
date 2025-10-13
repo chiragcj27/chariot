@@ -75,7 +75,7 @@ export default function NavBar() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="absolute inset-0"
                     >
-                      <h1 className="text-sunrise text-[15px] sm:text-[12px] sm:mt-7 mt-6 font-bold font-balgin-light whitespace-nowrap">THE CHARIOT</h1>
+                      <h1 className="text-[#FA7035] text-[20px] sm:text-[15px] sm:mt-6.5 mt-5  font-medium font-balgin-light whitespace-nowrap">THE CHARIOT</h1>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -83,7 +83,7 @@ export default function NavBar() {
             </Link>
           </div>
           {/* Navigation Links (fade) */}
-          <div className={`hidden lg:flex gap-[clamp(1rem,3vw,2rem)] transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          <div className={`hidden lg:flex gap-[clamp(1rem,3vw,2rem)] mx-5 transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             {categories.map((cat) => (
               <Link key={cat._id} href={`/category/${cat.slug}`} className="text-[clamp(1rem,1.8vw,1.125rem)] font-secondary font-medium text-gray-800 hover:text-[#FA7035] transition-colors duration-200 whitespace-nowrap">
                 {cat.title}

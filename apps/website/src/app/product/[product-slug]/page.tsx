@@ -264,12 +264,12 @@ export default function ProductPage({ params }: ProductPageProps) {
           {/* Right Section - Product Information */}
           <div className="flex flex-col justify-center mt-6 lg:mt-0">
             {/* Product Title */}
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-[32px] font-balgin-regular text-[#FA7035] leading-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-[32px] font-balgin-regular text-black leading-tight">
               {product.name}
             </h1>
 
             {/* Price */}
-            <div className="text-[18px] lg:text-[20px] text-gray-900 mt-2 sm:mt-3">
+            <div className="text-[18px] lg:text-[20px] text-gray-900 mt-2 sm:mt-1">
               {product.price ? `$${getPriceAmount(product.price)}` : "Contact for pricing"}
             </div>
 
@@ -282,7 +282,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             <div className="flex mt-6 sm:mt-8 lg:mt-10 flex-row sm:flex-col gap-2 sm:gap-4 w-full lg:max-w-[30%]">
               <Button
                 variant="outline"
-                className="flex-1 sm:w-full border-[#FCA17A] border-2 sm:border-2 text-gray-900 font-avenir text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-orange-50 hover:border-orange-600 transition-all duration-200 min-w-0"
+                className="flex-1 sm:w-full border-black border-2 sm:border-2 text-gray-900 text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-black hover:text-white hover:border-black transition-all duration-200 min-w-0"
                 onClick={handleBuyNow}
                 disabled={buyingNow}
               >
@@ -290,7 +290,7 @@ export default function ProductPage({ params }: ProductPageProps) {
               </Button>
 
               <Button 
-                className="flex-1 sm:w-full border-[#FCA17A] border-2 sm:border-2 bg-[#FFC1A0] text-black font-avenir text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-[#FCA17A]/50 transition-all duration-200 min-w-0"
+                className="flex-1 sm:w-full border-black border-2 sm:border-2 bg-black text-white text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-black/80 hover:text-white hover:border-black transition-all duration-200 min-w-0"
                 onClick={handleAddToCart}
                 disabled={addingToCart}
               >

@@ -29,7 +29,7 @@ export default function CallToAction() {
         <div className="hidden [@media(min-width:1179px)]:block [@media(min-width:1179px)]:w-[33%] [@media(min-width:1179px)]:pr-6 xl:pr-12"></div>
         
         {/* Right column matching the content area on large screens, full width on smaller screens */}
-        <div className="w-full [@media(min-width:1179px)]:max-w-[calc(33%-0.5rem)] [@media(min-width:1179px)]:w-[33%] ">
+        <div className="w-full [@media(min-width:1179px)]:w-[33%] [@media(min-width:1179px)]:max-w-[32%] ">
           <h1 className="mt-[clamp(2rem,6vw,3rem)] text-[clamp(1.5rem,3.75vw,2.25rem)] [@media(min-width:1179px)]:text-[clamp(1.25rem,2.5vw,2.75rem)] font-balgin-regular leading-[1.2] text-left">
             Let us create
             <br />

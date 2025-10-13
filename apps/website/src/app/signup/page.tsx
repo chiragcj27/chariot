@@ -122,15 +122,15 @@ export default function SignupPage() {
     });
   };
 
-  const addPhoneNumber = (section: 'companyInformation' | 'contactInformation', type: 'telephone' | 'fax') => {
-    setFormData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [type]: [...prev[section][type], ''],
-      },
-    }));
-  };
+  // const addPhoneNumber = (section: 'companyInformation' | 'contactInformation', type: 'telephone' | 'fax') => {
+  //   setFormData(prev => ({
+  //     ...prev,
+  //     [section]: {
+  //       ...prev[section],
+  //       [type]: [...prev[section][type], ''],
+  //     },
+  //   }));
+  // };
 
   const removePhoneNumber = (section: 'companyInformation' | 'contactInformation', type: 'telephone' | 'fax', index: number) => {
     setFormData(prev => ({
@@ -291,13 +291,13 @@ export default function SignupPage() {
                       )}
                     </div>
                   ))}
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() => addPhoneNumber('companyInformation', 'telephone')}
                     className="text-orange-600 hover:text-orange-800 text-sm"
                   >
                     + Add another phone number
-                  </button>
+                  </button> */}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Website URL *</label>
@@ -381,13 +381,13 @@ export default function SignupPage() {
                       )}
                     </div>
                   ))}
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() => addPhoneNumber('contactInformation', 'telephone')}
                     className="text-orange-600 hover:text-orange-800 text-sm"
                   >
                     + Add another phone number
-                  </button>
+                  </button> */}
                 </div>
 
                 {/* Contact Fax Numbers */}
@@ -413,13 +413,13 @@ export default function SignupPage() {
                       )}
                     </div>
                   ))}
-                  <button
+                  {/* <button
                     type="button"
                     onClick={() => addPhoneNumber('contactInformation', 'fax')}
                     className="text-orange-600 hover:text-orange-800 text-sm"
                   >
                     + Add mobile number
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
