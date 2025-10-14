@@ -87,6 +87,7 @@ export const API_ENDPOINTS = {
   // Kits
   kits: '/api/kits',
   kitBySlug: (slug: string) => `/api/kits/slug/${slug}`,
+  kitProducts: (slug: string) => `/api/products/kit/${slug}`,
   
   // Orders
   userOrders: '/api/orders/user/orders',

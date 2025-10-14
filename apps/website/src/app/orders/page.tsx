@@ -417,7 +417,7 @@ export default function OrdersPage() {
                   </h2>
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
                     <p className="text-orange-800 text-sm">
-                      You have {pendingOrders.length} pending order{pendingOrders.length > 1 ? 's' : ''} that need payment completion within {PAYMENT_TIMEOUT_MINUTES} minutes.
+                      You have {pendingOrders.length} pending order{pendingOrders.length > 1 ? 's' : ''} that need{pendingOrders.length > 1 ? '' : 's'} payment completion within {PAYMENT_TIMEOUT_MINUTES} minutes.
                     </p>
                   </div>
                   
@@ -536,65 +536,74 @@ export default function OrdersPage() {
                     {/* Desktop Table View */}
                     {isClient && !isMobile && (
                       <div className="hidden lg:block bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                      <div className="overflow-x-auto overflow-y-auto max-h-[70vh] scrollbar-hide">
-                        <table className="w-full table-auto">
-                          <thead>
-                            <tr className="bg-gray-50 border-b border-gray-200">
-                              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">
-                                Product Name
-                              </th>
-                              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                                Order ID
-                              </th>
-                              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                                Date
-                              </th>
-                              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
-                                Price
-                              </th>
-                              <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
-                                Invoice
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {paginatedRows.map(({ order, item, key }) => (
-                                <tr key={key} className="hover:bg-gray-50">
-                                  <td className="px-4 py-4 text-sm">
-                                    <div className="max-w-xs">
-                                      <p className="text-sm font-medium text-gray-900 truncate" title={item.productName}>
-                                        {item.productName}
-                                      </p>
-                                    </div>
-                                  </td>
-                                  <td className="px-3 py-4 text-sm font-medium text-gray-900">
-                                    <span className="truncate">#{order.orderNumber}</span>
-                                  </td>
-                                  <td className="px-3 py-4 text-sm text-gray-900">
-                                    <span className="whitespace-nowrap">
-                                      {new Date(order.createdAt).toLocaleDateString('en-US', { 
-                                        year: '2-digit', 
-                                        month: 'short', 
-                                        day: 'numeric' 
-                                      })}
-                                    </span>
-                                  </td>
-                                  <td className="px-3 py-4 text-sm text-gray-900">
-                                    <span className="whitespace-nowrap">${item.totalPrice.toFixed(2)}</span>
-                                  </td>
-                                  <td className="px-3 py-4 text-sm">
-                                    <button
-                                      onClick={() => handleDownloadInvoice(order._id)}
-                                      className="text-[#D94506] hover:underline text-xs whitespace-nowrap"
-                                    >
-                                      Download
-                                    </button>
-                                  </td>
+                        <div className="max-h-[70vh] flex flex-col">
+                          {/* Fixed Header */}
+                          <div className="flex-shrink-0 bg-gray-50 border-b border-gray-200">
+                            <table className="w-full table-auto">
+                              <thead>
+                                <tr>
+                                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/5">
+                                    Product Name
+                                  </th>
+                                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                                    Order ID
+                                  </th>
+                                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                                    Date
+                                  </th>
+                                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/8">
+                                    Price
+                                  </th>
+                                  <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                                    Invoice
+                                  </th>
                                 </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                              </thead>
+                            </table>
+                          </div>
+                          
+                          {/* Scrollable Body */}
+                          <div className="flex-1 overflow-y-auto scrollbar-hide">
+                            <table className="w-full table-auto">
+                              <tbody className="bg-white divide-y divide-gray-200">
+                                {paginatedRows.map(({ order, item, key }) => (
+                                    <tr key={key} className="hover:bg-gray-50">
+                                      <td className="px-4 py-4 text-sm">
+                                        <div className="max-w-xs">
+                                          <p className="text-sm font-medium text-gray-900 truncate" title={item.productName}>
+                                            {item.productName}
+                                          </p>
+                                        </div>
+                                      </td>
+                                      <td className="px-3 py-4 text-sm font-medium text-gray-900">
+                                        <span className="truncate">#{order.orderNumber}</span>
+                                      </td>
+                                      <td className="px-3 py-4 text-sm text-gray-900">
+                                        <span className="whitespace-nowrap">
+                                          {new Date(order.createdAt).toLocaleDateString('en-US', { 
+                                            year: '2-digit', 
+                                            month: 'short', 
+                                            day: 'numeric' 
+                                          })}
+                                        </span>
+                                      </td>
+                                      <td className="px-3 py-4 text-sm text-gray-900">
+                                        <span className="whitespace-nowrap">${item.totalPrice.toFixed(2)}</span>
+                                      </td>
+                                      <td className="px-3 py-4 text-sm">
+                                        <button
+                                          onClick={() => handleDownloadInvoice(order._id)}
+                                          className="text-[#D94506] hover:underline text-xs whitespace-nowrap"
+                                        >
+                                          Download
+                                        </button>
+                                      </td>
+                                    </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
                       </div>
                     )}
 

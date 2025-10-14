@@ -9,44 +9,15 @@ import ProductCard from '@/components/ProductCard';
 import DiscoveryCallButton from '@/components/DiscoveryCallButton';
 import AskForQuoteButton from '@/components/AskForQuoteButton';
 import Footer from '@/components/Footer';
-import { useKit } from '@/hooks/useKits';
+import { useKit, useKitProducts, type KitProduct } from '@/hooks/useKits';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-interface KitImage {
-  _id: string;
-  url: string;
-  originalname: string;
-  filename: string;
-}
-
-
-interface KitProduct {
-  _id: string;
-  name: string;
-  description: string;
-  slug: string;
-  typeOfKit?: 'premium' | 'basic';
-  images: KitImage[];
-  kitImages: KitImage[];
-  kitFiles: KitImage[];
-  price?: {
-    amount: number;
-    currency: string;
-  };
-  creditsCost?: number;
-  discountedCreditsCost?: number;
-  kitDescription?: string;
-  kitInstructions?: string;
-  kitContents?: string[];
-}
+// Types are now imported from useKits hook
 
 interface KitPageProps {
   params: Promise<{ slug: string }>;
 }
 
 export default function KitPage({ params }: KitPageProps) {
-  const [allKitProducts, setAllKitProducts] = useState<KitProduct[]>([]);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [selectedPack, setSelectedPack] = useState<'premium' | 'basic'>('basic');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -60,8 +31,9 @@ export default function KitPage({ params }: KitPageProps) {
     });
   }, [params]);
 
-  // Use SWR hook to fetch kit data
-  const { kit, isLoading, error } = useKit(slug || "");
+  // Use SWR hooks to fetch kit data and products
+  const { kit, isLoading: kitLoading, error: kitError } = useKit(slug || "");
+  const { products: allKitProducts, isLoading: productsLoading, error: productsError } = useKitProducts(slug || "");
 
   const filteredProducts = allKitProducts.filter(
     (product) => product.typeOfKit === selectedPack
@@ -94,27 +66,7 @@ export default function KitPage({ params }: KitPageProps) {
     },
   ];
 
-  // Fetch kit products when kit is loaded
-  useEffect(() => {
-    if (!kit) return;
-
-    const fetchKitProducts = async () => {
-      try {
-        const productsResponse = await fetch(
-          `${API_URL}/api/products/kit/${kit.slug}`
-        );
-
-        if (productsResponse.ok) {
-          const productsData = await productsResponse.json();
-          setAllKitProducts(productsData.products || []);
-        }
-      } catch (err) {
-        console.error('Error fetching kit products:', err);
-      }
-    };
-
-    fetchKitProducts();
-  }, [kit]);
+  // No need for manual fetch - SWR handles this automatically
 
   useEffect(() => {
     setCurrentImageIndex(0);
@@ -132,7 +84,7 @@ export default function KitPage({ params }: KitPageProps) {
     return () => clearInterval(interval);
   }, [kit?.carouselImages]);
 
-  if (isLoading || !slug) {
+  if (kitLoading || productsLoading || !slug) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sunrise"></div>
@@ -140,10 +92,10 @@ export default function KitPage({ params }: KitPageProps) {
     );
   }
 
-  if (error) {
+  if (kitError || productsError) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-red-500">Error: {error.message || 'Failed to load kit'}</p>
+        <p className="text-red-500">Error: {kitError?.message || productsError?.message || 'Failed to load kit'}</p>
       </div>
     );
   }
@@ -159,7 +111,7 @@ export default function KitPage({ params }: KitPageProps) {
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <div className="relative w-full min-h-screen  pb-40 md:pb-0">
+      <div className="relative w-full min-h-screen pb-40 md:pb-0 overflow-hidden">
         <div className="relative flex flex-col md:flex-row w-full min-h-[85vh] ">
           {/* MainIMG */}
           <div className="absolute left-0 top-0 md:w-[42%] w-[100%] z-10">
@@ -242,7 +194,7 @@ export default function KitPage({ params }: KitPageProps) {
             <div className="absolute md:left-[calc(35vw)] block w-[calc(65vw)] md:top-[calc(37.7vw)] h-[calc(7vw)] bg-[#B4C6D0] z-0 " />
           </div>
         </div>
-      </div>
+      </div>  
 
       {/* Pack Selection */}
       <div className='absolute md:top-[50vw] top-[185vw] w-full'>

@@ -11,18 +11,16 @@ import ProductCard from "@/components/ProductCard";
 import { toast } from "sonner";
 import { useProduct } from "@/hooks/useProducts";
 
-
-
-
-
-
-
 interface ProductPageProps {
   params: Promise<{ "product-slug": string }>;
 }
 
 const includedItems = [
-  "logo","photography","brand tone","stationery","instagram starter kit"
+  "logo",
+  "photography",
+  "brand tone",
+  "stationery",
+  "instagram starter kit",
 ];
 // Flipbook Embed Component
 const FlipbookEmbed = ({
@@ -45,8 +43,6 @@ const FlipbookEmbed = ({
     </div>
   );
 };
-
-
 
 export default function ProductPage({ params }: ProductPageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -71,8 +67,8 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   // Helper function to get price amount
   const getPriceAmount = (price: unknown): number => {
-    if (typeof price === 'number') return price;
-    if (price && typeof price === 'object' && 'amount' in price) {
+    if (typeof price === "number") return price;
+    if (price && typeof price === "object" && "amount" in price) {
       const priceObj = price as { amount: number };
       return priceObj.amount;
     }
@@ -80,7 +76,7 @@ export default function ProductPage({ params }: ProductPageProps) {
   };
 
   // Use product images or fallback to placeholder
-  const images = product?.images?.map(img => img.url) || [
+  const images = product?.images?.map((img) => img.url) || [
     "https://placehold.co/600x400/87CEEB/FFFFFF?text=Product+Image+1",
     "https://placehold.co/600x400/87CEEB/FFFFFF?text=Product+Image+2",
     "https://placehold.co/600x400/87CEEB/FFFFFF?text=Product+Image+3",
@@ -99,10 +95,10 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   const handleAddToCart = async () => {
     if (!product) return;
-    
+
     try {
       setAddingToCart(true);
-      
+
       addItem({
         productId: product._id,
         productName: product.name,
@@ -112,11 +108,11 @@ export default function ProductPage({ params }: ProductPageProps) {
         imageUrl: product.images?.[0]?.url,
         category: product.category,
       });
-      
-      toast.success('Added to cart');
+
+      toast.success("Added to cart");
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      toast.error('Failed to add product to cart. Please try again.');
+      console.error("Error adding to cart:", error);
+      toast.error("Failed to add product to cart. Please try again.");
     } finally {
       setAddingToCart(false);
     }
@@ -124,10 +120,10 @@ export default function ProductPage({ params }: ProductPageProps) {
 
   const handleBuyNow = async () => {
     if (!product) return;
-    
+
     try {
       setBuyingNow(true);
-      
+
       setBuyNowItem({
         productId: product._id,
         productName: product.name,
@@ -137,12 +133,12 @@ export default function ProductPage({ params }: ProductPageProps) {
         imageUrl: product.images?.[0]?.url,
         category: product.category,
       });
-      
+
       // Navigate to checkout page
-      router.push('/checkout');
+      router.push("/checkout");
     } catch (error) {
-      console.error('Error setting up buy now:', error);
-      toast.error('Failed to proceed to checkout. Please try again.');
+      console.error("Error setting up buy now:", error);
+      toast.error("Failed to proceed to checkout. Please try again.");
     } finally {
       setBuyingNow(false);
     }
@@ -151,7 +147,6 @@ export default function ProductPage({ params }: ProductPageProps) {
   const handleRelatedProductClick = (productSlug: string) => {
     router.push(`/product/${productSlug}`);
   };
-
 
   if (isLoading || !slug) {
     return (
@@ -164,7 +159,9 @@ export default function ProductPage({ params }: ProductPageProps) {
   if (error || !product) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-red-500">Error: {error?.message || "Product not found"}</p>
+        <p className="text-red-500">
+          Error: {error?.message || "Product not found"}
+        </p>
       </div>
     );
   }
@@ -270,7 +267,9 @@ export default function ProductPage({ params }: ProductPageProps) {
 
             {/* Price */}
             <div className="text-[18px] lg:text-[20px] text-gray-900 mt-2 sm:mt-1">
-              {product.price ? `$${getPriceAmount(product.price)}` : "Contact for pricing"}
+              {product.price
+                ? `$${getPriceAmount(product.price)}`
+                : "Contact for pricing"}
             </div>
 
             {/* Description */}
@@ -282,19 +281,19 @@ export default function ProductPage({ params }: ProductPageProps) {
             <div className="flex mt-6 sm:mt-8 lg:mt-10 flex-row sm:flex-col gap-2 sm:gap-4 w-full lg:max-w-[30%]">
               <Button
                 variant="outline"
-                className="flex-1 sm:w-full border-black border-2 sm:border-2 text-gray-900 text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-black hover:text-white hover:border-black transition-all duration-200 min-w-0"
+                className="flex-1 border-black border-2 text-gray-900 font-avenir text-[16px] py-2 w-[160] hover:bg-gray-900 hover:text-white transition-all duration-200"
                 onClick={handleBuyNow}
                 disabled={buyingNow}
               >
-                {buyingNow ? 'Processing...' : 'Buy Now'}
+                {buyingNow ? "Processing..." : "Buy Now"}
               </Button>
 
-              <Button 
-                className="flex-1 sm:w-full border-black border-2 sm:border-2 bg-black text-white text-xs sm:text-sm lg:text-base px-2 sm:px-4 py-2 sm:py-3 hover:bg-black/80 hover:text-white hover:border-black transition-all duration-200 min-w-0"
+              <Button
+                className="flex-1 border-black border-2 bg-gray-900 text-white font-avenir text-[16px] py-2 w-[160] hover:bg-gray-900 transition-all duration-200"
                 onClick={handleAddToCart}
                 disabled={addingToCart}
               >
-                {addingToCart ? 'Adding...' : 'Add To Cart'}
+                {addingToCart ? "Adding..." : "Add To Cart"}
               </Button>
             </div>
           </div>
@@ -304,9 +303,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       {/* What's Included Points Section */}
       <section className="relative px-4 sm:px-6 md:px-10 lg:px-16 xl:px-18 pb-12 sm:pb-16 mt-12 sm:mt-16 lg:mt-20">
         {/* Background color using product.kitColorHex (fallback to theme color) */}
-        <div
-          className="absolute bg-[#CFDAE9] inset-0"
-        />
+        <div className="absolute bg-[#CFDAE9] inset-0" />
 
         {/* Content */}
         <div className="relative z-10">
@@ -317,8 +314,12 @@ export default function ProductPage({ params }: ProductPageProps) {
             <ul className="space-y-3 sm:space-y-4 pt-2">
               {includedItems.map((item, idx) => (
                 <li key={idx} className="flex items-center py-2">
-                  <span className=" mr-4 sm:mr-6 flex-shrink-0"><PlayIcon fill="black" className="w-4 h-4 sm:w-5 sm:h-5" /></span>
-                  <span className="text-base sm:text-lg font-semibold uppercase leading-relaxed">{item}</span>
+                  <span className=" mr-4 sm:mr-6 flex-shrink-0">
+                    <PlayIcon fill="black" className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </span>
+                  <span className="text-base sm:text-lg font-semibold uppercase leading-relaxed">
+                    {item}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -335,29 +336,39 @@ export default function ProductPage({ params }: ProductPageProps) {
           <div className="w-full overflow-hidden">
             <div className="flex gap-4 sm:gap-6 overflow-x-auto snap-x snap-mandatory px-4 sm:px-6 md:px-10 lg:px-16 xl:px-18 pb-4">
               {relatedProducts.map((relatedProduct) => (
-                <div key={relatedProduct._id} className="flex-none w-56 border-2 border-[#FFC1A0] sm:w-64 lg:w-72 snap-start">
+                <div
+                  key={relatedProduct._id}
+                  className="flex-none w-56 border-2 border-[#FFC1A0] sm:w-64 lg:w-72 snap-start"
+                >
                   <div className="flex flex-col bg-white rounded-lg   duration-300 overflow-hidden h-full">
-                    <div 
+                    <div
                       className="w-full cursor-pointer relative"
-                      onClick={() => handleRelatedProductClick(relatedProduct.slug)}
+                      onClick={() =>
+                        handleRelatedProductClick(relatedProduct.slug)
+                      }
                     >
                       <ProductCard
-                        image={relatedProduct.images?.[0]?.url || "https://placehold.co/400x500?text=Product"}
+                        image={
+                          relatedProduct.images?.[0]?.url ||
+                          "https://placehold.co/400x500?text=Product"
+                        }
                         className="w-full"
                       />
                     </div>
-                    
+
                     {/* Product Info */}
                     <div className="p-3 sm:p-4 flex-1 flex flex-col">
-                      <h3 
+                      <h3
                         className="text-base sm:text-lg text-gray-900 mb-2 cursor-pointer hover:text-orange-600 transition-colors line-clamp-2"
-                        onClick={() => handleRelatedProductClick(relatedProduct.slug)}
+                        onClick={() =>
+                          handleRelatedProductClick(relatedProduct.slug)
+                        }
                       >
                         {relatedProduct.name}
                       </h3>
-                                           
-                      <button 
-                        className="w-full bg-[#FFC1A0] text-black py-2 px-3 sm:px-4 rounded-md font-medium text-sm sm:text-base hover:bg-orange-600 transition-colors duration-200"
+
+                      <button
+                        className="w-full bg-[#FFC1A0] text-black py-2 px-3 sm:px-4 rounded-md font-medium text-sm sm:text-base hover:bg-sunrise transition-colors duration-200"
                         onClick={() => {
                           addItem({
                             productId: relatedProduct._id,
@@ -368,7 +379,7 @@ export default function ProductPage({ params }: ProductPageProps) {
                             imageUrl: relatedProduct.images?.[0]?.url,
                             category: relatedProduct.category,
                           });
-                          toast.success('Added to cart');
+                          toast.success("Added to cart");
                         }}
                       >
                         Add To Cart
@@ -382,9 +393,9 @@ export default function ProductPage({ params }: ProductPageProps) {
         </section>
       )}
 
-      <div className="flex justify-center sm:justify-start mt-8 sm:mt-12 mb-8 sm:mb-12 px-4 sm:px-6 md:px-10 lg:px-16 xl:px-18">
+      <div className="flex mt-12 mb-12 px-18">
         <button
-          className="border-2 border-[#FCA17A] rounded-xl bg-transparent text-black font-semibold px-6 sm:px-8 py-2 sm:py-3 transition-colors  text-base sm:text-lg hover:bg-white hover:text-black w-full sm:w-auto max-w-xs sm:max-w-none"
+          className="border-2 border-sunrise bg-white rounded-xl hover:bg-sunrise text-black px-8 py-2 transition-colors shadow-lg text-lg hover:text-black"
           onClick={() => router.push("/")}
         >
           Back to Home

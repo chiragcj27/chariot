@@ -143,7 +143,7 @@ const TestimonialsCarousel = ({ testimonials = [] }: TestimonialsCarouselProps) 
             key={index}
             className={`absolute inset-0 transition-transform transition-opacity duration-700 ease-in-out ${slideClass}`}
           >
-            <AutoFitGroup maxFontSize={24} minFontSize={10}>
+            <AutoFitGroup maxFontSize={20} minFontSize={10}>
               <blockquote className="text-gray-700 italic mb-[0.6em]">
                 &quot;{testimonial.text}&quot;
               </blockquote>

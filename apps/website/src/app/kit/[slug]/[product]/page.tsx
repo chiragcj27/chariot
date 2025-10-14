@@ -8,58 +8,7 @@ import { useRouter } from "next/navigation";
 import { notFound } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
-
-interface ProductImage {
-  _id: string;
-  url: string;
-  originalname?: string;
-  filename?: string;
-}
-
-interface ProductFile {
-  _id: string;
-  url: string;
-  originalname?: string;
-  filename?: string;
-  fileType?: string;
-}
-
-interface KitImageMetadataItem {
-  imageId: string;
-  title: string;
-  description?: string;
-}
-
-interface KitFileMetadataItem {
-  fileId: string;
-  title: string;
-  description?: string;
-}
-
-interface FlipbookUrlItem {
-  fileId: string;
-  url: string;
-  fileName: string;
-}
-
-interface ProductDoc {
-  _id: string;
-  name: string;
-  description: string;
-  slug: string;
-  price?: {
-    amount: number;
-    currency: string;
-  };
-  creditsCost?: number;
-  images: ProductImage[];
-  kitImages?: ProductImage[];
-  kitFiles?: ProductFile[];
-  kitImageMetadata?: KitImageMetadataItem[];
-  kitFileMetadata?: KitFileMetadataItem[];
-  flipbookUrls?: FlipbookUrlItem[];
-  kitColorHex?: string;
-}
+import { useKitProducts, type ProductImage, type ProductFile, type KitImageMetadataItem, type KitFileMetadataItem } from "@/hooks/useKits";
 
 // Removed unused Kit interface
 
@@ -95,9 +44,8 @@ const includedItems = [
 
 export default function KitProductDetailPage({ params }: PageProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [product, setProduct] = useState<ProductDoc | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [kitSlug, setKitSlug] = useState<string>("");
+  const [productSlug, setProductSlug] = useState<string>("");
   const [addingToCart, setAddingToCart] = useState(false);
   const [buyingNow, setBuyingNow] = useState(false);
   const [selectedImage, setSelectedImage] = useState<{ url: string; title?: string; description?: string } | null>(null);
@@ -105,37 +53,29 @@ export default function KitProductDetailPage({ params }: PageProps) {
   const router = useRouter();
   const { addItem, setBuyNowItem } = useCart();
   
+  // Use SWR hook for fetching kit products
+  const { products, isLoading, isError, error } = useKitProducts(kitSlug);
+  
 
+  // Extract params and set kit slug for SWR
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        const { slug, product: productSlug } = await params;
-
-        // Fetch kit products via website API proxy, then find product by slug
-        const res = await fetch(`/api/products/kit/${slug}`);
-        if (!res.ok) {
-          if (res.status === 404) notFound();
-          throw new Error("Failed to fetch kit products");
-        }
-        const data = await res.json();
-        const products: ProductDoc[] = data.products || [];
-        const found = products.find((p) => p.slug === productSlug);
-        if (!found) {
-          notFound();
-        }
-        console.log('Kit product found:', found);
-        setProduct(found || null);
-      } catch (err) {
-        console.error("Error fetching product:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch product");
-      } finally {
-        setLoading(false);
-      }
+    const extractParams = async () => {
+      const { slug, product } = await params;
+      setKitSlug(slug);
+      setProductSlug(product);
     };
-
-    fetchProduct();
+    extractParams();
   }, [params]);
+
+  // Find the specific product from the cached products
+  const product = useMemo(() => {
+    if (!products.length || !productSlug) return null;
+    const found = products.find((p) => p.slug === productSlug);
+    if (!found) {
+      notFound();
+    }
+    return found;
+  }, [products, productSlug]);
 
   const images = useMemo(() => (product?.images || []).map((img) => img.url), [product]);
   const imageUrls = useMemo(() => images.filter((u) => !!u), [images]);
@@ -252,7 +192,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
   };
 
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sunrise"></div>
@@ -260,10 +200,10 @@ export default function KitProductDetailPage({ params }: PageProps) {
     );
   }
 
-  if (error || !product) {
+  if (isError || !product) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-red-500">Error: {error || "Product not found"}</p>
+        <p className="text-red-500">Error: {error?.message || "Product not found"}</p>
       </div>
     );
   }
@@ -425,7 +365,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
           {alternatingMedia.map((entry, idx) => (
               <div
               key={idx}
-              className="flex-shrink-0 w-48 sm:w-56 md:w-70 h-64 sm:h-72 md:h-100 bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl"
+              className="flex-shrink-0 w-48 sm:w-56 md:w-70 h-64 sm:h-72 md:h-100 bg-white shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl"
               style={{ aspectRatio: "2/3" }}
             >
               <div className="relative w-full h-full group">
@@ -452,7 +392,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/70 transition-all duration-300 flex items-center justify-center pointer-events-none">
                         <div className="text-white text-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0 px-4">
                           {entry.meta?.title && (
-                            <h3 className="text-lg sm:text-xl font-semibold mb-2 leading-tight">
+                            <h3 className="text-lg sm:text-xl mb-2 leading-tight">
                               {entry.meta.title}
                             </h3>
                           )}
@@ -521,7 +461,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
 
       <div className="flex mt-12 mb-12 px-18">
         <button
-          className="border-2 border-sunrise bg-white rounded-xl hover:bg-sunrise text-black font-semibold px-8 py-2 transition-colors shadow-lg text-lg hover:text-black"
+          className="border-2 border-sunrise bg-white rounded-xl hover:bg-sunrise text-black px-8 py-2 transition-colors shadow-lg text-lg hover:text-black"
           onClick={() => router.push("/")}
         >
           Back to Home

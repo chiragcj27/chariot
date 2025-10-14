@@ -13,7 +13,7 @@ export default function NavBar() {
   const { isMenuOpen, setIsMenuOpen } = useStore();
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const { getTotalItems } = useCart();
-  const isScrolled = useScrollDetection(100); // Change logo after 100px scroll
+  const isScrolled = useScrollDetection(50); // Change logo after 50px scroll
 
   // Use SWR hook to fetch categories
   const { categories } = useMenuStructure();
@@ -43,7 +43,7 @@ export default function NavBar() {
 
   return (
     <Fragment>
-      <nav className={`sticky top-0 z-50 flex items-center  ${isMenuOpen ? 'bg-[#CFDAE9]' : 'bg-white'} ${isMenuOpen ? '' : 'shadow-md'} transition-colors duration-800 px-[clamp(1rem,4vw,2rem)] py-[clamp(0.5rem,1.5vw,0.75rem)] justify-between h-[clamp(3.5rem,8vw,4rem)]`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 flex items-center ${isMenuOpen ? 'bg-[#CFDAE9]' : 'bg-white'} ${isMenuOpen ? '' : 'shadow-md'} transition-colors duration-800 px-[clamp(1rem,4vw,2rem)] py-[clamp(0.5rem,1.5vw,0.75rem)] justify-between h-[clamp(3.5rem,8vw,4rem)]`}>
         {/* Left: Logo + Nav Links */}
         <div className="flex items-center gap-[clamp(1rem,4vw,2rem)]">
           {/* Logo */}
@@ -83,7 +83,7 @@ export default function NavBar() {
             </Link>
           </div>
           {/* Navigation Links (fade) */}
-          <div className={`hidden lg:flex gap-[clamp(1rem,3vw,2rem)] mx-5 transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+          <div className={`hidden lg:flex gap-[clamp(1rem,3vw,2rem)] mx-10 transition-opacity duration-500 ${isMenuOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
             {categories.map((cat) => (
               <Link key={cat._id} href={`/category/${cat.slug}`} className="text-[clamp(1rem,1.8vw,1.125rem)] font-secondary font-medium text-gray-800 hover:text-[#FA7035] transition-colors duration-200 whitespace-nowrap">
                 {cat.title}
@@ -150,6 +150,8 @@ export default function NavBar() {
           </button>
         </div>
       </nav>
+      {/* Spacer to account for fixed navbar */}
+      <div className="h-[clamp(3.5rem,8vw,4rem)]"></div>
       {/* Mobile Menu (dropdown style) */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-50 bg-gradient-to-b from-[#CFDAE9] to-white flex flex-col lg:hidden transition-all duration-500 ease-in-out">
@@ -342,6 +344,15 @@ export default function NavBar() {
         .scrollbar-hide {
           -ms-overflow-style: none;  /* IE and Edge */
           scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Ensure fixed positioning works */
+        nav[class*="fixed"] {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          z-index: 50 !important;
         }
       `}</style>
     </Fragment>

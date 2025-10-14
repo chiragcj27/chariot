@@ -700,7 +700,7 @@ export default function CheckoutPage() {
               Order: <strong>{currentOrder.orderNumber}</strong>
             </p>
             <p className="text-gray-600 mb-6">
-              PayPal Amount: <strong>${currentOrder.paypalAmount || currentOrder.total}</strong>
+              PayPal Amount: <strong>${currentOrder.paypalAmount?.toFixed(2) || currentOrder.total.toFixed(2)}</strong>
             </p>
 
             {/* PayPal Button Container */}
