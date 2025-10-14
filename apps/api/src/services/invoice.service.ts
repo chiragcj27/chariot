@@ -38,10 +38,10 @@ export class InvoiceService {
     // Resolve Chariot logo from website public folder and embed as data URL
     let embeddedLogoDataUrl: string | undefined;
     try {
-      const chariotLogoPath = path.resolve(process.cwd(), '../website/public/chariot.png');
+      const chariotLogoPath = path.resolve(process.cwd(), '../website/public/chariot.svg');
       if (fs.existsSync(chariotLogoPath)) {
         const imgBuffer = fs.readFileSync(chariotLogoPath);
-        embeddedLogoDataUrl = `data:image/png;base64,${imgBuffer.toString('base64')}`;
+        embeddedLogoDataUrl = `data:image/svg+xml;base64,${imgBuffer.toString('base64')}`;
       }
     } catch (logoError) {
       console.warn('Unable to embed chariot logo:', logoError);
@@ -147,9 +147,9 @@ export class InvoiceService {
           }
           
           .logo {
-            width: 120px;
-            height: 120px;
-            margin-bottom: 5px;
+            width: 140px;
+            height: 80px;
+            margin-bottom: 10px;
             border-radius: 0px;
             object-fit: contain;
           }
@@ -157,9 +157,10 @@ export class InvoiceService {
           .company-name {
             font-size: 18px;
             font-weight: bold;
-            color: #FFA07A;
+            color: #FA7035;
             text-transform: uppercase;
             margin-bottom: 20px;
+            margin-top: 5px;
           }
           
           .invoice-title {
@@ -278,16 +279,17 @@ export class InvoiceService {
           }
           
           .footer-company {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
-            color: #FFA07A;
+            color: #FA7035;
             text-transform: uppercase;
           }
           
           .footer-company .subtitle {
-            font-size: 12px;
+            font-size: 14px;
             display: block;
             margin-top: 2px;
+            font-weight: normal;
           }
           
           .footer-info {
@@ -311,7 +313,7 @@ export class InvoiceService {
                   ? `<img class=\"logo\" src=\"${logoDataUrl || companyInfo.logo}\" alt=\"Chariot Logo\" />`
                   : `<div class=\"logo\" style=\"background-color:#FFA07A;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:24px;\">A</div>`
                 }
-                <div class="company-name">${companyInfo.name}</div>
+            
               </div>
               <div class="invoice-title">Tax Invoice</div>
             </div>
@@ -321,16 +323,15 @@ export class InvoiceService {
               <div class="billed-to">
                 <h3>Billed To:</h3>
                 <div class="customer-info">
-                  ${user.name}<br>
-                  ${user.phone || '+123-456-7890'}<br>
-                  ${user.address || 'Address not provided'}<br>
-                  ${user.city || ''}${user.state ? `, ${user.state}` : ''}${user.zipCode ? `, ${user.zipCode}` : ''}<br>
-                  ${user.country || 'USA'}
+                  ${user.companyInformation.name || user.firstName + ' ' + user.lastName || 'Customer Name'}<br>
+                  ${user.companyInformation.telephone || user.phoneNumber || '+123-456-7890'}<br>
+                  ${user.companyInformation.address || user.streetAddress || 'Address not provided'}<br>
+                  ${user.city || ''}${user.companyInformation.state ? `${user.companyInformation.state}` : ''}${user.companyInformation.zipcode || user.postalCode ? `, ${user.companyInformation.zipcode || user.postalCode}` : ''}<br>
                 </div>
               </div>
               <div class="invoice-details">
-                <div><strong>Order No.</strong> ${order.orderNumber}</div>
-                <div><strong>Invoice No.</strong> ${order._id.toString().slice(-5).toUpperCase()}</div>
+                <div><strong>Order No.</strong> ${order.orderNumber || order.id || 'N/A'}</div>
+                <div><strong>Invoice No.</strong> ${order.invoiceNumber || order._id?.toString().slice(-5).toUpperCase() || 'N/A'}</div>
                 <div><strong>Date:</strong> ${orderDate}</div>
               </div>
             </div>
@@ -346,14 +347,21 @@ export class InvoiceService {
                 </tr>
               </thead>
               <tbody>
-                ${order.items.map((item: any) => `
+                ${order.items && order.items.length > 0 ? order.items.map((item: any) => `
                   <tr>
-                    <td class="item-description">${item.productName}</td>
-                    <td class="quantity">${item.quantity}</td>
-                    <td class="unit-price">$${item.unitPrice || (item.totalPrice / item.quantity).toFixed(2)}</td>
-                    <td class="total">$${item.totalPrice.toFixed(2)}</td>
+                    <td class="item-description">${item.productName || item.name || item.title || 'Product'}</td>
+                    <td class="quantity">${item.quantity || 1}</td>
+                    <td class="unit-price">$${(item.unitPrice || item.price || (item.totalPrice / (item.quantity || 1))).toFixed(2)}</td>
+                    <td class="total">$${(item.totalPrice || item.price || item.unitPrice || 0).toFixed(2)}</td>
                   </tr>
-                `).join('')}
+                `).join('') : `
+                  <tr>
+                    <td class="item-description">No items found</td>
+                    <td class="quantity">0</td>
+                    <td class="unit-price">$0.00</td>
+                    <td class="total">$0.00</td>
+                  </tr>
+                `}
               </tbody>
             </table>
             
@@ -376,7 +384,7 @@ export class InvoiceService {
             <!-- Footer -->
             <div class="footer">
               <div class="footer-company">
-                ${companyInfo.name.toUpperCase()}
+                CHANDRA
                 <span class="subtitle">JEWELS</span>
               </div>
               <div class="footer-info">

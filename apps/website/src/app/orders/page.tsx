@@ -24,6 +24,7 @@ export default function OrdersPage() {
   const [processingPayment, setProcessingPayment] = useState(false);
   const paypalButtonRef = useRef<HTMLDivElement>(null);
   const countdownRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const handleAutoCancelOrderRef = useRef<((orderId: string) => Promise<void>) | null>(null);
   const [currentPageState, setCurrentPageState] = useState(1);
   const [isMobile, setIsMobile] = useState(false);
   const [isClient, setIsClient] = useState(false);
@@ -38,16 +39,83 @@ export default function OrdersPage() {
   const { orders, isLoading: ordersLoading, error: ordersError, mutate: mutateOrders } = useCompletedOrders();
   const { orders: allOrders, isLoading: allOrdersLoading, error: allOrdersError, mutate: mutateAllOrders } = useAllOrders();
 
-  // Process pending orders from SWR data
-  const processPendingOrders = useCallback(() => {
-    if (!allOrders) return;
+  const handleAutoCancelOrder = useCallback(async (orderId: string) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/orders/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Remove from pending orders and refresh
+        setPendingOrders(prev => prev.filter(order => order._id !== orderId));
+        mutateOrders();
+        mutateAllOrders(); // Refresh to update completed orders if any
+      }
+    } catch (error) {
+      console.error('Error auto-cancelling order:', error);
+    }
+  }, [mutateOrders, mutateAllOrders]);
+
+  // Update the ref whenever handleAutoCancelOrder changes
+  useEffect(() => {
+    handleAutoCancelOrderRef.current = handleAutoCancelOrder;
+  }, [handleAutoCancelOrder]);
+
+  const startCountdownTimer = useCallback((orderId: string) => {
+    // Clear existing timer if any
+    if (countdownRefs.current.has(orderId)) {
+      clearInterval(countdownRefs.current.get(orderId)!);
+    }
+
+    const timer = setInterval(() => {
+      setPendingOrders(prev => {
+        const updated = prev.map(order => {
+          if (order._id === orderId) {
+            const newTimeRemaining = order.timeRemaining - 1;
+            const isExpired = newTimeRemaining <= 0;
+            
+            if (isExpired) {
+              // Auto-cancel expired order using ref
+              if (handleAutoCancelOrderRef.current) {
+                handleAutoCancelOrderRef.current(orderId);
+              }
+              clearInterval(timer);
+              countdownRefs.current.delete(orderId);
+            }
+            
+            return {
+              ...order,
+              timeRemaining: newTimeRemaining,
+              isExpired
+            };
+          }
+          return order;
+        });
+        return updated;
+      });
+    }, 1000);
+
+    countdownRefs.current.set(orderId, timer);
+  }, []);
+
+  // Memoize processed pending orders to prevent unnecessary recalculations
+  const processedPendingOrders = useMemo(() => {
+    if (!allOrders) return [];
 
     // Process pending orders and filter out already expired ones
     const pending = allOrders.filter((order: Order) => 
       order.status === 'pending' && order.paymentStatus === 'pending'
     );
 
-    const processedPendingOrders = pending.map((order: Order): PendingOrder => {
+    return pending.map((order: Order): PendingOrder => {
       const createdAt = new Date(order.createdAt).getTime();
       const now = Date.now();
       const elapsedSeconds = Math.floor((now - createdAt) / 1000);
@@ -60,6 +128,11 @@ export default function OrdersPage() {
         isExpired
       };
     });
+  }, [allOrders, PAYMENT_TIMEOUT_SECONDS]);
+
+  // Process pending orders from SWR data
+  const processPendingOrders = useCallback(() => {
+    if (!processedPendingOrders.length) return;
 
     // Filter out already expired orders from pending display
     const activePendingOrders = processedPendingOrders.filter((order: PendingOrder) => !order.isExpired);
@@ -72,11 +145,11 @@ export default function OrdersPage() {
 
     // Auto-cancel any expired orders that are still in the database
     processedPendingOrders.forEach((order: PendingOrder) => {
-      if (order.isExpired) {
-        handleAutoCancelOrder(order._id);
+      if (order.isExpired && handleAutoCancelOrderRef.current) {
+        handleAutoCancelOrderRef.current(order._id);
       }
     });
-  }, [allOrders, PAYMENT_TIMEOUT_SECONDS]);
+  }, [processedPendingOrders, startCountdownTimer]);
 
   useEffect(() => {
     if (user) {
@@ -165,68 +238,6 @@ export default function OrdersPage() {
       window.removeEventListener('paypal-payment-cancelled', handlePayPalPaymentCancelled as EventListener);
       window.removeEventListener('paypal-payment-error', handlePayPalPaymentError as EventListener);
     };
-  }, [mutateOrders, mutateAllOrders]);
-
-
-
-  const startCountdownTimer = useCallback((orderId: string) => {
-    // Clear existing timer if any
-    if (countdownRefs.current.has(orderId)) {
-      clearInterval(countdownRefs.current.get(orderId)!);
-    }
-
-    const timer = setInterval(() => {
-      setPendingOrders(prev => {
-        const updated = prev.map(order => {
-          if (order._id === orderId) {
-            const newTimeRemaining = order.timeRemaining - 1;
-            const isExpired = newTimeRemaining <= 0;
-            
-            if (isExpired) {
-              // Auto-cancel expired order
-              handleAutoCancelOrder(orderId);
-              clearInterval(timer);
-              countdownRefs.current.delete(orderId);
-            }
-            
-            return {
-              ...order,
-              timeRemaining: newTimeRemaining,
-              isExpired
-            };
-          }
-          return order;
-        });
-        return updated;
-      });
-    }, 1000);
-
-    countdownRefs.current.set(orderId, timer);
-  }, []);
-
-  const handleAutoCancelOrder = useCallback(async (orderId: string) => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      if (!token) return;
-
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-      const response = await fetch(`${API_URL}/api/orders/orders/${orderId}/cancel`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        // Remove from pending orders and refresh
-        setPendingOrders(prev => prev.filter(order => order._id !== orderId));
-        mutateOrders();
-      mutateAllOrders(); // Refresh to update completed orders if any
-      }
-    } catch (error) {
-      console.error('Error auto-cancelling order:', error);
-    }
   }, [mutateOrders, mutateAllOrders]);
 
   const handleCompletePayment = async (order: PendingOrder) => {
