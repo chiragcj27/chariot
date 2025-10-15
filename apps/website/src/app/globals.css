@@ -193,6 +193,18 @@ html {
   -ms-overflow-style: none; /* Internet Explorer 10+ */
 }
 
+html, body {
+  overscroll-behavior: none;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow-x: hidden;
+  background-color: #FEFCFB; /* or your dark background color */
+}
+
 html::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }

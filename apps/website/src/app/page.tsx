@@ -5,7 +5,7 @@ import SubscriptionCards from "@/components/SubscriptionCards";
 
 export default function Home() {
   return (
-    <div>
+    <>
       <div className="px-5 sm:px-8 md:px-12 lg:px-16 xl:px-24"> {/* Responsive margins: 20px -> 32px -> 48px -> 64px -> 96px */}
       {/* Hero Section */}
       <div className="flex flex-col pt-5 sm:pt-15 md:pt-24 lg:pt-28 xl:pt-32 pb-8 sm:pb-10 md:pb-12 lg:pb-14 xl:pb-16 gap-4 sm:gap-5 md:gap-6 lg:gap-6 xl:gap-7">
@@ -91,6 +91,6 @@ export default function Home() {
       {/* Subscription Plans Section */}
       <SubscriptionCards />
     
-    </div>
+    </>
   );
 }

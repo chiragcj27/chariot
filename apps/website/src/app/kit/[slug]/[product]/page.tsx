@@ -210,10 +210,10 @@ export default function KitProductDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-[#FEFCFB]">
-      <div className="container mx-auto px-4 py-8">
-        <div className="lg:mt-5 lg:mx-15 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+      <div className="container mx-auto px-2 py-8">
+        <div className="lg:mt-5 lg:mx-5 grid grid-cols-1 lg:grid-cols-10 gap-8 lg:gap-12">
           {/* Left Section - Image Carousel */}
-          <div className="relative">
+          <div className="w-full lg:col-span-6">
             <div
               className="relative overflow-hidden  bg-gray-100"
               style={{ aspectRatio: "1/1" }}
@@ -293,7 +293,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
           </div>
 
           {/* Right Section - Product Information */}
-          <div className="flex flex-col justify-center">
+          <div className="flex flex-col justify-center w-full lg:col-span-4">
             <h1 className="text-4xl font-balgin-regular lg:text-[32px] text-black">
               {product.name}
             </h1>

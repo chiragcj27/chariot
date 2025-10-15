@@ -1,22 +1,42 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, Fragment } from "react";
+import { useEffect, useState, useRef, Fragment } from "react";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from "@/contexts/CartContext";
 import UserProfileDropdown from './UserProfileDropdown';
 import { useStore } from "@/store/store";
 import { useMenuStructure, type CategoryItem } from "@/hooks/useCategories";
-import { useScrollDetection } from "@/hooks/useScrollDetection";
 
 export default function NavBar() {
   const { isMenuOpen, setIsMenuOpen } = useStore();
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const { getTotalItems } = useCart();
-  const isScrolled = useScrollDetection(50); // Change logo after 50px scroll
+  const [isScrolled, setIsScrolled] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   // Use SWR hook to fetch categories
   const { categories } = useMenuStructure();
+
+  // Detect scroll via IntersectionObserver so it works with html/body height:100%
+  useEffect(() => {
+    if (!sentinelRef.current || typeof window === 'undefined') return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        setIsScrolled(!entry.isIntersecting);
+      },
+      {
+        root: null,
+        rootMargin: "-50px 0px 0px 0px",
+        threshold: 0,
+      }
+    );
+
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -75,7 +95,7 @@ export default function NavBar() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="absolute inset-0"
                     >
-                      <h1 className="text-[#FA7035] text-[20px] sm:text-[15px] sm:mt-6.5 mt-5  font-medium font-balgin-light whitespace-nowrap">THE CHARIOT</h1>
+                      <h1 className="text-[#FA7035] text-[20px] sm:text-[17px] sm:mt-6 mt-5 font-medium font-balgin-light whitespace-nowrap">THE CHARIOT</h1>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -152,6 +172,8 @@ export default function NavBar() {
       </nav>
       {/* Spacer to account for fixed navbar */}
       <div className="h-[clamp(3.5rem,8vw,4rem)]"></div>
+      {/* Sentinel: becomes non-intersecting after ~50px scroll */}
+      <div ref={sentinelRef} className="h-px w-px pointer-events-none" aria-hidden="true" />
       {/* Mobile Menu (dropdown style) */}
       {isMenuOpen && (
         <div className="fixed inset-0 z-50 bg-gradient-to-b from-[#CFDAE9] to-white flex flex-col lg:hidden transition-all duration-500 ease-in-out">

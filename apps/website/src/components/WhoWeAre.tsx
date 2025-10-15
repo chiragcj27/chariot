@@ -16,7 +16,7 @@ const images = [
   {
     src: img1,
     alt: "Mark Samuels Jwellers",
-    caption: "App Design",
+    caption: "Social Media Content",
     w: 584,
     h: 723,
   },
@@ -28,18 +28,11 @@ const images = [
     h: 548
   },
   {
-    src: img2,
-    caption: "Mother's Day Flyer",
-    alt: "Mother's Day Flyer",
-    w: 584,
-    h: 723
-  } ,
-  {
     src: img4,
     alt: "Orly Diamonds Ring Box",
     caption: "Orly Diamonds Ring Box",
-    w: 710,
-    h: 595
+    w: 900,
+    h: 700
   },
   {
     src: img5,
@@ -49,13 +42,6 @@ const images = [
     h: 905
   },
   {
-    src: img6,
-    alt: "Photography",
-    caption: "Photography",
-    w: 584,
-    h: 723
-  },
-  {
     src: img7,
     alt: "Website Design",
     caption: "Website Design",
@@ -63,12 +49,27 @@ const images = [
     h: 548
   },
   {
+    src: img2,
+    caption: "Mother's Day Flyer",
+    alt: "Mother's Day Flyer",
+    w: 584,
+    h: 723
+  } ,
+  {
     src: img8,
     alt: "Diamonds Club",
-    caption: "Diamonds Club",
+    caption: "Chandra Facet",
     w: 710,
     h: 595,
   },
+  {
+    src: img6,
+    alt: "Photography",
+    caption: "Photography",
+    w: 584,
+    h: 723
+  },
+
   {
     src: img9,
     alt: "Blig Craft Packaging",
