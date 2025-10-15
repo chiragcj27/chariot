@@ -169,12 +169,12 @@ export default function ProductPage({ params }: ProductPageProps) {
   return (
     <div className="min-h-screen bg-[#FEFCFB]">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
-        <div className="mt-8 sm:mt-12 lg:mt-16 xl:mt-20 grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
+        <div className="mt-8 sm:mt-12 lg:mt-5 grid grid-cols-1 lg:grid-cols-10 gap-6 sm:gap-8 lg:gap-12">
           {/* Left Section - Image Carousel or Flipbook */}
-          <div className="relative w-full">
+          <div className="relative w-full lg:col-span-6">
             <div
-              className="relative overflow-hidden rounded-lg bg-gray-100 w-full"
-              style={{ aspectRatio: "3/2" }}
+              className="relative overflow-hidden bg-gray-100 w-full"
+              style={{ aspectRatio: "1/1" }}
             >
               {showFlipbook ? (
                 // Flipbook Display
@@ -259,7 +259,7 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
 
           {/* Right Section - Product Information */}
-          <div className="flex flex-col justify-center mt-6 lg:mt-0">
+          <div className="flex flex-col justify-center mt-6 lg:mt-0 lg:col-span-4">
             {/* Product Title */}
             <h1 className="text-2xl sm:text-3xl lg:text-4xl xl:text-[32px] font-balgin-regular text-black leading-tight">
               {product.name}
@@ -301,7 +301,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       </div>
 
       {/* What's Included Points Section */}
-      <section className="relative px-4 sm:px-6 md:px-10 lg:px-16 xl:px-18 pb-12 sm:pb-16 mt-12 sm:mt-16 lg:mt-20">
+      <section className="relative px-4 sm:px-6 md:px-10 lg:px-16 xl:px-18 pb-12 sm:pb-16 mt-12 sm:mt-16 lg:mt-5">
         {/* Background color using product.kitColorHex (fallback to theme color) */}
         <div className="absolute bg-[#CFDAE9] inset-0" />
 

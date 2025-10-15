@@ -111,7 +111,7 @@ export default function KitPage({ params }: KitPageProps) {
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <div className="relative w-full min-h-screen pb-40 md:pb-0 overflow-hidden">
+      <div className="relative w-full min-h-screen md:pb-[40vw] lg:pb-0 overflow-hidden">
         <div className="relative flex flex-col md:flex-row w-full min-h-[85vh] ">
           {/* MainIMG */}
           <div className="absolute left-0 top-0 md:w-[42%] w-[100%] z-10">
@@ -166,7 +166,7 @@ export default function KitPage({ params }: KitPageProps) {
           </div>
           {/* Info */}
           <div className="absolute top-[calc(130vw)] px-6 md:px-0 w-full md:left-[calc(57vw)] md:w-[30%] md:top-[calc(15vw)] md:flex flex-col items-start">
-            <div className="rounded py-3 w-full mb-[calc(0.5vw)] ">
+            <div className="rounded py-3 w-full mb-[calc(0.5vw)]">
               <div className="md:text-[calc(3vw)] text-[calc(10vw)] md:leading-[calc(3vw)] leading-[calc(10vw)] text-[#FA7035] font-balgin-regular mb-4">
                 {kit.title.split(' ')[0]}
                 <br />
@@ -197,8 +197,8 @@ export default function KitPage({ params }: KitPageProps) {
       </div>  
 
       {/* Pack Selection */}
-      <div className='absolute md:top-[50vw] top-[185vw] w-full'>
-        <div id="pack-selection" className=" flex flex-row py-5 items-center justify-center md:justify-start gap-4 px-5 md:px-10 lg:px-18 mt-12 md:mt-16 lg:mt-20"
+      <div className='w-full md:mt-1'>
+        <div id="pack-selection" className=" flex flex-row items-center justify-center md:justify-start gap-4 px-5 md:px-10 lg:px-18 md:mt-8 lg:mt-12"
         >
           <button
             className={`border-2 border-[#FCA17A] rounded-lg hover:bg-[#FFC1A0] md:text-[calc(1.2vw)] text-[calc(4vw)] text-black px-6 py-2 transition-colors shadow mb-2 ${selectedPack === 'premium'
