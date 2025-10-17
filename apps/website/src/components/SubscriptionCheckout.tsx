@@ -143,28 +143,28 @@ export default function SubscriptionCheckout({
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="font-semibold">Price:</span>
-                  <span className="text-lg font-bold text-[#FA7035]">
+                  <span className="text-lg font-bold text-sunrise">
                     {plan.price}{plan.period}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Credits:</span>
-                  <span className="text-green-600 font-semibold">
+                  <span className="text-[#FA7035] font-semibold">
                     +{plan.credits.toFixed(2)} credits
                   </span>
                 </div>
               </div>
 
-              <div className="bg-blue-50 rounded-lg p-4 mb-4">
+              <div className="bg-[#CFDAE9] rounded-lg p-4 mb-4">
                 <div className="flex justify-between items-center">
                   <span className="font-semibold">Current Credits:</span>
-                  <span className="text-blue-600 font-semibold">
+                  <span className="text-gray-700 font-semibold">
                     {(user?.credits || 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center mt-1">
                   <span className="font-semibold">After Purchase:</span>
-                  <span className="text-green-600 font-semibold">
+                  <span className="text-[#FA7035] font-semibold">
                     {((user?.credits || 0) + plan.credits).toFixed(2)}
                   </span>
                 </div>
@@ -185,7 +185,7 @@ export default function SubscriptionCheckout({
             <button
               onClick={handleClose}
               disabled={loading}
-              className="w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-white text-gray-700 border-sunrise border-2 hover:bg-sunrise py-2 px-4 rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
@@ -212,8 +212,8 @@ export default function SubscriptionCheckout({
 
         {step === 'success' && (
           <div className="text-center py-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-16 h-16 bg-sunrise/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-sunrise" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -223,8 +223,8 @@ export default function SubscriptionCheckout({
             <p className="text-gray-600 mb-4">
               You&apos;ve been granted {plan.credits.toFixed(2)} credits to your account.
             </p>
-            <div className="bg-green-50 rounded-lg p-3">
-              <p className="text-green-700 text-sm">
+            <div className="bg-[#CFDAE9] rounded-lg p-3">
+              <p className="text-sunrise text-sm">
                 New credit balance: {((user?.credits || 0) + plan.credits).toFixed(2)}
               </p>
             </div>

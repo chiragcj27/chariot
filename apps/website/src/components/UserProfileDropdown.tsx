@@ -12,6 +12,7 @@ const UserProfileDropdown: React.FC = () => {
   const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const { setIsMenuOpen} = useStore();
+  const { isMenuOpen } = useStore();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -77,7 +78,7 @@ const UserProfileDropdown: React.FC = () => {
         className="flex items-center space-x-2 text-gray-700 hover:text-orange-400 focus:outline-none transition-colors duration-200"
         aria-label="User Profile"
       >
-        <div className="w-8 h-8 bg-[#FFBC9F] rounded-full flex items-center justify-center text-white font-semibold text-sm">
+        <div className={`w-8 h-8 ${isMenuOpen ? 'bg-[#FFFFFF]' : 'bg-[#FFBC9F]'} rounded-full flex items-center justify-center ${isMenuOpen ? 'text-black' : 'text-white'} font-semibold text-sm`}>
           {user.name.charAt(0).toUpperCase()}
         </div>
         <svg 
@@ -95,7 +96,7 @@ const UserProfileDropdown: React.FC = () => {
           {/* User Info */}
           <div className="px-4 py-3 border-b border-gray-100">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-[#FFBC9F] rounded-full flex items-center justify-center text-white font-semibold">
+              <div className={`w-10 h-10 ${isMenuOpen ? 'bg-[#FFFFFF]' : 'bg-[#FFBC9F]'} rounded-full flex items-center justify-center text-white font-semibold`}>
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div>

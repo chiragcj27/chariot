@@ -16,7 +16,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (userAccountId: string, password: string) => Promise<boolean>;
-  register: (buyerData: BuyerRegistrationData) => Promise<boolean>;
+  register: (buyerData: BuyerRegistrationData) => Promise<{ success: true } | { success: false; status?: number; message?: string }>;
   logout: () => void;
   updateCredits: (newCredits: number) => void;
   updateUser: (userData: Partial<User>) => void;
@@ -142,7 +142,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (buyerData: BuyerRegistrationData): Promise<boolean> => {
+  const register = async (
+    buyerData: BuyerRegistrationData
+  ): Promise<{ success: true } | { success: false; status?: number; message?: string }> => {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       const response = await fetch(`${API_URL}/api/buyers/register`, {
@@ -155,14 +157,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (response.ok) {
         // Registration successful but no automatic login since approval is required
-        return true;
+        return { success: true };
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Registration failed');
+        let message: string | undefined;
+        try {
+          const errorData = await response.json();
+          message = errorData?.message;
+        } catch (_) {
+          // ignore json parse error
+        }
+        return { success: false, status: response.status, message: message || 'Registration failed' };
       }
     } catch (error) {
       console.error('Registration error:', error);
-      return false;
+      return { success: false, message: 'Network error. Please try again.' };
     }
   };
 

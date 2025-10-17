@@ -73,7 +73,7 @@ const images = [
   {
     src: img9,
     alt: "Blig Craft Packaging",
-    caption: "Blig Craft Packaging",
+    caption: "Bling Craft Packaging",
     w: 710,
     h: 595
   }

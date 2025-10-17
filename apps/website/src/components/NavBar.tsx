@@ -95,7 +95,7 @@ export default function NavBar() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="absolute inset-0"
                     >
-                      <h1 className="text-[#FA7035] text-[20px] sm:text-[17px] sm:mt-6 mt-5 font-medium font-balgin-light whitespace-nowrap">THE CHARIOT</h1>
+                      <h1 className="text-[#FA7035] text-[20px] sm:text-[17px] sm:mt-[1.45rem] mt-5 font-medium font-balgin-light whitespace-nowrap">THE CHARIOT</h1>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -128,10 +128,15 @@ export default function NavBar() {
             </button> */}
             {/* Cart Icon */}
             <Link href="/cart" onClick={() => setIsMenuOpen(false)} className="group relative text-gray-700 group-hover:text-[#FA7035] focus:outline-none transition-colors duration-200">
+            {!isMenuOpen ? (
               <svg width="30" height="27" viewBox="0 0 30 27" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M8.6001 17.1501H23.0001C23.8801 17.1501 24.6001 17.8476 24.6001 18.7001C24.6001 19.5526 23.8801 20.2501 23.0001 20.2501H7.0001C6.1201 20.2501 5.4001 19.5526 5.4001 18.7001V3.2001H2.2001C1.3201 3.2001 0.600098 2.5026 0.600098 1.6501C0.600098 0.797598 1.3201 0.100098 2.2001 0.100098H7.0001C7.8801 0.100098 8.6001 0.797598 8.6001 1.6501V4.7501H29.4001L23.0001 15.6001H8.6001V17.1501ZM7.8001 21.8001C9.1281 21.8001 10.2001 22.8386 10.2001 24.1251C10.2001 25.4116 9.1281 26.4501 7.8001 26.4501C6.4721 26.4501 5.4001 25.4116 5.4001 24.1251C5.4001 22.8386 6.4721 21.8001 7.8001 21.8001ZM22.2001 21.8001C23.5281 21.8001 24.6001 22.8386 24.6001 24.1251C24.6001 25.4116 23.5281 26.4501 22.2001 26.4501C20.8721 26.4501 19.8001 25.4116 19.8001 24.1251C19.8001 22.8386 20.8721 21.8001 22.2001 21.8001Z" fill="#FFCCB6"/>
               </svg>
-
+            ) : (
+              <svg width="30" height="27" viewBox="0 0 30 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8.6001 17.1501H23.0001C23.8801 17.1501 24.6001 17.8476 24.6001 18.7001C24.6001 19.5526 23.8801 20.2501 23.0001 20.2501H7.0001C6.1201 20.2501 5.4001 19.5526 5.4001 18.7001V3.2001H2.2001C1.3201 3.2001 0.600098 2.5026 0.600098 1.6501C0.600098 0.797598 1.3201 0.100098 2.2001 0.100098H7.0001C7.8801 0.100098 8.6001 0.797598 8.6001 1.6501V4.7501H29.4001L23.0001 15.6001H8.6001V17.1501ZM7.8001 21.8001C9.1281 21.8001 10.2001 22.8386 10.2001 24.1251C10.2001 25.4116 9.1281 26.4501 7.8001 26.4501C6.4721 26.4501 5.4001 25.4116 5.4001 24.1251C5.4001 22.8386 6.4721 21.8001 7.8001 21.8001ZM22.2001 21.8001C23.5281 21.8001 24.6001 22.8386 24.6001 24.1251C24.6001 25.4116 23.5281 26.4501 22.2001 26.4501C20.8721 26.4501 19.8001 25.4116 19.8001 24.1251C19.8001 22.8386 20.8721 21.8001 22.2001 21.8001Z" fill="#FFFFFF"/>
+              </svg>
+            )}
               {getTotalItems() > 0 && (
                 <span className={`absolute -top-2 -right-2 bg-[#FCA17A] group-hover:bg-orange-400 ${isMenuOpen ? 'text-black' : 'text-white'} text-[clamp(0.625rem,1.5vw,0.75rem)] rounded-full h-[clamp(1rem,2.5vw,1.25rem)] w-[clamp(1rem,2.5vw,1.25rem)] flex items-center justify-center min-w-[1rem] min-h-[1rem]`}>
                   {getTotalItems()}

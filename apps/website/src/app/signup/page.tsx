@@ -39,6 +39,7 @@ export default function SignupPage() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [inlineConflict, setInlineConflict] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   const { register } = useAuth();
@@ -48,6 +49,7 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setInlineConflict(null);
 
     try {
       // Clean up telephone and fax arrays (remove empty strings)
@@ -65,14 +67,18 @@ export default function SignupPage() {
         },
       };
 
-      const success = await register(cleanedData);
-      if (success) {
+      const result = await register(cleanedData);
+      if (result.success) {
         setSuccess(true);
         setTimeout(() => {
           router.push('/login');
         }, 3000);
       } else {
-        setError('Registration failed. Please try again.');
+        if (result.status === 409) {
+          setInlineConflict('An account with this email already exists. Would you like to log in instead?');
+        } else {
+          setError(result.message || 'Registration failed. Please try again.');
+        }
       }
     } catch (error) {
       setError('An error occurred. Please try again.');
@@ -191,7 +197,7 @@ export default function SignupPage() {
             <Image src="/chariot.svg" alt="The Chariot Logo" width={100} height={100} />
           </Link>
         </div> */}
-        <h2 className="mt-6 text-center text-2xl sm:text-3xl font-extrabold text-white">
+        <h2 className="mt-6 text-center text-2xl sm:text-3xl font-primary font-bold text-white">
           CREATE A NEW ACCOUNT
         </h2>
         {/* <p className="mt-2 text-center text-sm text-gray-200">
@@ -302,7 +308,7 @@ export default function SignupPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Website URL *</label>
                   <input
-                    type="url"
+                    type="text"
                     value={formData.companyInformation.websiteUrl}
                     onChange={(e) => handleInputChange('companyInformation', 'websiteUrl', e.target.value)}
                     required
@@ -526,6 +532,12 @@ export default function SignupPage() {
               >
                 Cancel
               </Link>
+              {inlineConflict && (
+                <div className="sm:flex-1 flex items-center text-sm text-red-700 bg-red-50 px-3 py-2 rounded-md">
+                  <span className="mr-2">{inlineConflict}</span>
+                  <Link href="/login" className="underline font-medium text-red-800 hover:text-red-900">Go to Login</Link>
+                </div>
+              )}
               <button
                 type="submit"
                 disabled={loading}

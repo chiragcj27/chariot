@@ -1,34 +1,83 @@
+'use client';
+import Image from 'next/image';
+import { useState } from 'react';
+
 export default function AboutPage() {
+  const [activeSection, setActiveSection] = useState('about-us');
+
+  const sections = [
+    { id: 'about-us', label: 'ABOUT US' },
+    { id: 'what-we-do', label: 'WHAT WE DO' },
+    { id: 'our-approach', label: 'OUR APPROACH' },
+    { id: 'why-us', label: 'WHY US' }
+  ];
+
+  const scrollToSection = (sectionId: string) => {
+    setActiveSection(sectionId);
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen">
       {/* About Us Header Section */}
-      <div className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24 py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20 2xl:py-24">
-        <div className="max-w-7xl mx-auto">
-          {/* Main Heading */}
-          <div className="text-center mb-6 sm:mb-8 md:mb-12 lg:mb-16">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl font-bold text-[#E68A4B] mb-3 sm:mb-4 md:mb-6 lg:mb-8 leading-tight">
-              ABOUT US
-            </h1>
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold text-black mb-4 sm:mb-6 md:mb-8 lg:mb-10 leading-tight">
-              Built for exclusively jewelry brands
-            </h2>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black leading-relaxed max-w-4xl mx-auto px-4">
-              Chariot is a full-service creative agency dedicated to the world of jewelry. We understand the craftsmanship, precision, and pace that define this industry and we bring that same attention to detail to every brand we build. Our work bridges creativity with commerce, helping jewelry businesses strengthen their identity, expand visibility, and accelerate sales through strategic design and marketing.
-            </p>
+      <div id="about-us" className="px-5 sm:px-8 md:px-12 lg:px-16 xl:px-24 py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20 2xl:py-24">
+        <div className="grid grid-cols-1 lg:grid-cols-10 gap-8 lg:gap-16">
+          {/* Left Column - Navigation Menu */}
+          <div className="hidden lg:block col-span-1 lg:col-span-3">
+            <div className="flex flex-col space-y-4 max-w-[200px]">
+              {sections.map((section) => (
+                <button
+                  key={section.id}
+                  onClick={() => scrollToSection(section.id)}
+                  className={`text-[16px] font-secondary uppercase text-left transition-colors duration-200 hover:text-[#FA7035] ${
+                    activeSection === section.id
+                      ? 'font-bold text-black border-b-2 border-black pb-2'
+                      : 'font-normal text-gray-500'
+                  }`}
+                >
+                  {section.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Right Column - Main Content */}
+          <div className="ml-0 lg:ml-20 col-span-1 lg:col-span-7">
+            <div className="space-y-6 ">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#FA7035] font-balgin-light uppercase tracking-wide">
+                ABOUT US
+              </h1>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-black">
+                Built for exclusively jewelry brands
+              </h2>
+              <p className="text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed max-w-4xl">
+                Chariot is a full-service creative agency dedicated to the world of jewelry. We understand the craftsmanship, precision, and pace that define this industry and we bring that same attention to detail to every brand we build. Our work bridges creativity with commerce, helping jewelry businesses strengthen their identity, expand visibility, and accelerate sales through strategic design and marketing.
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Hero Image Placeholder */}
-      <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[600px] bg-[#E0E0E0] mb-6 sm:mb-8 md:mb-12 lg:mb-16 xl:mb-20 2xl:mb-24"></div>
+      {/* Hero Image */}
+      <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[600px] mb-6 sm:mb-8 md:mb-12 lg:mb-16 xl:mb-20 2xl:mb-24 relative">
+        <Image 
+          src="/hero-about.png" 
+          alt="Jewelry design workspace showing hands sketching jewelry designs with diamond rings and tennis bracelet" 
+          fill
+          className="object-cover object-center"
+          priority
+        />
+      </div>
 
       {/* What We Do Section */}
-      <div className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24 py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20 2xl:py-24">
-        <div className="max-w-7xl mx-auto">
+      <div id="what-we-do" className="py-6 sm:py-8">
+        <div className="max-w-full mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 lg:gap-16 xl:gap-20 2xl:gap-24 items-center">
             {/* Left Column - Text */}
-            <div className="space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-10">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-[#E68A4B] leading-tight">
+            <div className="lg:px-20 px-5 md:px-10 space-y-4 sm:space-y-6 md:space-y-8">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold text-[#FA7035] font-balgin-light leading-tight">
                 What We Do
               </h2>
               <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black leading-relaxed">
@@ -60,24 +109,38 @@ export default function AboutPage() {
                 </ul>
               </div>
             </div>
-            {/* Right Column - Placeholder Image */}
-            <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[600px] bg-[#E0E0E0]"></div>
+            {/* Right Column - What We Do Image */}
+            <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[600px] relative">
+              <Image 
+                src="/what-we-do.png" 
+                alt="Professional jewelry photography setup showing camera with diamond lion pendant on screen" 
+                fill
+                className="object-cover object-center"
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Our Approach Section */}
-      <div className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24 py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20 2xl:py-24">
-        <div className="max-w-7xl mx-auto">
+      <div id="our-approach" className="py-6 sm:py-8">
+        <div className="max-w-full mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 lg:gap-16 xl:gap-20 2xl:gap-24 items-center">
-            {/* Left Column - Placeholder Image */}
-            <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[600px] bg-[#E0E0E0] order-2 lg:order-1"></div>
+            {/* Left Column - Our Approach Image */}
+            <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[600px] relative order-2 lg:order-1">
+              <Image 
+                src="/our-approach.png" 
+                alt="Multi-device showcase of THE ICE CHAMP jewelry website across smartphone, tablet, and laptop" 
+                fill
+                className="object-contain object-center"
+              />
+            </div>
             {/* Right Column - Text */}
-            <div className="space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-10 order-1 lg:order-2">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-[#E68A4B] leading-tight">
+            <div className="max-w-[600px] space-y-4 sm:space-y-6 order-1 lg:order-2">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold text-[#FA7035] font-balgin-light leading-tight">
                 Our Approach
               </h2>
-              <div className="space-y-4 sm:space-y-6 md:space-y-8">
+              <div className="space-y-4 sm:space-y-6">
                 <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black leading-relaxed">
                   We bring together creative direction, strategy, and storytelling to deliver measurable impact.
                 </p>
@@ -91,12 +154,12 @@ export default function AboutPage() {
       </div>
 
       {/* Why Us Section */}
-      <div className="px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 2xl:px-24 py-6 sm:py-8 md:py-12 lg:py-16 xl:py-20 2xl:py-24">
-        <div className="max-w-7xl mx-auto">
+      <div id="why-us" className="py-6 sm:py-8">
+        <div className="max-w-full mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 lg:gap-16 xl:gap-20 2xl:gap-24 items-center">
             {/* Left Column - Text */}
-            <div className="space-y-4 sm:space-y-6 md:space-y-8 lg:space-y-10">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-[#E68A4B] leading-tight">
+            <div className="lg:px-20 px-5 md:px-10 max-w-[800px] space-y-4 sm:space-y-6">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold text-[#FA7035] font-balgin-light leading-tight">
                 Why Us
               </h2>
               <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black leading-relaxed">
@@ -106,8 +169,15 @@ export default function AboutPage() {
                 We build brands that don&apos;t just compete, they lead.
               </p>
             </div>
-            {/* Right Column - Placeholder Image */}
-            <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[600px] bg-[#E0E0E0]"></div>
+             {/* Right Column - Why Us Image */}
+             <div className="w-full h-48 sm:h-64 md:h-80 lg:h-96 xl:h-[500px] 2xl:h-[600px] relative">
+               <Image 
+                 src="/why-us.png" 
+                 alt="Close-up of a diamond ring on a hand with a ring holder in the background" 
+                 fill
+                 className="object-contain object-center"
+               />
+             </div>
           </div>
         </div>
       </div>
