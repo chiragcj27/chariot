@@ -47,7 +47,19 @@ export class InvoiceService {
       console.warn('Unable to embed chariot logo:', logoError);
     }
 
-    const htmlContent = this.generateInvoiceHTML(invoiceData, embeddedLogoDataUrl);
+    // Resolve Chandra logo from website public folder and embed as data URL
+    let embeddedChandraLogoDataUrl: string | undefined;
+    try {
+      const chandraLogoPath = path.resolve(process.cwd(), '../website/public/chandra.png');
+      if (fs.existsSync(chandraLogoPath)) {
+        const imgBuffer = fs.readFileSync(chandraLogoPath);
+        embeddedChandraLogoDataUrl = `data:image/png;base64,${imgBuffer.toString('base64')}`;
+      }
+    } catch (logoError) {
+      console.warn('Unable to embed chandra logo:', logoError);
+    }
+
+    const htmlContent = this.generateInvoiceHTML(invoiceData, embeddedLogoDataUrl, embeddedChandraLogoDataUrl);
     
     try {
       // Launch Puppeteer (compatible with Linux/Render). Use env executable if provided.
@@ -84,7 +96,7 @@ export class InvoiceService {
   }
 
 
-  private generateInvoiceHTML(data: InvoiceData, logoDataUrl?: string): string {
+  private generateInvoiceHTML(data: InvoiceData, logoDataUrl?: string, chandraLogoDataUrl?: string): string {
     const { order, user, companyInfo } = data;
     
     // Format date
@@ -273,29 +285,28 @@ export class InvoiceService {
           /* Footer */
           .footer {
             margin-top: 60px;
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 20px;
             align-items: flex-end;
           }
           
           .footer-company {
-            font-size: 18px;
-            font-weight: bold;
-            color: #FA7035;
-            text-transform: uppercase;
+            grid-column: span 3;
+            text-align: left;
           }
           
-          .footer-company .subtitle {
-            font-size: 14px;
-            display: block;
-            margin-top: 2px;
-            font-weight: normal;
+          .footer-logo {
+            max-width: 150px;
+            height: auto;
+            object-fit: contain;
           }
           
           .footer-info {
+            grid-column: span 7;
             font-size: 12px;
             line-height: 1.4;
-            text-align: right;
+            text-align: left;
           }
           
           .footer-info div {
@@ -384,8 +395,10 @@ export class InvoiceService {
             <!-- Footer -->
             <div class="footer">
               <div class="footer-company">
-                CHANDRA
-                <span class="subtitle">JEWELS</span>
+                ${chandraLogoDataUrl 
+                  ? `<img class="footer-logo" src="${chandraLogoDataUrl}" alt="Chandra Jewels Logo" />`
+                  : `<div style="font-size: 18px; font-weight: bold; color: #FA7035; text-transform: uppercase;">CHANDRA<br><span style="font-size: 14px; font-weight: normal;">JEWELS</span></div>`
+                }
               </div>
               <div class="footer-info">
                 <div>${companyInfo.address}</div>

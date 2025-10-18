@@ -36,7 +36,7 @@ export default function CallToAction() {
             <span className=" lg:whitespace-nowrap">something<span className="text-sunrise"> exceptional</span></span>
           </h1>
           <p className="mt-[clamp(1.5rem,4vw,2rem)] font-secondary text-[clamp(1rem,2.5vw,1.25rem)] leading-7 text-left">
-          Whether you&apos;re refining a vision or starting from scratch — we&apos;re here to bring it to life.
+          Whether you&apos;re refining a vision or starting from scratch we&apos;re here to bring it to life.
           </p>
           <div className="grid grid-cols-2 gap-4 mt-10 max-w-full">
             <button 
