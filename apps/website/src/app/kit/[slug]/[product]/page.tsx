@@ -345,7 +345,7 @@ export default function KitProductDetailPage({ params }: PageProps) {
               {includedItems.map((item, idx) => (
                 <li key={idx} className="flex items-center py-2">
                   <span className="text-white mr-6 "><PlayIcon fill="white" className=" w-4 h-4 " /></span>
-                  <span className="text-lg font-semibold text-white uppercase">{item}</span>
+                  <span className="text-lg text-white uppercase">{item}</span>
                 </li>
               ))}
             </ul>

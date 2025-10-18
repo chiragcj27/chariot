@@ -5,8 +5,8 @@ export default function Terms() {
       {/* Terms Header Section */}
       <div className="px-5 sm:px-8 md:px-12 lg:px-16 py-6 sm:py-8">
         <div className="max-w-full mx-auto space-y-6">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#FA7035] font-balgin-light uppercase tracking-wide text-left">
-            TERMS AND CONDITIONS
+          <h1 className="text-3xl sm:text-4xl lg:text-[48px] font-bold text-[#FA7035] font-balgin-light uppercase tracking-wide text-left">
+            TERMS OF SERVICE
           </h1>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-black text-left">
             Welcome to Chariot

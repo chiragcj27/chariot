@@ -211,11 +211,11 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="text-right">
+            <div className="text-left -mt-4">
               <button
                 type="button"
                 onClick={handleForgotPassword}
-                className="text-sm 2xl:text-base text-orange-500 hover:text-orange-600"
+                className="text-[10px] 2xl:text-base  text-[#FA7035] hover:text-orange-600"
               >
                 Forgot Your Password?
               </button>
@@ -444,7 +444,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 2xl:space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 2xl:space-y-8">
               {renderForm()}
             </form>
           </div>

@@ -417,7 +417,7 @@ export default function CheckoutPage() {
                 <Calendar className="w-4 h-4 mr-2" />
                 {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
               </div>
-              <div className="px-3 py-1 bg-sunrise text-white rounded-lg text-xs sm:text-sm font-medium">
+              <div className="px-3 py-1 bg-black text-white rounded-lg text-xs sm:text-sm font-medium">
                 Payment Pending
               </div>
             </div>

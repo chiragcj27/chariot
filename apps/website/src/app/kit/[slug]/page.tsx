@@ -181,7 +181,11 @@ export default function KitPage({ params }: KitPageProps) {
                 const packSection =
                   document.getElementById('pack-selection');
                 if (packSection) {
-                  packSection.scrollIntoView({ behavior: 'smooth' });
+                  packSection.scrollIntoView({ 
+                    behavior: 'smooth',
+                    block: 'start',
+                    inline: 'nearest'
+                  });
                 }
               }}
               className="border-2 hidden md:block border-[#FCA17A] mt-1 rounded-md hover:bg-[#FFC1A0] text-[calc(1.2vw)] text-black px-8 py-1 transition-colors shadow mb-2"
@@ -198,7 +202,7 @@ export default function KitPage({ params }: KitPageProps) {
 
       {/* Pack Selection */}
       <div className='w-full md:mt-1'>
-        <div id="pack-selection" className=" flex flex-row items-center justify-center md:justify-start gap-4 px-5 md:px-10 lg:px-18 md:mt-8 lg:mt-12"
+        <div id="pack-selection" className=" flex flex-row items-center justify-center md:justify-start gap-4 px-5 md:px-10 lg:px-18 md:mt-8 lg:mt-12 scroll-mt-20"
         >
           <button
             className={`border-2 border-[#FCA17A] rounded-lg hover:bg-[#FFC1A0] md:text-[calc(1.2vw)] text-[calc(4vw)] text-black px-6 py-2 transition-colors shadow mb-2 ${selectedPack === 'premium'

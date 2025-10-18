@@ -40,13 +40,21 @@ export default function NavBar() {
 
   useEffect(() => {
     if (isMenuOpen) {
+      // Prevent body scroll when menu is open
       document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
     } else {
+      // Restore body scroll when menu is closed
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     }
     // Cleanup in case component unmounts while menu is open
     return () => {
       document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     };
   }, [isMenuOpen]);
 
@@ -181,7 +189,7 @@ export default function NavBar() {
       <div ref={sentinelRef} className="h-px w-px pointer-events-none" aria-hidden="true" />
       {/* Mobile Menu (dropdown style) */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-gradient-to-b from-[#CFDAE9] to-white flex flex-col lg:hidden transition-all duration-500 ease-in-out">
+        <div className="fixed inset-0 z-50 bg-gradient-to-b from-[#CFDAE9] to-white flex flex-col lg:hidden transition-all duration-500 ease-in-out overflow-hidden">
           {/* Close Button */}
           <button
             className="absolute top-4 right-4 z-60 w-8 h-8 flex items-center justify-center text-black hover:text-[#FA7035] transition-colors duration-200"
@@ -193,7 +201,7 @@ export default function NavBar() {
               <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
           </button>
-          <div className="flex flex-col mt-[clamp(5rem,12vw,6rem)] px-[clamp(1rem,4vw,2rem)] gap-[clamp(0.75rem,2vw,1rem)] overflow-y-auto">
+          <div className="flex flex-col mt-[clamp(5rem,12vw,6rem)] px-[clamp(1rem,4vw,2rem)] gap-[clamp(0.75rem,2vw,1rem)] overflow-y-auto flex-1">
             {categories.map((cat) => (
               <div key={cat._id}>
                 <button

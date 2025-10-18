@@ -76,18 +76,18 @@ export default function AboutPage() {
         <div className="max-w-full mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 lg:gap-16 xl:gap-20 2xl:gap-24 items-center">
             {/* Left Column - Text */}
-            <div className="lg:px-20 px-5 md:px-10 space-y-4 sm:space-y-6 md:space-y-8">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold text-[#FA7035] font-balgin-light leading-tight">
+            <div className="lg:px-20 px-5 md:px-10 space-y-4 sm:space-y-6">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold text-[#FA7035] font-balgin-light">
                 What We Do
               </h2>
-              <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black leading-relaxed">
+              <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black">
                 We create integrated creative and digital solutions designed specifically for jewelry brands, retailers, and manufacturers.
               </p>
-              <div className="space-y-3 sm:space-y-4 md:space-y-5">
-                <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-black">
+              <div className="">
+                <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black">
                   Our capabilities include:
                 </p>
-                <ul className="space-y-2 sm:space-y-3 md:space-y-4">
+                <ul className="">
                   <li className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-black">
                     • Branding & Identity Design
                   </li>
@@ -136,11 +136,11 @@ export default function AboutPage() {
               />
             </div>
             {/* Right Column - Text */}
-            <div className="max-w-[600px] space-y-4 sm:space-y-6 order-1 lg:order-2">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold text-[#FA7035] font-balgin-light leading-tight">
+            <div className="max-w-[600px] space-y-4 order-1 lg:order-2">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-bold text-[#FA7035] font-balgin-light">
                 Our Approach
               </h2>
-              <div className="space-y-4 sm:space-y-6">
+              <div className="">
                 <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-black leading-relaxed">
                   We bring together creative direction, strategy, and storytelling to deliver measurable impact.
                 </p>
