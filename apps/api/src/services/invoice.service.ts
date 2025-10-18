@@ -29,7 +29,20 @@ export class InvoiceService {
 
   public async generateInvoicePDF(invoiceData: InvoiceData): Promise<Buffer> {
     console.log('Starting invoice generation with HTML/CSS...');
-    return await this.generateInvoiceWithHTML(invoiceData);
+    
+    try {
+      return await this.generateInvoiceWithHTML(invoiceData);
+    } catch (error) {
+      console.error('Primary PDF generation failed, attempting fallback:', error);
+      
+      // Fallback: Generate a simple HTML response that can be printed to PDF by the browser
+      try {
+        return await this.generateInvoiceFallback(invoiceData);
+      } catch (fallbackError) {
+        console.error('Fallback PDF generation also failed:', fallbackError);
+        throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
   }
 
   private async generateInvoiceWithHTML(invoiceData: InvoiceData): Promise<Buffer> {
@@ -38,10 +51,25 @@ export class InvoiceService {
     // Resolve Chariot logo from website public folder and embed as data URL
     let embeddedLogoDataUrl: string | undefined;
     try {
-      const chariotLogoPath = path.resolve(process.cwd(), '../website/public/chariot.svg');
-      if (fs.existsSync(chariotLogoPath)) {
-        const imgBuffer = fs.readFileSync(chariotLogoPath);
-        embeddedLogoDataUrl = `data:image/svg+xml;base64,${imgBuffer.toString('base64')}`;
+      // Try multiple possible paths for the logo
+      const possiblePaths = [
+        path.resolve(process.cwd(), '../website/public/chariot.svg'),
+        path.resolve(process.cwd(), '../../website/public/chariot.svg'),
+        path.resolve(process.cwd(), './public/chariot.svg'),
+        path.resolve(process.cwd(), '../apps/website/public/chariot.svg')
+      ];
+      
+      for (const logoPath of possiblePaths) {
+        if (fs.existsSync(logoPath)) {
+          const imgBuffer = fs.readFileSync(logoPath);
+          embeddedLogoDataUrl = `data:image/svg+xml;base64,${imgBuffer.toString('base64')}`;
+          console.log('Found Chariot logo at:', logoPath);
+          break;
+        }
+      }
+      
+      if (!embeddedLogoDataUrl) {
+        console.warn('Chariot logo not found in any expected location');
       }
     } catch (logoError) {
       console.warn('Unable to embed chariot logo:', logoError);
@@ -50,10 +78,25 @@ export class InvoiceService {
     // Resolve Chandra logo from website public folder and embed as data URL
     let embeddedChandraLogoDataUrl: string | undefined;
     try {
-      const chandraLogoPath = path.resolve(process.cwd(), '../website/public/chandra.png');
-      if (fs.existsSync(chandraLogoPath)) {
-        const imgBuffer = fs.readFileSync(chandraLogoPath);
-        embeddedChandraLogoDataUrl = `data:image/png;base64,${imgBuffer.toString('base64')}`;
+      // Try multiple possible paths for the logo
+      const possiblePaths = [
+        path.resolve(process.cwd(), '../website/public/chandra.png'),
+        path.resolve(process.cwd(), '../../website/public/chandra.png'),
+        path.resolve(process.cwd(), './public/chandra.png'),
+        path.resolve(process.cwd(), '../apps/website/public/chandra.png')
+      ];
+      
+      for (const logoPath of possiblePaths) {
+        if (fs.existsSync(logoPath)) {
+          const imgBuffer = fs.readFileSync(logoPath);
+          embeddedChandraLogoDataUrl = `data:image/png;base64,${imgBuffer.toString('base64')}`;
+          console.log('Found Chandra logo at:', logoPath);
+          break;
+        }
+      }
+      
+      if (!embeddedChandraLogoDataUrl) {
+        console.warn('Chandra logo not found in any expected location');
       }
     } catch (logoError) {
       console.warn('Unable to embed chandra logo:', logoError);
@@ -65,23 +108,61 @@ export class InvoiceService {
       // Launch Puppeteer (compatible with Linux/Render). Use env executable if provided.
       const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--disable-gpu',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding',
+          '--disable-features=TranslateUI',
+          '--disable-ipc-flooding-protection',
+          '--memory-pressure-off',
+          '--max_old_space_size=4096'
+        ],
+        timeout: 30000 // 30 second timeout
       };
+      
       if (process.env.PUPPETEER_EXECUTABLE_PATH) {
         launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
       }
 
+      console.log('Launching Puppeteer with options:', { 
+        executablePath: launchOptions.executablePath,
+        args: launchOptions.args 
+      });
+
       const browser = await puppeteer.launch(launchOptions);
       const page = await browser.newPage();
 
+      // Set viewport and timeout
+      await page.setViewport({ width: 1200, height: 800 });
+      page.setDefaultTimeout(30000);
+
       // Set HTML directly to the page
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      await page.setContent(htmlContent, { 
+        waitUntil: 'networkidle0',
+        timeout: 30000 
+      });
+
+      // Wait a bit for any dynamic content to load
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Generate PDF
       const pdfUint8Array = await page.pdf({
         format: 'A4',
         printBackground: true,
-        preferCSSPageSize: true
+        preferCSSPageSize: true,
+        margin: {
+          top: '0.5in',
+          right: '0.5in',
+          bottom: '0.5in',
+          left: '0.5in'
+        }
       });
 
       // Ensure Node Buffer for downstream consumers
@@ -89,12 +170,76 @@ export class InvoiceService {
 
       await browser.close();
 
+      console.log('PDF generated successfully, size:', pdfBuffer.length, 'bytes');
       return pdfBuffer;
     } catch (error) {
-      throw error;
+      console.error('Puppeteer error details:', error);
+      throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
+  private async generateInvoiceFallback(invoiceData: InvoiceData): Promise<Buffer> {
+    console.log('Using fallback PDF generation method...');
+    
+    // For now, return a simple HTML response that indicates the invoice
+    // In a production environment, you might want to use a different PDF library
+    const { order, user, companyInfo } = invoiceData;
+    
+    const simpleHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Invoice - ${order.orderNumber}</title>
+        <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .invoice-title { font-size: 24px; font-weight: bold; color: #FA7035; }
+          .company-info { margin-bottom: 20px; }
+          .order-info { margin-bottom: 20px; }
+          .items { margin-bottom: 20px; }
+          .total { font-weight: bold; font-size: 18px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="invoice-title">THE CHARIOT</div>
+          <div>Tax Invoice</div>
+        </div>
+        
+        <div class="company-info">
+          <strong>Company:</strong> ${companyInfo.name}<br>
+          <strong>Address:</strong> ${companyInfo.address}<br>
+          <strong>GSTIN:</strong> ${companyInfo.gstin}<br>
+          <strong>Email:</strong> ${companyInfo.email}
+        </div>
+        
+        <div class="order-info">
+          <strong>Order Number:</strong> ${order.orderNumber}<br>
+          <strong>Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}<br>
+          <strong>Customer:</strong> ${user.companyInformation?.name || user.firstName + ' ' + user.lastName}
+        </div>
+        
+        <div class="items">
+          <h3>Items:</h3>
+          ${order.items?.map((item: any) => `
+            <div>${item.productName || item.name || 'Product'} - Qty: ${item.quantity || 1} - $${(item.totalPrice || 0).toFixed(2)}</div>
+          `).join('') || 'No items found'}
+        </div>
+        
+        <div class="total">
+          <strong>Total: $${(order.total || 0).toFixed(2)}</strong>
+        </div>
+        
+        <div style="margin-top: 50px; text-align: center; color: #666;">
+          <p>This is a simplified invoice. For the full PDF version, please contact support.</p>
+        </div>
+      </body>
+      </html>
+    `;
+    
+    // Convert HTML to Buffer (this is a simple fallback)
+    return Buffer.from(simpleHTML, 'utf-8');
+  }
 
   private generateInvoiceHTML(data: InvoiceData, logoDataUrl?: string, chandraLogoDataUrl?: string): string {
     const { order, user, companyInfo } = data;

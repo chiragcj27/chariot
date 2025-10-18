@@ -8,26 +8,39 @@ export const generateInvoice = async (req: Request, res: Response) => {
     const { orderId } = req.params;
     const userId = (req as any).user?.userId;
 
+    console.log(`Invoice request - OrderId: ${orderId}, UserId: ${userId}`);
+
     if (!userId) {
+      console.log('Invoice request failed: No user ID in request');
       return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    if (!orderId) {
+      console.log('Invoice request failed: No order ID provided');
+      return res.status(400).json({ message: 'Order ID is required' });
     }
 
     // Find the order
     const order = await Order.findById(orderId);
     if (!order) {
+      console.log(`Invoice request failed: Order ${orderId} not found`);
       return res.status(404).json({ message: 'Order not found' });
     }
 
     // Check if user has access to this order
     if (order.userId.toString() !== userId) {
+      console.log(`Invoice request failed: User ${userId} does not have access to order ${orderId}`);
       return res.status(403).json({ message: 'Access denied' });
     }
 
     // Get user information
     const user = await User.findById(userId);
     if (!user) {
+      console.log(`Invoice request failed: User ${userId} not found`);
       return res.status(404).json({ message: 'User not found' });
     }
+
+    console.log(`Generating invoice for order ${order.orderNumber} (${orderId}) for user ${user.email}`);
 
     // Company information (you can move this to environment variables)
     const companyInfo = {
@@ -45,7 +58,9 @@ export const generateInvoice = async (req: Request, res: Response) => {
     };
 
     // Generate PDF
+    console.log('Starting PDF generation...');
     const pdfBuffer = await invoiceService.generateInvoicePDF(invoiceData);
+    console.log('PDF generation completed successfully');
 
     // Set response headers for PDF download
     res.setHeader('Content-Type', 'application/pdf');
@@ -57,7 +72,27 @@ export const generateInvoice = async (req: Request, res: Response) => {
 
   } catch (error) {
     console.error('Error generating invoice:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('PDF generation failed')) {
+        return res.status(500).json({ 
+          message: 'Failed to generate PDF. Please try again later.',
+          error: 'PDF_GENERATION_FAILED'
+        });
+      }
+      if (error.message.includes('timeout')) {
+        return res.status(500).json({ 
+          message: 'PDF generation timed out. Please try again.',
+          error: 'TIMEOUT'
+        });
+      }
+    }
+    
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: 'UNKNOWN_ERROR'
+    });
   }
 };
 
