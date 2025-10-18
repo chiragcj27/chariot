@@ -62,12 +62,24 @@ export const generateInvoice = async (req: Request, res: Response) => {
     const pdfBuffer = await invoiceService.generateInvoicePDF(invoiceData);
     console.log('PDF generation completed successfully');
 
-    // Set response headers for PDF download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="invoice-${order.orderNumber}.pdf"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
+    // Check if the buffer contains a valid PDF (starts with PDF header and ends with %%EOF)
+    const isPDF = pdfBuffer.length > 4 && 
+                  pdfBuffer.toString('ascii', 0, 4) === '%PDF' &&
+                  pdfBuffer.toString('ascii', pdfBuffer.length - 5) === '%%EOF';
+    
+    if (isPDF) {
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="invoice-${order.orderNumber}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+    } else {
+      // Fallback to text content
+      res.setHeader('Content-Type', 'text/plain');
+      res.setHeader('Content-Disposition', `attachment; filename="invoice-${order.orderNumber}.txt"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
+    }
 
-    // Send the PDF
+    // Send the content
     res.send(pdfBuffer);
 
   } catch (error) {
