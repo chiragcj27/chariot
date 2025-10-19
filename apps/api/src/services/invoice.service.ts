@@ -30,19 +30,8 @@ export class InvoiceService {
   public async generateInvoicePDF(invoiceData: InvoiceData): Promise<Buffer> {
     console.log('Starting invoice generation with HTML/CSS...');
     
-    try {
-      return await this.generateInvoiceWithHTML(invoiceData);
-    } catch (error) {
-      console.error('Primary PDF generation failed, attempting fallback:', error);
-      
-      // Fallback: Generate a simple HTML response that can be printed to PDF by the browser
-      try {
-        return await this.generateInvoiceFallback(invoiceData);
-      } catch (fallbackError) {
-        console.error('Fallback PDF generation also failed:', fallbackError);
-        throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
-    }
+    // Force use of HTML method - no fallbacks
+    return await this.generateInvoiceWithHTML(invoiceData);
   }
 
   private async generateInvoiceWithHTML(invoiceData: InvoiceData): Promise<Buffer> {
@@ -105,7 +94,19 @@ export class InvoiceService {
     const htmlContent = this.generateInvoiceHTML(invoiceData, embeddedLogoDataUrl, embeddedChandraLogoDataUrl);
     
     try {
-      // Launch Puppeteer (compatible with Linux/Render). Use env executable if provided.
+      // Enhanced Puppeteer configuration for deployment environments
+      const isProduction = process.env.NODE_ENV === 'production';
+      const isDeployment = process.env.RENDER || process.env.VERCEL || process.env.HEROKU;
+      
+      console.log('Environment detected:', { 
+        NODE_ENV: process.env.NODE_ENV, 
+        isProduction, 
+        isDeployment,
+        RENDER: !!process.env.RENDER,
+        VERCEL: !!process.env.VERCEL,
+        HEROKU: !!process.env.HEROKU
+      });
+
       const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
         headless: true,
         args: [
@@ -122,261 +123,171 @@ export class InvoiceService {
           '--disable-features=TranslateUI',
           '--disable-ipc-flooding-protection',
           '--memory-pressure-off',
-          '--max_old_space_size=4096'
+          '--max_old_space_size=4096',
+          // Additional deployment-specific args
+          '--disable-extensions',
+          '--disable-plugins',
+          '--disable-default-apps',
+          '--disable-sync',
+          '--disable-translate',
+          '--hide-scrollbars',
+          '--mute-audio',
+          '--no-default-browser-check',
+          '--disable-logging',
+          '--disable-permissions-api',
+          '--disable-popup-blocking',
+          '--disable-prompt-on-repost',
+          '--disable-hang-monitor',
+          '--disable-client-side-phishing-detection',
+          '--disable-component-update',
+          '--disable-domain-reliability',
+          '--disable-features=VizDisplayCompositor',
+          '--run-all-compositor-stages-before-draw',
+          '--disable-threaded-compositing',
+          '--disable-threaded-scrolling',
+          '--disable-checker-imaging',
+          '--disable-new-tab-first-run',
+          '--disable-background-networking',
+          '--disable-default-apps',
+          '--disable-sync',
+          '--metrics-recording-only',
+          '--no-first-run',
+          '--safebrowsing-disable-auto-update',
+          '--enable-automation',
+          '--password-store=basic',
+          '--use-mock-keychain',
+          '--disable-blink-features=AutomationControlled'
         ],
-        timeout: 30000 // 30 second timeout
+        timeout: 60000, // Increased timeout for deployment
+        protocolTimeout: 60000,
+        slowMo: 0,
+        defaultViewport: { width: 1200, height: 800 },
+        ignoreDefaultArgs: ['--disable-extensions'],
+        dumpio: false
       };
       
+      // Set executable path for different deployment platforms
       if (process.env.PUPPETEER_EXECUTABLE_PATH) {
         launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        console.log('Using custom Puppeteer executable:', process.env.PUPPETEER_EXECUTABLE_PATH);
+      } else if (isDeployment) {
+        // Try common Chrome/Chromium paths in deployment environments
+        const possiblePaths = [
+          '/usr/bin/chromium-browser',
+          '/usr/bin/chromium',
+          '/usr/bin/google-chrome',
+          '/usr/bin/google-chrome-stable',
+          '/opt/google/chrome/chrome',
+          '/usr/bin/chrome',
+          '/usr/bin/chrome-browser'
+        ];
+        
+        for (const chromePath of possiblePaths) {
+          if (fs.existsSync(chromePath)) {
+            launchOptions.executablePath = chromePath;
+            console.log('Found Chrome/Chromium at:', chromePath);
+            break;
+          }
+        }
+        
+        if (!launchOptions.executablePath) {
+          console.warn('No Chrome/Chromium executable found in deployment environment');
+        }
       }
 
       console.log('Launching Puppeteer with options:', { 
         executablePath: launchOptions.executablePath,
-        args: launchOptions.args 
+        argsCount: launchOptions.args?.length || 0,
+        timeout: launchOptions.timeout
       });
 
       const browser = await puppeteer.launch(launchOptions);
       const page = await browser.newPage();
 
-      // Set viewport and timeout
-      await page.setViewport({ width: 1200, height: 800 });
-      page.setDefaultTimeout(30000);
+      try {
+        // Enhanced page configuration for deployment
+        await page.setViewport({ width: 1200, height: 800, deviceScaleFactor: 1 });
+        page.setDefaultTimeout(60000);
+        page.setDefaultNavigationTimeout(60000);
 
-      // Set HTML directly to the page
-      await page.setContent(htmlContent, { 
-        waitUntil: 'networkidle0',
-        timeout: 30000 
-      });
+        // Disable images and other resources that might cause issues in deployment
+        await page.setRequestInterception(true);
+        page.on('request', (req) => {
+          const resourceType = req.resourceType();
+          if (resourceType === 'image' || resourceType === 'font' || resourceType === 'media') {
+            req.abort();
+          } else {
+            req.continue();
+          }
+        });
 
-      // Wait a bit for any dynamic content to load
-      await new Promise(resolve => setTimeout(resolve, 1000));
+        // Set HTML directly to the page with enhanced options
+        await page.setContent(htmlContent, { 
+          waitUntil: 'domcontentloaded',
+          timeout: 30000 
+        });
 
-      // Generate PDF
-      const pdfUint8Array = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        preferCSSPageSize: true,
-        margin: {
-          top: '0.5in',
-          right: '0.5in',
-          bottom: '0.5in',
-          left: '0.5in'
+        // Wait for any remaining content to load
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        // Additional wait for fonts and styles to be applied
+        await page.evaluate(() => {
+          return new Promise((resolve) => {
+            if (document.readyState === 'complete') {
+              resolve(true);
+            } else {
+              window.addEventListener('load', () => resolve(true));
+            }
+          });
+        });
+
+        console.log('Generating PDF with enhanced settings...');
+        
+        // Generate PDF with deployment-optimized settings
+        const pdfUint8Array = await page.pdf({
+          format: 'A4',
+          printBackground: true,
+          preferCSSPageSize: true,
+          displayHeaderFooter: false,
+          margin: {
+            top: '0.5in',
+            right: '0.5in',
+            bottom: '0.5in',
+            left: '0.5in'
+          },
+          timeout: 30000
+        });
+
+        // Ensure Node Buffer for downstream consumers
+        const pdfBuffer = Buffer.from(pdfUint8Array);
+
+        console.log('PDF generated successfully, size:', pdfBuffer.length, 'bytes');
+        
+        // Validate PDF content
+        if (pdfBuffer.length < 1000) {
+          throw new Error('Generated PDF is too small, likely corrupted');
         }
-      });
+        
+        if (!pdfBuffer.toString('ascii', 0, 4).startsWith('%PDF')) {
+          throw new Error('Generated content is not a valid PDF');
+        }
 
-      // Ensure Node Buffer for downstream consumers
-      const pdfBuffer = Buffer.from(pdfUint8Array);
+        return pdfBuffer;
 
-      await browser.close();
-
-      console.log('PDF generated successfully, size:', pdfBuffer.length, 'bytes');
-      return pdfBuffer;
+      } finally {
+        // Ensure browser is always closed
+        try {
+          await browser.close();
+        } catch (closeError) {
+          console.warn('Error closing browser:', closeError);
+        }
+      }
     } catch (error) {
       console.error('Puppeteer error details:', error);
       throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  private async generateInvoiceFallback(invoiceData: InvoiceData): Promise<Buffer> {
-    console.log('Using fallback PDF generation method...');
-    
-    // Try to use a simpler Puppeteer configuration as fallback
-    try {
-      const { order, user, companyInfo } = invoiceData;
-      
-      const simpleHTML = this.generateInvoiceHTML(invoiceData);
-      
-      // Try with minimal Puppeteer configuration
-      const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-gpu',
-          '--disable-extensions',
-          '--disable-plugins',
-          '--disable-images',
-          '--disable-javascript',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor'
-        ],
-        timeout: 15000
-      };
-      
-      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-      }
-
-      console.log('Attempting fallback Puppeteer launch...');
-      const browser = await puppeteer.launch(launchOptions);
-      const page = await browser.newPage();
-      
-      await page.setContent(simpleHTML, { 
-        waitUntil: 'domcontentloaded',
-        timeout: 10000 
-      });
-
-      const pdfUint8Array = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '0.5in',
-          right: '0.5in',
-          bottom: '0.5in',
-          left: '0.5in'
-        }
-      });
-
-      await browser.close();
-      
-      const pdfBuffer = Buffer.from(pdfUint8Array);
-      console.log('Fallback PDF generated successfully, size:', pdfBuffer.length, 'bytes');
-      return pdfBuffer;
-      
-    } catch (fallbackError) {
-      console.error('Fallback PDF generation failed:', fallbackError);
-      
-      // Last resort: create a simple but valid PDF
-      console.log('Creating simple PDF as last resort...');
-      try {
-        return this.createSimplePDF(invoiceData);
-      } catch (simplePDFError) {
-        console.error('Simple PDF creation failed:', simplePDFError);
-        
-        // Final fallback: return a simple text-based content
-        const { order, user, companyInfo } = invoiceData;
-        
-        const textContent = `
-INVOICE - ${order.orderNumber}
-=====================================
-
-Company: ${companyInfo.name}
-Address: ${companyInfo.address}
-GSTIN: ${companyInfo.gstin}
-Email: ${companyInfo.email}
-
-Customer: ${user.companyInformation?.name || user.firstName + ' ' + user.lastName}
-Date: ${new Date(order.createdAt).toLocaleDateString()}
-
-ITEMS:
-${order.items?.map((item: any) => 
-  `- ${item.productName || item.name || 'Product'} (Qty: ${item.quantity || 1}) - $${(item.totalPrice || 0).toFixed(2)}`
-).join('\n') || 'No items found'}
-
-TOTAL: $${(order.total || 0).toFixed(2)}
-
-=====================================
-Generated by Chariot Invoice System
-        `;
-        
-        // Return as plain text buffer (not a real PDF, but readable)
-        return Buffer.from(textContent, 'utf-8');
-      }
-    }
-  }
-
-  private createSimplePDF(invoiceData: InvoiceData): Buffer {
-    const { order, user, companyInfo } = invoiceData;
-    
-    // Create a minimal PDF structure
-    const pdfContent = `%PDF-1.4
-1 0 obj
-<<
-/Type /Catalog
-/Pages 2 0 R
->>
-endobj
-
-2 0 obj
-<<
-/Type /Pages
-/Kids [3 0 R]
-/Count 1
->>
-endobj
-
-3 0 obj
-<<
-/Type /Page
-/Parent 2 0 R
-/MediaBox [0 0 612 792]
-/Contents 4 0 R
-/Resources <<
-/Font <<
-/F1 5 0 R
->>
->>
->>
-endobj
-
-4 0 obj
-<<
-/Length ${this.getPDFContentLength(order, user, companyInfo)}
->>
-stream
-BT
-/F1 12 Tf
-50 750 Td
-(INVOICE - ${order.orderNumber}) Tj
-0 -20 Td
-(Company: ${companyInfo.name}) Tj
-0 -15 Td
-(Address: ${companyInfo.address}) Tj
-0 -15 Td
-(GSTIN: ${companyInfo.gstin}) Tj
-0 -15 Td
-(Email: ${companyInfo.email}) Tj
-0 -30 Td
-(Customer: ${user.companyInformation?.name || user.firstName + ' ' + user.lastName}) Tj
-0 -15 Td
-(Date: ${new Date(order.createdAt).toLocaleDateString()}) Tj
-0 -30 Td
-(ITEMS:) Tj
-${order.items?.map((item: any, index: number) => 
-  `0 -15 Td\n(- ${item.productName || item.name || 'Product'} (Qty: ${item.quantity || 1}) - $${(item.totalPrice || 0).toFixed(2)}) Tj`
-).join('\n') || '0 -15 Td\n(No items found) Tj'}
-0 -30 Td
-(TOTAL: $${(order.total || 0).toFixed(2)}) Tj
-ET
-endstream
-endobj
-
-5 0 obj
-<<
-/Type /Font
-/Subtype /Type1
-/BaseFont /Helvetica
->>
-endobj
-
-xref
-0 6
-0000000000 65535 f 
-0000000009 00000 n 
-0000000058 00000 n 
-0000000115 00000 n 
-0000000271 00000 n 
-000000${(this.getPDFContentLength(order, user, companyInfo) + 300).toString().padStart(6, '0')} 00000 n 
-trailer
-<<
-/Size 6
-/Root 1 0 R
->>
-startxref
-${this.getPDFContentLength(order, user, companyInfo) + 400}
-%%EOF`;
-
-    return Buffer.from(pdfContent, 'utf-8');
-  }
-
-  private getPDFContentLength(order: any, user: any, companyInfo: any): number {
-    const baseLength = 200; // Base content length
-    const itemsLength = order.items?.reduce((acc: number, item: any) => 
-      acc + (item.productName || item.name || 'Product').length + 50, 0) || 0;
-    return baseLength + itemsLength;
-  }
 
   private generateInvoiceHTML(data: InvoiceData, logoDataUrl?: string, chandraLogoDataUrl?: string): string {
     const { order, user, companyInfo } = data;
