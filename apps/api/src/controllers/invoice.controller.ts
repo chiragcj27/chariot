@@ -57,17 +57,18 @@ export const generateInvoice = async (req: Request, res: Response) => {
       companyInfo
     };
 
-    // Generate HTML
-    console.log('Starting HTML generation...');
-    const htmlContent = invoiceService.generateInvoiceHTML(invoiceData);
-    console.log('HTML generation completed successfully');
+    // Generate PDF
+    console.log('Starting PDF generation...');
+    const pdfBuffer = await invoiceService.generateInvoicePDF(invoiceData);
+    console.log('PDF generation completed successfully');
 
-    // Set response headers for HTML
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Content-Disposition', 'inline; filename="invoice-' + order.orderNumber + '.html"');
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="invoice-${order.orderNumber}.pdf"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
 
-    // Send the HTML content
-    res.send(htmlContent);
+    // Send the PDF buffer
+    res.send(pdfBuffer);
 
   } catch (error) {
     console.error('Error generating invoice:', error);
@@ -81,10 +82,24 @@ export const generateInvoice = async (req: Request, res: Response) => {
     
     // Provide more specific error messages
     if (error instanceof Error) {
-      if (error.message.includes('HTML generation failed')) {
+      if (error.message.includes('PDF generation failed')) {
         return res.status(500).json({ 
-          message: 'Failed to generate invoice. Please try again later.',
-          error: 'HTML_GENERATION_FAILED',
+          message: 'Failed to generate PDF. Please try again later.',
+          error: 'PDF_GENERATION_FAILED',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+      }
+      if (error.message.includes('timeout')) {
+        return res.status(500).json({ 
+          message: 'PDF generation timed out. Please try again.',
+          error: 'TIMEOUT',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+      }
+      if (error.message.includes('Chrome') || error.message.includes('Chromium')) {
+        return res.status(500).json({ 
+          message: 'PDF service unavailable. Please try again later.',
+          error: 'CHROME_NOT_FOUND',
           details: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
       }
@@ -99,7 +114,7 @@ export const generateInvoice = async (req: Request, res: Response) => {
 };
 
 
-export const generateInvoiceForOrder = async (orderId: string, userId: string): Promise<string | null> => {
+export const generateInvoiceForOrder = async (orderId: string, userId: string): Promise<Buffer | null> => {
   try {
     // Find the order
     const order = await Order.findById(orderId).populate('userId');
@@ -130,9 +145,9 @@ export const generateInvoiceForOrder = async (orderId: string, userId: string): 
       companyInfo
     };
 
-    // Generate HTML
-    const htmlContent = invoiceService.generateInvoiceHTML(invoiceData);
-    return htmlContent;
+    // Generate PDF
+    const pdfBuffer = await invoiceService.generateInvoicePDF(invoiceData);
+    return pdfBuffer;
 
   } catch (error) {
     console.error('Error generating invoice for order:', error);

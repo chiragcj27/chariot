@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import puppeteer from 'puppeteer';
 import { Order } from '@chariot/db';
 import { User } from '@chariot/db';
 
@@ -34,6 +35,94 @@ export class InvoiceService {
     const chandraLogo = this.loadLogo('chandra');
     
     return this.createInvoiceHTML(invoiceData, chariotLogo, chandraLogo);
+  }
+
+  public async generateInvoicePDF(invoiceData: InvoiceData): Promise<Buffer> {
+    console.log('Generating invoice PDF...');
+    
+    try {
+      // Load logos
+      const chariotLogo = this.loadLogo('chariot');
+      const chandraLogo = this.loadLogo('chandra');
+      
+      // Generate HTML
+      const htmlContent = this.createInvoiceHTML(invoiceData, chariotLogo, chandraLogo);
+      
+      // Configure Puppeteer for production deployment
+      const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
+        headless: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-gpu',
+          '--disable-extensions',
+          '--disable-plugins',
+          '--single-process',
+          '--no-zygote'
+        ],
+        timeout: 30000
+      };
+      
+      // Try to find Chrome executable for deployment
+      const possiblePaths = [
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chromium',
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable'
+      ];
+      
+      for (const chromePath of possiblePaths) {
+        if (fs.existsSync(chromePath)) {
+          launchOptions.executablePath = chromePath;
+          console.log('Found Chrome at:', chromePath);
+          break;
+        }
+      }
+      
+      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+      }
+      
+      console.log('Launching Puppeteer for PDF generation...');
+      const browser = await puppeteer.launch(launchOptions);
+      const page = await browser.newPage();
+      
+      try {
+        // Set viewport and content
+        await page.setViewport({ width: 1200, height: 800 });
+        await page.setContent(htmlContent, { 
+          waitUntil: 'domcontentloaded',
+          timeout: 15000 
+        });
+        
+        // Wait for content to load
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Generate PDF
+        const pdfBuffer = await page.pdf({
+          format: 'A4',
+          printBackground: true,
+          margin: {
+            top: '0.5in',
+            right: '0.5in',
+            bottom: '0.5in',
+            left: '0.5in'
+          },
+          timeout: 15000
+        });
+        
+        console.log('PDF generated successfully, size:', pdfBuffer.length, 'bytes');
+        return Buffer.from(pdfBuffer);
+        
+      } finally {
+        await browser.close();
+      }
+      
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   private loadLogo(logoType: 'chariot' | 'chandra'): string | null {

@@ -309,7 +309,7 @@ export default function CheckoutPage() {
           <p className="text-gray-500 mb-6">Add items to proceed to checkout.</p>
           <div className="space-y-2">
             <Link href="/">
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full bg-white text-gray-700 border-2 border-[#FCA17A] py-2 px-5 rounded-xl transition-colors hover:bg-sunrise">
                 Continue Shopping
               </Button>
             </Link>
