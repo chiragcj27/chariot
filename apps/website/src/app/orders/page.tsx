@@ -328,18 +328,24 @@ export default function OrdersPage() {
         throw new Error('Failed to download invoice');
       }
 
-      // Get the PDF blob
+      // Get the response blob
       const blob = await response.blob();
+      
+      // Determine file type and extension
+      const contentType = response.headers.get('content-type') || '';
+      const isPDF = contentType.includes('application/pdf');
+      const fileExtension = isPDF ? 'pdf' : 'html';
       
       // Find the order to get the order number for filename
       const order = orders.find(o => o._id === orderId);
       const orderNumber = order?.orderNumber || 'unknown';
+      const fileName = `invoice-${orderNumber}.${fileExtension}`;
       
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `invoice-${orderNumber}.pdf`;
+      link.download = fileName;
       
       // Add to DOM, click, and remove
       document.body.appendChild(link);
@@ -349,7 +355,7 @@ export default function OrdersPage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      toast.success('Invoice PDF downloaded successfully!');
+      toast.success(`Invoice ${fileExtension.toUpperCase()} downloaded successfully!`);
     } catch (error) {
       console.error('Error downloading invoice:', error);
       toast.error('Failed to download invoice. Please try again.');

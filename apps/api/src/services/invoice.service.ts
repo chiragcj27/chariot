@@ -59,9 +59,13 @@ export class InvoiceService {
           '--disable-extensions',
           '--disable-plugins',
           '--single-process',
-          '--no-zygote'
+          '--no-zygote',
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
+          '--memory-pressure-off',
+          '--max_old_space_size=4096'
         ],
-        timeout: 30000
+        timeout: 60000
       };
       
       // Try to find Chrome executable for deployment
@@ -69,22 +73,41 @@ export class InvoiceService {
         '/usr/bin/chromium-browser',
         '/usr/bin/chromium',
         '/usr/bin/google-chrome',
-        '/usr/bin/google-chrome-stable'
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/chrome',
+        '/usr/bin/chrome-browser',
+        '/opt/google/chrome/chrome'
       ];
       
+      let chromeFound = false;
       for (const chromePath of possiblePaths) {
         if (fs.existsSync(chromePath)) {
           launchOptions.executablePath = chromePath;
           console.log('Found Chrome at:', chromePath);
+          chromeFound = true;
           break;
         }
       }
       
       if (process.env.PUPPETEER_EXECUTABLE_PATH) {
         launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        chromeFound = true;
+        console.log('Using custom Puppeteer executable:', process.env.PUPPETEER_EXECUTABLE_PATH);
+      }
+      
+      // If no Chrome found, try to use Puppeteer's bundled Chromium
+      if (!chromeFound) {
+        console.log('No Chrome/Chromium found, trying Puppeteer bundled Chromium...');
+        delete launchOptions.executablePath;
       }
       
       console.log('Launching Puppeteer for PDF generation...');
+      console.log('Launch options:', { 
+        executablePath: launchOptions.executablePath || 'bundled',
+        argsCount: launchOptions.args?.length || 0,
+        timeout: launchOptions.timeout
+      });
+      
       const browser = await puppeteer.launch(launchOptions);
       const page = await browser.newPage();
       
@@ -93,11 +116,11 @@ export class InvoiceService {
         await page.setViewport({ width: 1200, height: 800 });
         await page.setContent(htmlContent, { 
           waitUntil: 'domcontentloaded',
-          timeout: 15000 
+          timeout: 30000 
         });
         
         // Wait for content to load
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
         // Generate PDF
         const pdfBuffer = await page.pdf({
@@ -109,7 +132,7 @@ export class InvoiceService {
             bottom: '0.5in',
             left: '0.5in'
           },
-          timeout: 15000
+          timeout: 30000
         });
         
         console.log('PDF generated successfully, size:', pdfBuffer.length, 'bytes');
@@ -121,6 +144,13 @@ export class InvoiceService {
       
     } catch (error) {
       console.error('PDF generation failed:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        NODE_ENV: process.env.NODE_ENV,
+        RENDER: !!process.env.RENDER,
+        VERCEL: !!process.env.VERCEL
+      });
       throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }

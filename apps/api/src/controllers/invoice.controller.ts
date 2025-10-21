@@ -57,18 +57,35 @@ export const generateInvoice = async (req: Request, res: Response) => {
       companyInfo
     };
 
-    // Generate PDF
-    console.log('Starting PDF generation...');
-    const pdfBuffer = await invoiceService.generateInvoicePDF(invoiceData);
-    console.log('PDF generation completed successfully');
+    // Try to generate PDF first
+    try {
+      console.log('Starting PDF generation...');
+      const pdfBuffer = await invoiceService.generateInvoicePDF(invoiceData);
+      console.log('PDF generation completed successfully');
 
-    // Set response headers for PDF download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="invoice-${order.orderNumber}.pdf"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
+      // Set response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="invoice-${order.orderNumber}.pdf"`);
+      res.setHeader('Content-Length', pdfBuffer.length);
 
-    // Send the PDF buffer
-    res.send(pdfBuffer);
+      // Send the PDF buffer
+      res.send(pdfBuffer);
+      return;
+    } catch (pdfError) {
+      console.error('PDF generation failed, falling back to HTML:', pdfError);
+      
+      // Fallback to HTML generation
+      const htmlContent = invoiceService.generateInvoiceHTML(invoiceData);
+      console.log('HTML fallback generation completed');
+
+      // Set response headers for HTML download
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="invoice-${order.orderNumber}.html"`);
+
+      // Send the HTML content
+      res.send(htmlContent);
+      return;
+    }
 
   } catch (error) {
     console.error('Error generating invoice:', error);
