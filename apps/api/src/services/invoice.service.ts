@@ -1,4 +1,3 @@
-import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 import { Order } from '@chariot/db';
@@ -27,269 +26,53 @@ export class InvoiceService {
     return InvoiceService.instance;
   }
 
-  public async generateInvoicePDF(invoiceData: InvoiceData): Promise<Buffer> {
-    console.log('Starting invoice generation with HTML/CSS...');
+  public generateInvoiceHTML(invoiceData: InvoiceData): string {
+    console.log('Generating invoice HTML...');
     
-    // Force use of HTML method - no fallbacks
-    return await this.generateInvoiceWithHTML(invoiceData);
+    // Load logos
+    const chariotLogo = this.loadLogo('chariot');
+    const chandraLogo = this.loadLogo('chandra');
+    
+    return this.createInvoiceHTML(invoiceData, chariotLogo, chandraLogo);
   }
 
-  private async generateInvoiceWithHTML(invoiceData: InvoiceData): Promise<Buffer> {
-    console.log('Generating invoice with HTML/CSS...');
-    
-    // Resolve Chariot logo from website public folder and embed as data URL
-    let embeddedLogoDataUrl: string | undefined;
+  private loadLogo(logoType: 'chariot' | 'chandra'): string | null {
     try {
-      // Try multiple possible paths for the logo
-      const possiblePaths = [
-        path.resolve(process.cwd(), '../website/public/chariot.svg'),
-        path.resolve(process.cwd(), '../../website/public/chariot.svg'),
-        path.resolve(process.cwd(), './public/chariot.svg'),
-        path.resolve(process.cwd(), '../apps/website/public/chariot.svg')
-      ];
+      let logoPath: string | undefined;
       
-      for (const logoPath of possiblePaths) {
-        if (fs.existsSync(logoPath)) {
-          const imgBuffer = fs.readFileSync(logoPath);
-          embeddedLogoDataUrl = `data:image/svg+xml;base64,${imgBuffer.toString('base64')}`;
-          console.log('Found Chariot logo at:', logoPath);
-          break;
-        }
+      // Try to find the logo in the local public directory first
+      const logoFileName = logoType === 'chariot' ? 'chariot.svg' : 'chandra.png';
+      const localPath = path.resolve(process.cwd(), './public', logoFileName);
+      const websitePath = path.resolve(process.cwd(), '../website/public', logoFileName);
+      
+      if (fs.existsSync(localPath)) {
+        logoPath = localPath;
+      } else if (fs.existsSync(websitePath)) {
+        // Fallback to website directory (for development)
+        logoPath = websitePath;
       }
       
-      if (!embeddedLogoDataUrl) {
-        console.warn('Chariot logo not found in any expected location');
-      }
-    } catch (logoError) {
-      console.warn('Unable to embed chariot logo:', logoError);
-    }
-
-    // Resolve Chandra logo from website public folder and embed as data URL
-    let embeddedChandraLogoDataUrl: string | undefined;
-    try {
-      // Try multiple possible paths for the logo
-      const possiblePaths = [
-        path.resolve(process.cwd(), '../website/public/chandra.png'),
-        path.resolve(process.cwd(), '../../website/public/chandra.png'),
-        path.resolve(process.cwd(), './public/chandra.png'),
-        path.resolve(process.cwd(), '../apps/website/public/chandra.png')
-      ];
-      
-      for (const logoPath of possiblePaths) {
-        if (fs.existsSync(logoPath)) {
-          const imgBuffer = fs.readFileSync(logoPath);
-          embeddedChandraLogoDataUrl = `data:image/png;base64,${imgBuffer.toString('base64')}`;
-          console.log('Found Chandra logo at:', logoPath);
-          break;
-        }
+      if (!logoPath || !fs.existsSync(logoPath)) {
+        console.warn(`${logoType} logo not found. Checked paths:`);
+        console.warn(`  - Local: ${localPath}`);
+        console.warn(`  - Website: ${websitePath}`);
+        return null;
       }
       
-      if (!embeddedChandraLogoDataUrl) {
-        console.warn('Chandra logo not found in any expected location');
-      }
-    } catch (logoError) {
-      console.warn('Unable to embed chandra logo:', logoError);
-    }
-
-    const htmlContent = this.generateInvoiceHTML(invoiceData, embeddedLogoDataUrl, embeddedChandraLogoDataUrl);
-    
-    try {
-      // Enhanced Puppeteer configuration for deployment environments
-      const isProduction = process.env.NODE_ENV === 'production';
-      const isDeployment = process.env.RENDER || process.env.VERCEL || process.env.HEROKU;
+      const imgBuffer = fs.readFileSync(logoPath);
+      const mimeType = logoType === 'chariot' ? 'image/svg+xml' : 'image/png';
+      const base64 = imgBuffer.toString('base64');
       
-      console.log('Environment detected:', { 
-        NODE_ENV: process.env.NODE_ENV, 
-        isProduction, 
-        isDeployment,
-        RENDER: !!process.env.RENDER,
-        VERCEL: !!process.env.VERCEL,
-        HEROKU: !!process.env.HEROKU
-      });
-
-      const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--no-zygote',
-          '--disable-gpu',
-          '--disable-background-timer-throttling',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-renderer-backgrounding',
-          '--disable-features=TranslateUI',
-          '--disable-ipc-flooding-protection',
-          '--memory-pressure-off',
-          '--max_old_space_size=4096',
-          // Additional deployment-specific args
-          '--disable-extensions',
-          '--disable-plugins',
-          '--disable-default-apps',
-          '--disable-sync',
-          '--disable-translate',
-          '--hide-scrollbars',
-          '--mute-audio',
-          '--no-default-browser-check',
-          '--disable-logging',
-          '--disable-permissions-api',
-          '--disable-popup-blocking',
-          '--disable-prompt-on-repost',
-          '--disable-hang-monitor',
-          '--disable-client-side-phishing-detection',
-          '--disable-component-update',
-          '--disable-domain-reliability',
-          '--disable-features=VizDisplayCompositor',
-          '--run-all-compositor-stages-before-draw',
-          '--disable-threaded-compositing',
-          '--disable-threaded-scrolling',
-          '--disable-checker-imaging',
-          '--disable-new-tab-first-run',
-          '--disable-background-networking',
-          '--disable-default-apps',
-          '--disable-sync',
-          '--metrics-recording-only',
-          '--no-first-run',
-          '--safebrowsing-disable-auto-update',
-          '--enable-automation',
-          '--password-store=basic',
-          '--use-mock-keychain',
-          '--disable-blink-features=AutomationControlled'
-        ],
-        timeout: 60000, // Increased timeout for deployment
-        protocolTimeout: 60000,
-        slowMo: 0,
-        defaultViewport: { width: 1200, height: 800 },
-        ignoreDefaultArgs: ['--disable-extensions'],
-        dumpio: false
-      };
+      console.log(`Successfully loaded ${logoType} logo from:`, logoPath);
+      return `data:${mimeType};base64,${base64}`;
       
-      // Set executable path for different deployment platforms
-      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-        console.log('Using custom Puppeteer executable:', process.env.PUPPETEER_EXECUTABLE_PATH);
-      } else if (isDeployment) {
-        // Try common Chrome/Chromium paths in deployment environments
-        const possiblePaths = [
-          '/usr/bin/chromium-browser',
-          '/usr/bin/chromium',
-          '/usr/bin/google-chrome',
-          '/usr/bin/google-chrome-stable',
-          '/opt/google/chrome/chrome',
-          '/usr/bin/chrome',
-          '/usr/bin/chrome-browser'
-        ];
-        
-        for (const chromePath of possiblePaths) {
-          if (fs.existsSync(chromePath)) {
-            launchOptions.executablePath = chromePath;
-            console.log('Found Chrome/Chromium at:', chromePath);
-            break;
-          }
-        }
-        
-        if (!launchOptions.executablePath) {
-          console.warn('No Chrome/Chromium executable found in deployment environment');
-        }
-      }
-
-      console.log('Launching Puppeteer with options:', { 
-        executablePath: launchOptions.executablePath,
-        argsCount: launchOptions.args?.length || 0,
-        timeout: launchOptions.timeout
-      });
-
-      const browser = await puppeteer.launch(launchOptions);
-      const page = await browser.newPage();
-
-      try {
-        // Enhanced page configuration for deployment
-        await page.setViewport({ width: 1200, height: 800, deviceScaleFactor: 1 });
-        page.setDefaultTimeout(60000);
-        page.setDefaultNavigationTimeout(60000);
-
-        // Disable images and other resources that might cause issues in deployment
-        await page.setRequestInterception(true);
-        page.on('request', (req) => {
-          const resourceType = req.resourceType();
-          if (resourceType === 'image' || resourceType === 'font' || resourceType === 'media') {
-            req.abort();
-          } else {
-            req.continue();
-          }
-        });
-
-        // Set HTML directly to the page with enhanced options
-        await page.setContent(htmlContent, { 
-          waitUntil: 'domcontentloaded',
-          timeout: 30000 
-        });
-
-        // Wait for any remaining content to load
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
-        // Additional wait for fonts and styles to be applied
-        await page.evaluate(() => {
-          return new Promise((resolve) => {
-            if (document.readyState === 'complete') {
-              resolve(true);
-            } else {
-              window.addEventListener('load', () => resolve(true));
-            }
-          });
-        });
-
-        console.log('Generating PDF with enhanced settings...');
-        
-        // Generate PDF with deployment-optimized settings
-        const pdfUint8Array = await page.pdf({
-          format: 'A4',
-          printBackground: true,
-          preferCSSPageSize: true,
-          displayHeaderFooter: false,
-          margin: {
-            top: '0.5in',
-            right: '0.5in',
-            bottom: '0.5in',
-            left: '0.5in'
-          },
-          timeout: 30000
-        });
-
-        // Ensure Node Buffer for downstream consumers
-        const pdfBuffer = Buffer.from(pdfUint8Array);
-
-        console.log('PDF generated successfully, size:', pdfBuffer.length, 'bytes');
-        
-        // Validate PDF content
-        if (pdfBuffer.length < 1000) {
-          throw new Error('Generated PDF is too small, likely corrupted');
-        }
-        
-        if (!pdfBuffer.toString('ascii', 0, 4).startsWith('%PDF')) {
-          throw new Error('Generated content is not a valid PDF');
-        }
-
-        return pdfBuffer;
-
-      } finally {
-        // Ensure browser is always closed
-        try {
-          await browser.close();
-        } catch (closeError) {
-          console.warn('Error closing browser:', closeError);
-        }
-      }
     } catch (error) {
-      console.error('Puppeteer error details:', error);
-      throw new Error(`PDF generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.warn(`Unable to load ${logoType} logo:`, error);
+      return null;
     }
   }
 
-
-  private generateInvoiceHTML(data: InvoiceData, logoDataUrl?: string, chandraLogoDataUrl?: string): string {
+  private createInvoiceHTML(data: InvoiceData, chariotLogo?: string | null, chandraLogo?: string | null): string {
     const { order, user, companyInfo } = data;
     
     // Format date
@@ -360,12 +143,18 @@ export class InvoiceService {
           }
           
           .company-name {
-            font-size: 18px;
+            font-size: 24px;
             font-weight: bold;
             color: #FA7035;
             text-transform: uppercase;
             margin-bottom: 20px;
             margin-top: 5px;
+          }
+          
+          .company-details {
+            font-size: 12px;
+            line-height: 1.4;
+            color: #666;
           }
           
           .invoice-title {
@@ -513,11 +302,10 @@ export class InvoiceService {
             <!-- Header -->
             <div class="header">
               <div class="company-info">
-                ${ (logoDataUrl || companyInfo.logo)
-                  ? `<img class=\"logo\" src=\"${logoDataUrl || companyInfo.logo}\" alt=\"Chariot Logo\" />`
-                  : `<div class=\"logo\" style=\"background-color:#FFA07A;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:bold;font-size:24px;\">A</div>`
+                ${chariotLogo 
+                  ? `<img class="logo" src="${chariotLogo}" alt="The Chariot Logo" />`
+                  : `<div class="company-name">THE CHARIOT</div>`
                 }
-            
               </div>
               <div class="invoice-title">Tax Invoice</div>
             </div>
@@ -527,10 +315,10 @@ export class InvoiceService {
               <div class="billed-to">
                 <h3>Billed To:</h3>
                 <div class="customer-info">
-                  ${user.companyInformation.name || user.firstName + ' ' + user.lastName || 'Customer Name'}<br>
-                  ${user.companyInformation.telephone || user.phoneNumber || '+123-456-7890'}<br>
-                  ${user.companyInformation.address || user.streetAddress || 'Address not provided'}<br>
-                  ${user.city || ''}${user.companyInformation.state ? `${user.companyInformation.state}` : ''}${user.companyInformation.zipcode || user.postalCode ? `, ${user.companyInformation.zipcode || user.postalCode}` : ''}<br>
+                  ${user.companyInformation?.name || user.firstName + ' ' + user.lastName || 'Customer Name'}<br>
+                  ${user.companyInformation?.telephone || user.phoneNumber || ''}<br>
+                  ${user.companyInformation?.address || user.streetAddress || ''}<br>
+                  ${user.city || ''}${user.companyInformation?.state ? `, ${user.companyInformation.state}` : ''}${user.companyInformation?.zipcode || user.postalCode ? `, ${user.companyInformation.zipcode || user.postalCode}` : ''}<br>
                 </div>
               </div>
               <div class="invoice-details">
@@ -588,8 +376,8 @@ export class InvoiceService {
             <!-- Footer -->
             <div class="footer">
               <div class="footer-company">
-                ${chandraLogoDataUrl 
-                  ? `<img class="footer-logo" src="${chandraLogoDataUrl}" alt="Chandra Jewels Logo" />`
+                ${chandraLogo 
+                  ? `<img class="footer-logo" src="${chandraLogo}" alt="Chandra Jewels Logo" />`
                   : `<div style="font-size: 18px; font-weight: bold; color: #FA7035; text-transform: uppercase;">CHANDRA<br><span style="font-size: 14px; font-weight: normal;">JEWELS</span></div>`
                 }
               </div>
