@@ -161,20 +161,14 @@ export default function OrderConfirmationPage() {
         throw new Error('Failed to download invoice');
       }
 
-      // Get the response blob
+      // Get the PDF blob
       const blob = await response.blob();
       
-      // Determine file type and extension
-      const contentType = response.headers.get('content-type') || '';
-      const isPDF = contentType.includes('application/pdf');
-      const fileExtension = isPDF ? 'pdf' : 'html';
-      const fileName = `invoice-${orderData?.orderNumber || 'unknown'}.${fileExtension}`;
-      
-      // Create download link
+      // Create download link for PDF
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = fileName;
+      link.download = `invoice-${orderData?.orderNumber || 'unknown'}.pdf`;
       
       // Add to DOM, click, and remove
       document.body.appendChild(link);
@@ -184,7 +178,7 @@ export default function OrderConfirmationPage() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      toast.success(`Invoice ${fileExtension.toUpperCase()} downloaded successfully!`);
+      toast.success('Invoice PDF downloaded successfully!');
     } catch (error) {
       console.error('Error downloading invoice:', error);
       toast.error('Failed to download invoice. Please try again.');

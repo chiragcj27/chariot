@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import puppeteer from 'puppeteer';
+// @ts-ignore
+import chromium from 'chromium';
 import { Order } from '@chariot/db';
 import { User } from '@chariot/db';
 
@@ -68,37 +70,47 @@ export class InvoiceService {
         timeout: 60000
       };
       
-      // Try to find Chrome executable for deployment
-      const possiblePaths = [
-        '/usr/bin/chromium-browser',
-        '/usr/bin/chromium',
-        '/usr/bin/google-chrome',
-        '/usr/bin/google-chrome-stable',
-        '/usr/bin/chrome',
-        '/usr/bin/chrome-browser',
-        '/opt/google/chrome/chrome'
-      ];
+      // For Render deployment, use bundled Chromium
+      const isRender = process.env.RENDER === 'true' || process.env.RENDER;
+      const isProduction = process.env.NODE_ENV === 'production';
       
-      let chromeFound = false;
-      for (const chromePath of possiblePaths) {
-        if (fs.existsSync(chromePath)) {
-          launchOptions.executablePath = chromePath;
-          console.log('Found Chrome at:', chromePath);
-          chromeFound = true;
-          break;
+      if (isRender || isProduction) {
+        // Use bundled Chromium for Render/production
+        console.log('Using bundled Chromium for production deployment...');
+        launchOptions.executablePath = chromium.path;
+      } else {
+        // Try to find Chrome executable for local development
+        const possiblePaths = [
+          '/usr/bin/chromium-browser',
+          '/usr/bin/chromium',
+          '/usr/bin/google-chrome',
+          '/usr/bin/google-chrome-stable',
+          '/usr/bin/chrome',
+          '/usr/bin/chrome-browser',
+          '/opt/google/chrome/chrome'
+        ];
+        
+        let chromeFound = false;
+        for (const chromePath of possiblePaths) {
+          if (fs.existsSync(chromePath)) {
+            launchOptions.executablePath = chromePath;
+            console.log('Found Chrome at:', chromePath);
+            chromeFound = true;
+            break;
+          }
         }
-      }
-      
-      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-        chromeFound = true;
-        console.log('Using custom Puppeteer executable:', process.env.PUPPETEER_EXECUTABLE_PATH);
-      }
-      
-      // If no Chrome found, try to use Puppeteer's bundled Chromium
-      if (!chromeFound) {
-        console.log('No Chrome/Chromium found, trying Puppeteer bundled Chromium...');
-        delete launchOptions.executablePath;
+        
+        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+          launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+          chromeFound = true;
+          console.log('Using custom Puppeteer executable:', process.env.PUPPETEER_EXECUTABLE_PATH);
+        }
+        
+        // If no Chrome found, use bundled Chromium
+        if (!chromeFound) {
+          console.log('No Chrome/Chromium found, using bundled Chromium...');
+          launchOptions.executablePath = chromium.path;
+        }
       }
       
       console.log('Launching Puppeteer for PDF generation...');
