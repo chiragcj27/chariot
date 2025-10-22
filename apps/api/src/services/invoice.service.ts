@@ -22,12 +22,155 @@ export interface InvoiceData {
 
 export class InvoiceService {
   private static instance: InvoiceService;
+  private browser: any = null;
+  private isBrowserReady = false;
+  private pdfCache = new Map<string, { buffer: Buffer; timestamp: number }>();
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   public static getInstance(): InvoiceService {
     if (!InvoiceService.instance) {
       InvoiceService.instance = new InvoiceService();
     }
     return InvoiceService.instance;
+  }
+
+  private async getBrowser() {
+    if (this.browser && this.isBrowserReady) {
+      return this.browser;
+    }
+
+    console.log('Initializing browser for PDF generation...');
+    
+    // Configure Puppeteer for production deployment
+    const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-extensions',
+        '--disable-plugins',
+        '--single-process',
+        '--no-zygote',
+        '--disable-web-security',
+        '--disable-features=VizDisplayCompositor',
+        '--memory-pressure-off',
+        '--max_old_space_size=4096'
+      ],
+      timeout: 60000
+    };
+    
+    // For Render deployment, use bundled Chromium
+    const isRender = process.env.RENDER === 'true' || process.env.RENDER;
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    if (isRender || isProduction) {
+      // Use bundled Chromium for Render/production
+      console.log('Using bundled Chromium for production deployment...');
+      launchOptions.executablePath = chromium.path;
+    } else {
+      // Try to find Chrome executable for local development
+      const possiblePaths = [
+        '/usr/bin/chromium-browser',
+        '/usr/bin/chromium',
+        '/usr/bin/google-chrome',
+        '/usr/bin/google-chrome-stable',
+        '/usr/bin/chrome',
+        '/usr/bin/chrome-browser',
+        '/opt/google/chrome/chrome'
+      ];
+      
+      let chromeFound = false;
+      for (const chromePath of possiblePaths) {
+        if (fs.existsSync(chromePath)) {
+          launchOptions.executablePath = chromePath;
+          console.log('Found Chrome at:', chromePath);
+          chromeFound = true;
+          break;
+        }
+      }
+      
+      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+        chromeFound = true;
+        console.log('Using custom Puppeteer executable:', process.env.PUPPETEER_EXECUTABLE_PATH);
+      }
+      
+      // If no Chrome found, use bundled Chromium
+      if (!chromeFound) {
+        console.log('No Chrome/Chromium found, using bundled Chromium...');
+        launchOptions.executablePath = chromium.path;
+      }
+    }
+    
+    console.log('Launching Puppeteer for PDF generation...');
+    console.log('Launch options:', { 
+      executablePath: launchOptions.executablePath || 'bundled',
+      argsCount: launchOptions.args?.length || 0,
+      timeout: launchOptions.timeout
+    });
+    
+    this.browser = await puppeteer.launch(launchOptions);
+    this.isBrowserReady = true;
+    
+    // Set up browser cleanup on process exit
+    process.on('SIGINT', () => this.cleanup());
+    process.on('SIGTERM', () => this.cleanup());
+    
+    return this.browser;
+  }
+
+  private async cleanup() {
+    if (this.browser) {
+      console.log('Cleaning up browser instance...');
+      await this.browser.close();
+      this.browser = null;
+      this.isBrowserReady = false;
+    }
+  }
+
+  private getCacheKey(invoiceData: InvoiceData): string {
+    // Create a unique cache key based on order and user data
+    const orderId = invoiceData.order._id || invoiceData.order.id;
+    const userId = invoiceData.user._id || invoiceData.user.id;
+    const orderNumber = invoiceData.order.orderNumber;
+    const total = invoiceData.order.total;
+    
+    return `invoice_${orderId}_${userId}_${orderNumber}_${total}`;
+  }
+
+  private getCachedPDF(cacheKey: string): Buffer | null {
+    const cached = this.pdfCache.get(cacheKey);
+    if (!cached) return null;
+    
+    const now = Date.now();
+    if (now - cached.timestamp > this.CACHE_DURATION) {
+      this.pdfCache.delete(cacheKey);
+      return null;
+    }
+    
+    console.log('Returning cached PDF for key:', cacheKey);
+    return cached.buffer;
+  }
+
+  private setCachedPDF(cacheKey: string, buffer: Buffer): void {
+    this.pdfCache.set(cacheKey, {
+      buffer: buffer,
+      timestamp: Date.now()
+    });
+    
+    // Clean up old cache entries
+    this.cleanupCache();
+  }
+
+  private cleanupCache(): void {
+    const now = Date.now();
+    for (const [key, value] of this.pdfCache.entries()) {
+      if (now - value.timestamp > this.CACHE_DURATION) {
+        this.pdfCache.delete(key);
+      }
+    }
   }
 
   public generateInvoiceHTML(invoiceData: InvoiceData): string {
@@ -43,6 +186,14 @@ export class InvoiceService {
   public async generateInvoicePDF(invoiceData: InvoiceData): Promise<Buffer> {
     console.log('Generating invoice PDF...');
     
+    // Check cache first
+    const cacheKey = this.getCacheKey(invoiceData);
+    const cachedPDF = this.getCachedPDF(cacheKey);
+    if (cachedPDF) {
+      console.log('Returning cached PDF, size:', cachedPDF.length, 'bytes');
+      return cachedPDF;
+    }
+    
     try {
       // Load logos
       const chariotLogo = this.loadLogo('chariot');
@@ -51,77 +202,8 @@ export class InvoiceService {
       // Generate HTML
       const htmlContent = this.createInvoiceHTML(invoiceData, chariotLogo, chandraLogo);
       
-      // Configure Puppeteer for production deployment
-      const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
-        headless: true,
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-gpu',
-          '--disable-extensions',
-          '--disable-plugins',
-          '--single-process',
-          '--no-zygote',
-          '--disable-web-security',
-          '--disable-features=VizDisplayCompositor',
-          '--memory-pressure-off',
-          '--max_old_space_size=4096'
-        ],
-        timeout: 60000
-      };
-      
-      // For Render deployment, use bundled Chromium
-      const isRender = process.env.RENDER === 'true' || process.env.RENDER;
-      const isProduction = process.env.NODE_ENV === 'production';
-      
-      if (isRender || isProduction) {
-        // Use bundled Chromium for Render/production
-        console.log('Using bundled Chromium for production deployment...');
-        launchOptions.executablePath = chromium.path;
-      } else {
-        // Try to find Chrome executable for local development
-        const possiblePaths = [
-          '/usr/bin/chromium-browser',
-          '/usr/bin/chromium',
-          '/usr/bin/google-chrome',
-          '/usr/bin/google-chrome-stable',
-          '/usr/bin/chrome',
-          '/usr/bin/chrome-browser',
-          '/opt/google/chrome/chrome'
-        ];
-        
-        let chromeFound = false;
-        for (const chromePath of possiblePaths) {
-          if (fs.existsSync(chromePath)) {
-            launchOptions.executablePath = chromePath;
-            console.log('Found Chrome at:', chromePath);
-            chromeFound = true;
-            break;
-          }
-        }
-        
-        if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-          launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-          chromeFound = true;
-          console.log('Using custom Puppeteer executable:', process.env.PUPPETEER_EXECUTABLE_PATH);
-        }
-        
-        // If no Chrome found, use bundled Chromium
-        if (!chromeFound) {
-          console.log('No Chrome/Chromium found, using bundled Chromium...');
-          launchOptions.executablePath = chromium.path;
-        }
-      }
-      
-      console.log('Launching Puppeteer for PDF generation...');
-      console.log('Launch options:', { 
-        executablePath: launchOptions.executablePath || 'bundled',
-        argsCount: launchOptions.args?.length || 0,
-        timeout: launchOptions.timeout
-      });
-      
-      const browser = await puppeteer.launch(launchOptions);
+      // Get or create browser instance
+      const browser = await this.getBrowser();
       const page = await browser.newPage();
       
       try {
@@ -132,8 +214,8 @@ export class InvoiceService {
           timeout: 30000 
         });
         
-        // Wait for content to load
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait for content to load (reduced from 2000ms to 1000ms)
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Generate PDF
         const pdfBuffer = await page.pdf({
@@ -148,11 +230,16 @@ export class InvoiceService {
           timeout: 30000
         });
         
-        console.log('PDF generated successfully, size:', pdfBuffer.length, 'bytes');
-        return Buffer.from(pdfBuffer);
+        const buffer = Buffer.from(pdfBuffer);
+        
+        // Cache the PDF
+        this.setCachedPDF(cacheKey, buffer);
+        
+        console.log('PDF generated successfully, size:', buffer.length, 'bytes');
+        return buffer;
         
       } finally {
-        await browser.close();
+        await page.close();
       }
       
     } catch (error) {

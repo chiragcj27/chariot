@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { CheckCircle, FileText, Calendar, DollarSign, CreditCard, ArrowLeft, Download } from 'lucide-react'
+import { CheckCircle, FileText, Calendar, DollarSign, CreditCard, ArrowLeft, Download, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCart } from '@/contexts/CartContext'
@@ -35,6 +35,7 @@ export default function OrderConfirmationPage() {
   const { clearCart } = useCart();
   const [orderData, setOrderData] = useState<OrderConfirmationData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [downloadingInvoice, setDownloadingInvoice] = useState(false);
 
   const fetchOrderDetails = useCallback(async (orderId: string) => {
     try {
@@ -131,6 +132,11 @@ export default function OrderConfirmationPage() {
   }, [orderData]);
 
   const handleDownloadInvoice = async () => {
+    if (downloadingInvoice) return; // Prevent multiple simultaneous downloads
+    
+    setDownloadingInvoice(true);
+    toast.info('Preparing your invoice...', { duration: 2000 });
+    
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
@@ -182,6 +188,8 @@ export default function OrderConfirmationPage() {
     } catch (error) {
       console.error('Error downloading invoice:', error);
       toast.error('Failed to download invoice. Please try again.');
+    } finally {
+      setDownloadingInvoice(false);
     }
   };
 
@@ -390,9 +398,19 @@ export default function OrderConfirmationPage() {
             onClick={handleDownloadInvoice}
             variant="outline" 
             className="w-full sm:w-auto py-2 px-10"
+            disabled={downloadingInvoice}
           >
-            <Download className="w-4 h-4 mr-2" />
-            Download Invoice
+            {downloadingInvoice ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Preparing Invoice...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4 mr-2" />
+                Download Invoice
+              </>
+            )}
           </Button>
           
           <Link href="/orders">

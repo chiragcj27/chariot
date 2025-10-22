@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import AccountLayout from '@/components/AccountLayout'
 import { paypalService } from '@/lib/paypal'
 import { Button } from '@/components/ui/button'
-import { Clock, XCircle, CreditCard, Download } from 'lucide-react'
+import { Clock, XCircle, CreditCard, Download, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCompletedOrders, useAllOrders, type Order } from '@/hooks/useOrders'
 
@@ -22,6 +22,7 @@ export default function OrdersPage() {
   const [showPayPalPayment, setShowPayPalPayment] = useState(false);
   const [currentPendingOrder, setCurrentPendingOrder] = useState<PendingOrder | null>(null);
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [downloadingInvoice, setDownloadingInvoice] = useState<string | null>(null);
   const paypalButtonRef = useRef<HTMLDivElement>(null);
   const countdownRefs = useRef<Map<string, NodeJS.Timeout>>(new Map());
   const handleAutoCancelOrderRef = useRef<((orderId: string) => Promise<void>) | null>(null);
@@ -306,6 +307,11 @@ export default function OrdersPage() {
 
 
   const handleDownloadInvoice = async (orderId: string) => {
+    if (downloadingInvoice === orderId) return; // Prevent multiple simultaneous downloads
+    
+    setDownloadingInvoice(orderId);
+    toast.info('Preparing your invoice...', { duration: 2000 });
+    
     try {
       const token = localStorage.getItem('accessToken');
       if (!token) {
@@ -353,6 +359,8 @@ export default function OrdersPage() {
     } catch (error) {
       console.error('Error downloading invoice:', error);
       toast.error('Failed to download invoice. Please try again.');
+    } finally {
+      setDownloadingInvoice(null);
     }
   };
 
@@ -592,9 +600,17 @@ export default function OrdersPage() {
                                     <td className="px-3 py-4 text-sm text-left">
                                       <button
                                         onClick={() => handleDownloadInvoice(order._id)}
-                                        className="text-[#D94506] hover:underline text-xs whitespace-nowrap"
+                                        disabled={downloadingInvoice === order._id}
+                                        className="text-[#D94506] hover:underline text-xs whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                                       >
-                                        Download
+                                        {downloadingInvoice === order._id ? (
+                                          <>
+                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                            Preparing...
+                                          </>
+                                        ) : (
+                                          'Download'
+                                        )}
                                       </button>
                                     </td>
                                   </tr>
@@ -629,9 +645,17 @@ export default function OrdersPage() {
                               </div>
                               <button
                                 onClick={() => handleDownloadInvoice(order._id)}
-                                className="text-[#D94506] hover:underline text-sm"
+                                disabled={downloadingInvoice === order._id}
+                                className="text-[#D94506] hover:underline text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                               >
-                                Download Invoice
+                                {downloadingInvoice === order._id ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    Preparing Invoice...
+                                  </>
+                                ) : (
+                                  'Download Invoice'
+                                )}
                               </button>
                             </div>
                           </div>
@@ -697,10 +721,20 @@ export default function OrdersPage() {
                           <div className="flex justify-between items-center pt-3 border-t border-gray-200">
                             <button
                               onClick={() => handleDownloadInvoice(order._id)}
-                              className="flex items-center gap-1 text-[#D94506] hover:underline text-sm font-medium"
+                              disabled={downloadingInvoice === order._id}
+                              className="flex items-center gap-1 text-[#D94506] hover:underline text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              <Download className="w-4 h-4" />
-                              Download Invoice
+                              {downloadingInvoice === order._id ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Preparing...
+                                </>
+                              ) : (
+                                <>
+                                  <Download className="w-4 h-4" />
+                                  Download Invoice
+                                </>
+                              )}
                             </button>
                             <div className="text-xs text-gray-500">
                               {order.allItems.length} item{order.allItems.length > 1 ? 's' : ''}

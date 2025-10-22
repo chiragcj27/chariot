@@ -281,7 +281,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto py-2 px-4 sm:py-2 sm:px-4 2xl:py-2 2xl:px-6 border-sunrise border-2 rounded-lg shadow-sm text-sm 2xl:text-base text-black hover:bg-sunrise disabled:cursor-not-allowed transition duration-200 uppercase font-balgin-regular"
+                className="w-full sm:w-auto py-2 px-4 sm:py-2 sm:px-4 2xl:py-2 2xl:px-6 border-sunrise border-2 rounded-lg shadow-sm text-sm 2xl:text-base text-black hover:bg-sunrise disabled:cursor-not-allowed transition duration-200 uppercase"
               >
                 {loading ? 'Sending...' : 'SEND OTP'}
               </button>
@@ -327,7 +327,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-2 sm:px-4 2xl:py-2 2xl:px-6 border-sunrise border-2 rounded-lg shadow-sm text-sm 2xl:text-base font-medium text-black hover:bg-sunrise disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-2 sm:px-4 2xl:py-2 2xl:px-6 border-sunrise border-2 rounded-lg shadow-sm text-sm 2xl:text-base text-black hover:bg-sunrise disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Verifying...' : 'VERIFY OTP'}
               </button>
@@ -388,7 +388,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 2xl:py-2 2xl:px-6 border-[#D94506] border-3 rounded-lg shadow-sm text-sm 2xl:text-base font-medium text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
+                className="w-full sm:w-auto flex justify-center py-2 px-4 sm:py-1 sm:px-3 2xl:py-2 2xl:px-6 border-[#D94506] border-3 rounded-lg shadow-sm text-sm 2xl:text-base text-black hover:bg-[#FCA17A] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 disabled:bg-[#FA7035] disabled:cursor-not-allowed transition duration-200 uppercase tracking-wid font-balgin-regular"
               >
                 {loading ? 'Resetting...' : 'RESET PASSWORD'}
               </button>
