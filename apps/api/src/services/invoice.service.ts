@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import puppeteer from 'puppeteer';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import chromium from 'chromium';
 import { Order } from '@chariot/db';
@@ -234,23 +235,24 @@ export class InvoiceService {
           
           body {
             font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
+            background-color: white;
             color: #000;
             line-height: 1.4;
+            margin: 0;
+            padding: 0;
           }
           
           .invoice-container {
-            background-color: #f5f5f5;
+            background-color: white;
             min-height: 100vh;
-            padding: 40px;
+            padding: 20px;
           }
           
           .invoice {
             background-color: white;
             max-width: 800px;
             margin: 0 auto;
-            padding: 40px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
           }
           
           /* Header Section */
@@ -398,28 +400,34 @@ export class InvoiceService {
           /* Footer */
           .footer {
             margin-top: 60px;
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 20px;
-            align-items: flex-end;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 40px;
           }
           
           .footer-company {
-            grid-column: span 3;
-            text-align: left;
+            flex: 0 0 auto;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
           }
           
           .footer-logo {
-            max-width: 150px;
+            max-width: 120px;
             height: auto;
             object-fit: contain;
           }
           
           .footer-info {
-            grid-column: span 7;
+            flex: 1;
             font-size: 12px;
             line-height: 1.4;
             text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
           }
           
           .footer-info div {
