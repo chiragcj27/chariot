@@ -449,7 +449,7 @@ export default function OrdersPage() {
                             </p>
                           </div>
                           <div className="text-right">
-                            <div className={`text-lg font-bold ${order.isExpired ? 'text-red-600' : 'text-orange-600'}`}>
+                            <div className={`text-lg font-bold ${order.isExpired ? 'text-red-600' : 'text-sunrise'}`}>
                               ${order.total.toFixed(2)}
                             </div>
                             {!order.isExpired && (
@@ -501,7 +501,7 @@ export default function OrdersPage() {
                           {!order.isExpired && order.paymentBreakdown.paypalAmount > 0 && (
                             <Button
                               onClick={() => handleCompletePayment(order)}
-                              className="bg-orange-500 hover:bg-orange-600 text-white"
+                              className="bg-sunrise hover:bg-sunrise/80 text-black"
                               disabled={processingPayment}
                             >
                               <CreditCard className="w-4 h-4 mr-2" />
