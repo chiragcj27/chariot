@@ -1,8 +1,6 @@
-version: '3.8'
-
 services:
   api:
-    build: .
+    image: chariot-api
     ports:
       - "3001:3001"
     environment:

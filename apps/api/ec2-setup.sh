@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # AWS EC2 Setup Script for Chariot API
-# This script sets up an EC2 instance for running the Chariot API with Docker
+# Fully fixed for Amazon Linux 2023
 
 set -e
 
@@ -27,14 +27,15 @@ sudo usermod -a -G docker ec2-user
 
 # Install Docker Compose
 echo -e "${BLUE}🔧 Installing Docker Compose...${NC}"
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o docker-compose
+sudo mv docker-compose /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 
 # Install Git
 echo -e "${BLUE}📥 Installing Git...${NC}"
 sudo yum install -y git
 
-# Install Node.js (for development purposes)
+# Install Node.js
 echo -e "${BLUE}📦 Installing Node.js...${NC}"
 curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
 sudo yum install -y nodejs
@@ -43,9 +44,15 @@ sudo yum install -y nodejs
 echo -e "${BLUE}📦 Installing pnpm...${NC}"
 sudo npm install -g pnpm
 
-# Install additional tools
+# Install additional tools (skip curl to avoid conflict)
 echo -e "${BLUE}🛠️  Installing additional tools...${NC}"
-sudo yum install -y htop vim curl wget unzip
+sudo yum install -y htop vim wget unzip
+
+# Install cron
+echo -e "${BLUE}⏰ Installing cron...${NC}"
+sudo yum install -y cronie
+sudo systemctl enable crond
+sudo systemctl start crond
 
 # Configure firewall
 echo -e "${BLUE}🔥 Configuring firewall...${NC}"
@@ -53,7 +60,7 @@ sudo yum install -y firewalld
 sudo systemctl start firewalld
 sudo systemctl enable firewalld
 
-# Allow HTTP and HTTPS traffic
+# Allow HTTP, HTTPS, and app port
 sudo firewall-cmd --permanent --add-service=http
 sudo firewall-cmd --permanent --add-service=https
 sudo firewall-cmd --permanent --add-port=3001/tcp
@@ -64,7 +71,7 @@ echo -e "${BLUE}📁 Creating application directory...${NC}"
 sudo mkdir -p /opt/chariot-api
 sudo chown ec2-user:ec2-user /opt/chariot-api
 
-# Create systemd service for the application
+# Create systemd service
 echo -e "${BLUE}⚙️  Creating systemd service...${NC}"
 sudo tee /etc/systemd/system/chariot-api.service > /dev/null <<EOF
 [Unit]
@@ -86,11 +93,10 @@ Group=ec2-user
 WantedBy=multi-user.target
 EOF
 
-# Reload systemd and enable service
 sudo systemctl daemon-reload
 sudo systemctl enable chariot-api.service
 
-# Create log rotation configuration
+# Log rotation
 echo -e "${BLUE}📋 Setting up log rotation...${NC}"
 sudo tee /etc/logrotate.d/chariot-api > /dev/null <<EOF
 /opt/chariot-api/logs/*.log {
@@ -104,27 +110,21 @@ sudo tee /etc/logrotate.d/chariot-api > /dev/null <<EOF
 }
 EOF
 
-# Create monitoring script
+# Monitoring script
 echo -e "${BLUE}📊 Creating monitoring script...${NC}"
-sudo tee /opt/chariot-api/monitor.sh > /dev/null <<EOF
+sudo tee /opt/chariot-api/monitor.sh > /dev/null <<'EOF'
 #!/bin/bash
-# Chariot API Monitoring Script
-
 echo "=== Chariot API Status ==="
-echo "Date: \$(date)"
+echo "Date: $(date)"
 echo ""
-
 echo "=== Docker Status ==="
 docker ps --filter "name=chariot-api"
-
 echo ""
 echo "=== Application Health ==="
 curl -s http://localhost:3001/api/health | jq . || echo "Health check failed"
-
 echo ""
 echo "=== Resource Usage ==="
 docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"
-
 echo ""
 echo "=== Disk Usage ==="
 df -h /opt/chariot-api
@@ -133,53 +133,33 @@ EOF
 sudo chmod +x /opt/chariot-api/monitor.sh
 sudo chown ec2-user:ec2-user /opt/chariot-api/monitor.sh
 
-# Create backup script
+# Backup script
 echo -e "${BLUE}💾 Creating backup script...${NC}"
-sudo tee /opt/chariot-api/backup.sh > /dev/null <<EOF
+sudo tee /opt/chariot-api/backup.sh > /dev/null <<'EOF'
 #!/bin/bash
-# Chariot API Backup Script
-
 BACKUP_DIR="/opt/chariot-api/backups"
-DATE=\$(date +%Y%m%d_%H%M%S)
-
-mkdir -p \$BACKUP_DIR
-
-echo "Creating backup: \$DATE"
-
-# Backup environment files
-cp .env \$BACKUP_DIR/.env.\$DATE
-
-# Backup Docker volumes (if any)
-docker run --rm -v chariot-api_mongodb_data:/data -v \$BACKUP_DIR:/backup alpine tar czf /backup/mongodb_data.\$DATE.tar.gz -C /data .
-
-echo "Backup completed: \$BACKUP_DIR"
+DATE=$(date +%Y%m%d_%H%M%S)
+mkdir -p $BACKUP_DIR
+echo "Creating backup: $DATE"
+cp .env $BACKUP_DIR/.env.$DATE
+docker run --rm -v chariot-api_mongodb_data:/data -v $BACKUP_DIR:/backup alpine tar czf /backup/mongodb_data.$DATE.tar.gz -C /data .
+echo "Backup completed: $BACKUP_DIR"
 EOF
 
 sudo chmod +x /opt/chariot-api/backup.sh
 sudo chown ec2-user:ec2-user /opt/chariot-api/backup.sh
 
-# Create update script
+# Update script
 echo -e "${BLUE}🔄 Creating update script...${NC}"
-sudo tee /opt/chariot-api/update.sh > /dev/null <<EOF
+sudo tee /opt/chariot-api/update.sh > /dev/null <<'EOF'
 #!/bin/bash
-# Chariot API Update Script
-
 set -e
-
 echo "🔄 Updating Chariot API..."
-
-# Pull latest changes
 git pull origin main
-
-# Rebuild and restart containers
 docker-compose down
 docker-compose build --no-cache
 docker-compose up -d
-
-# Wait for application to start
 sleep 30
-
-# Check health
 if curl -f http://localhost:3001/api/health > /dev/null 2>&1; then
     echo "✅ Update successful!"
 else
@@ -192,14 +172,14 @@ EOF
 sudo chmod +x /opt/chariot-api/update.sh
 sudo chown ec2-user:ec2-user /opt/chariot-api/update.sh
 
-# Set up cron jobs for monitoring and backups
-echo -e "${BLUE}⏰ Setting up cron jobs...${NC}"
-(crontab -l 2>/dev/null; echo "0 2 * * * /opt/chariot-api/backup.sh") | crontab -
-(crontab -l 2>/dev/null; echo "*/5 * * * * /opt/chariot-api/monitor.sh >> /opt/chariot-api/logs/monitor.log 2>&1") | crontab -
-
 # Create logs directory
 mkdir -p /opt/chariot-api/logs
 sudo chown ec2-user:ec2-user /opt/chariot-api/logs
+
+# Setup cron jobs
+echo -e "${BLUE}⏰ Setting up cron jobs...${NC}"
+(crontab -l 2>/dev/null; echo "0 2 * * * /opt/chariot-api/backup.sh") | crontab -
+(crontab -l 2>/dev/null; echo "*/5 * * * * /opt/chariot-api/monitor.sh >> /opt/chariot-api/logs/monitor.log 2>&1") | crontab -
 
 echo -e "${GREEN}✅ EC2 setup completed successfully!${NC}"
 echo -e "${BLUE}📝 Next steps:${NC}"

@@ -61,7 +61,14 @@ docker image prune -f || true
 
 # Build and start the application
 echo -e "${BLUE}🔨 Building and starting the application...${NC}"
-docker-compose up --build -d
+
+# Build the Docker image first
+echo -e "${BLUE}🔨 Building Docker image...${NC}"
+docker build -t chariot-api .
+
+# Start the application
+echo -e "${BLUE}🚀 Starting application...${NC}"
+docker-compose up -d
 
 # Wait for the application to start
 echo -e "${BLUE}⏳ Waiting for application to start...${NC}"
