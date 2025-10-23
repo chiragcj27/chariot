@@ -7,16 +7,26 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=production
-      - PORT=3001
+      - PORT=${PORT:-3001}
       - MONGO_URI=${MONGO_URI}
       - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
       - PAYPAL_CLIENT_SECRET=${PAYPAL_CLIENT_SECRET}
       - PAYPAL_API_BASE=${PAYPAL_API_BASE}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_PORT=${SMTP_PORT}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASS=${SMTP_PASS}
+      - SELLER_PORTAL_URL=${SELLER_PORTAL_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+      - HEYZINE_CLIENT_ID=${HEYZINE_CLIENT_ID}
       - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
     env_file:
       - .env
-    depends_on:
-      - mongodb
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"]
@@ -24,17 +34,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
-  mongodb:
-    image: mongo:7.0
-    ports:
-      - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USERNAME:-admin}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD:-password}
-    volumes:
-      - mongodb_data:/data/db
-    restart: unless-stopped
 
   nginx:
     image: nginx:alpine
@@ -48,5 +47,3 @@ services:
       - api
     restart: unless-stopped
 
-volumes:
-  mongodb_data:

@@ -35,16 +35,20 @@ fi
 
 # Check if .env file exists
 if [ ! -f .env ]; then
-    echo -e "${YELLOW}⚠️  .env file not found. Creating from env.example...${NC}"
-    if [ -f env.example ]; then
-        cp env.example .env
-        echo -e "${YELLOW}📝 Please update the .env file with your actual configuration values.${NC}"
-        echo -e "${YELLOW}   Required variables: MONGO_URI, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET${NC}"
-        read -p "Press Enter to continue after updating .env file..."
-    else
-        echo -e "${RED}❌ No env.example file found. Please create a .env file with required variables.${NC}"
-        exit 1
-    fi
+    echo -e "${RED}❌ .env file not found.${NC}"
+    echo -e "${YELLOW}📝 Please create a .env file with your configuration values.${NC}"
+    echo -e "${BLUE}You can copy from env.production.example and update with your actual values:${NC}"
+    echo -e "${BLUE}  cp env.production.example .env${NC}"
+    echo -e "${BLUE}  nano .env${NC}"
+    echo -e ""
+    echo -e "${YELLOW}Required variables:${NC}"
+    echo -e "  - MONGO_URI (MongoDB Atlas connection string)"
+    echo -e "  - PAYPAL_CLIENT_ID and PAYPAL_CLIENT_SECRET"
+    echo -e "  - AWS credentials (ACCESS_KEY_ID, SECRET_ACCESS_KEY)"
+    echo -e "  - SMTP settings for email"
+    echo -e "  - JWT secrets for authentication"
+    echo -e ""
+    exit 1
 fi
 
 # Stop existing containers
