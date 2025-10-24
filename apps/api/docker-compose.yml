@@ -1,28 +1,14 @@
+version: '3.8'
+
 services:
   api:
-    image: chariot-api
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    image: chariot-api:latest
+    container_name: chariot-api
     ports:
       - "3001:3001"
-    environment:
-      - NODE_ENV=production
-      - PORT=${PORT:-3001}
-      - MONGO_URI=${MONGO_URI}
-      - PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID}
-      - PAYPAL_CLIENT_SECRET=${PAYPAL_CLIENT_SECRET}
-      - PAYPAL_API_BASE=${PAYPAL_API_BASE}
-      - AWS_REGION=${AWS_REGION}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-      - AWS_S3_BUCKET=${AWS_S3_BUCKET}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_PORT=${SMTP_PORT}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASS=${SMTP_PASS}
-      - SELLER_PORTAL_URL=${SELLER_PORTAL_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
-      - HEYZINE_CLIENT_ID=${HEYZINE_CLIENT_ID}
-      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
     env_file:
       - .env
     restart: unless-stopped
@@ -32,9 +18,23 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   nginx:
-    image: nginx:alpine
+    image: nginx:1.27-alpine
+    container_name: chariot-nginx
     ports:
       - "80:80"
       - "443:443"
@@ -44,4 +44,17 @@ services:
     depends_on:
       - api
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
