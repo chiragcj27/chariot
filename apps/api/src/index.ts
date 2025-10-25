@@ -38,6 +38,7 @@ const allowedOrigins = [
   'http://localhost:3002',
   'https://chariot-seller-portal.vercel.app',
   'https://thechariot.net',
+  'https://www.thechariot.net',
 ];
 
 // CORS configuration with debugging
