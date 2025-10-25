@@ -34,9 +34,28 @@ jobs:
             echo "🚀 Starting deployment..."
             cd $DEPLOY_PATH
             
-            # Pull latest code
-            echo "📥 Pulling latest code..."
-            git pull origin main
+            # Check git repository status
+            echo "🔍 Checking git repository status..."
+            if [ ! -d .git ]; then
+              echo "📥 No git repository found, cloning..."
+              git clone https://github.com/${{ github.repository }}.git .
+            else
+              echo "📁 Git repository found, checking status..."
+              if ! git status > /dev/null 2>&1; then
+                echo "⚠️ Git repository is corrupted, re-cloning..."
+                cd ..
+                rm -rf chariot-api
+                mkdir chariot-api
+                cd chariot-api
+                git clone https://github.com/${{ github.repository }}.git .
+              fi
+            fi
+            
+            # Ensure we're on the correct branch and have the latest code
+            echo "📥 Updating to latest code..."
+            git fetch origin
+            git checkout main
+            git reset --hard origin/main
             
             # Build image
             echo "🐳 Building Docker image..."
