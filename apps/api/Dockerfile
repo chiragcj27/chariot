@@ -1,80 +1,84 @@
 # Stage 1: Builder
-FROM node:18-alpine AS builder
+FROM node:18-bullseye AS builder
 
 # Install build dependencies
-RUN apk add --no-cache python3 make g++
+RUN apt-get update && apt-get install -y python3 make g++ build-essential && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy workspace files
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+# Copy workspace config files
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json turbo.json ./
+
+# Install pnpm globally and clear cache
+RUN npm install -g pnpm && npm cache clean --force
+
+# Copy packages and API
 COPY packages ./packages
-COPY apps/api/package.json ./apps/api/
+COPY apps/api ./apps/api
 
-# Install pnpm and dependencies
-RUN npm install -g pnpm && \
-    PUPPETEER_SKIP_DOWNLOAD=true CHROMIUM_SKIP_DOWNLOAD=true pnpm install --frozen-lockfile
+# Environment for Puppeteer - skip download to save time
+ENV PUPPETEER_SKIP_DOWNLOAD=true \
+    CHROMIUM_SKIP_DOWNLOAD=true
 
-# Copy API source code
-COPY apps/api/src ./apps/api/src
-COPY apps/api/tsconfig.json ./apps/api/
+# Install all dependencies
+RUN pnpm install --frozen-lockfile
 
-# Build the API
-RUN cd apps/api && pnpm build
+# Build all packages first, then the API
+RUN pnpm build
+
+# Clean up node_modules from builder to save space
+RUN find node_modules -name "*.test.*" -o -name "*.spec.*" -o -name "*.map" | xargs rm -rf
+RUN find . -type d -name ".cache" -o -name ".git" | xargs rm -rf
+
 
 # Stage 2: Runtime
-FROM node:18-alpine
+FROM node:18-bullseye
 
-# Install only required runtime dependencies for Puppeteer
-RUN apk add --no-cache \
+# Install only essential runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     chromium \
-    nss \
-    freetype \
-    harfbuzz \
     ca-certificates \
-    ttf-dejavu
+    && rm -rf /var/lib/apt/lists/*
 
-# Set Puppeteer to use system Chromium
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser \
+# Environment variables for Puppeteer
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     NODE_ENV=production
 
-# Create app directory
+# Working directory
 WORKDIR /app
 
-# Copy workspace files from builder
+# Copy necessary workspace files
 COPY --from=builder /app/pnpm-lock.yaml /app/pnpm-workspace.yaml /app/package.json ./
-
-# Copy packages from builder (for shared dependencies)
 COPY --from=builder /app/packages ./packages
-
-# Copy API package.json
 COPY --from=builder /app/apps/api/package.json ./apps/api/
 
-# Install pnpm and production dependencies only
-RUN npm install -g pnpm && \
-    pnpm install --frozen-lockfile --prod
+# Install pnpm and only production dependencies (smaller footprint)
+RUN npm install -g pnpm && npm cache clean --force && \
+    pnpm install --frozen-lockfile --prod && \
+    pnpm store prune
 
-# Copy built API from builder
+# Copy built API
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 && \
+RUN groupadd -r nodejs || true && \
+    useradd -r -g nodejs nodejs || true && \
     chown -R nodejs:nodejs /app
 
 USER nodejs
 
-# Set working directory to API
+# Set API working dir
 WORKDIR /app/apps/api
 
-# Expose port
+# Expose app port
 EXPOSE 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })" || exit 1
+  CMD node -e "require('http').get('http://localhost:3001/api/health', res => process.exit(res.statusCode === 200 ? 0 : 1))" || exit 1
 
-# Start the application
+# Start app
 CMD ["node", "dist/index.js"]
+  
