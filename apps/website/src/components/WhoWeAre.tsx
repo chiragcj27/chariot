@@ -139,6 +139,7 @@ export default function WhoWeAre() {
                     height={img.h}
                     className="object-cover w-full h-full transition-all duration-300 sm:grayscale sm:group-hover:grayscale-0"
                     draggable={false}
+                    loading="lazy"
                   />
                 </div>
                 <span className="text-gray-400 text-[clamp(0.75rem,1.8vw,0.875rem)] mt-[clamp(0.5rem,1.5vw,0.75rem)] text-center w-full px-1">

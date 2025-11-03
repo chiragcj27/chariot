@@ -15,6 +15,8 @@ const nextConfig: NextConfig = {
     ],
     dangerouslyAllowSVG: true,
   },
+  // Compression for better performance
+  compress: true,
 };
 
 export default nextConfig;

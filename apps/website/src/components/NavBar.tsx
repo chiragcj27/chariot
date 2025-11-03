@@ -93,6 +93,7 @@ export default function NavBar() {
                         width={114} 
                         height={66} 
                         className="w-full h-full"
+                        priority
                       />
                     </motion.div>
                   ) : (

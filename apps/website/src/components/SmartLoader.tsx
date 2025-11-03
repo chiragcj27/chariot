@@ -15,17 +15,12 @@ export default function SmartLoader() {
       return;
     }
 
-    // First visit - mark as visited and wait for full load
+    // First visit - mark as visited
     sessionStorage.setItem('chariot-has-visited-session', 'true');
-    
-    const startTime = Date.now();
-    const minLoadTime = 3000; // 3 seconds minimum
-    let isFullyLoaded = false;
     
     function hideLoader() {
       if (cssLoader) {
         cssLoader.classList.add('hidden');
-        // Remove from DOM after transition - but check if it still exists
         setTimeout(() => {
           if (cssLoader && cssLoader.parentNode) {
             cssLoader.remove();
@@ -34,50 +29,24 @@ export default function SmartLoader() {
       }
     }
     
-    function tryHideLoader() {
-      const elapsedTime = Date.now() - startTime;
-      
-      if (isFullyLoaded && elapsedTime >= minLoadTime) {
-        // Both conditions met: fully loaded AND minimum time passed
-        hideLoader();
-      } else if (isFullyLoaded) {
-        // Website loaded but min time not reached - wait for remaining time
-        const remainingTime = minLoadTime - elapsedTime;
-        setTimeout(hideLoader, remainingTime);
-      } else if (elapsedTime >= minLoadTime) {
-        // Min time passed but not fully loaded - keep checking
-        setTimeout(tryHideLoader, 100);
-      } else {
-        // Neither condition met - keep checking
-        setTimeout(tryHideLoader, 100);
-      }
-    }
-    
     // Check if website is fully loaded
     function checkIfFullyLoaded() {
       if (document.readyState === 'complete') {
-        // Additional delay to ensure React has rendered
+        // Hide immediately when loaded - no artificial delays
         setTimeout(() => {
-          isFullyLoaded = true;
-          tryHideLoader();
-        }, 1000);
+          hideLoader();
+        }, 300); // Just enough for smooth transition
       } else {
-        // Check again in 100ms
-        setTimeout(checkIfFullyLoaded, 100);
+        setTimeout(checkIfFullyLoaded, 50);
       }
     }
     
     // Start checking
     checkIfFullyLoaded();
     
-    // Fallback: hide after maximum 10 seconds regardless
-    const fallbackTimeout = setTimeout(hideLoader, 10000);
-    
-    // Cleanup
-    return () => {
-      clearTimeout(fallbackTimeout);
-    };
+    // Fallback: hide after maximum 5 seconds regardless
+    setTimeout(hideLoader, 5000);
   }, []);
 
-  return null; // This component doesn't render anything
+  return null;
 }
