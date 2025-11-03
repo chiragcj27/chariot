@@ -48,7 +48,7 @@ export default function CalendlyModal({
           if (!existingWidget) {
             try {
               window.Calendly.initInlineWidget({
-                url: 'https://calendly.com/chiragcj27-work/30min?primary_color=fca17a',
+                url: "https://calendly.com/customercare-thechariot/chariot-consultation?background_color=fefcfb&primary_color=ff914e",
                 parentElement: widgetElement,
                 prefill: {},
                 utm: {}
