@@ -31,30 +31,8 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const MONGO_URI = process.env.MONGO_URI || '';
 
-const allowedOrigins = [
-  'https://chariot-website.vercel.app',
-  'http://localhost:3000',
-  'https://chariot-admin.vercel.app',
-  'http://localhost:3002',
-  'https://chariot-seller-portal.vercel.app',
-  'https://thechariot.net',
-  'https://www.thechariot.net',
-];
-
-// CORS configuration with debugging
 const corsOptions = {
-  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      console.log(`CORS: Allowing origin ${origin}`);
-      callback(null, true);
-    } else {
-      console.log(`CORS: Blocking origin ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true,
   credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
@@ -80,7 +58,7 @@ app.get('/api/cors-debug', (req, res) => {
   res.json({
     origin: req.headers.origin,
     userAgent: req.headers['user-agent'],
-    allowedOrigins: allowedOrigins,
+    allowedOrigins: 'all origins allowed',
     timestamp: new Date().toISOString()
   });
 });

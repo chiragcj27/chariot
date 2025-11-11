@@ -1,27 +1,22 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import dotenv from 'dotenv';
 import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-// Create transporter
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Initialize Resend client
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Get from email address
+const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
 
 
 export const emailService = {
   async sendSellerApprovalEmail(sellerEmail: string, sellerName: string) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: sellerEmail,
         subject: 'Your Seller Account Has Been Approved!',
         html: `
@@ -40,10 +35,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot Team</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending seller approval email:', error);
       throw error;
@@ -52,8 +50,8 @@ export const emailService = {
 
   async sendSellerRejectionEmail(sellerEmail: string, sellerName: string, reason: string) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: sellerEmail,
         subject: 'Seller Account Application Update',
         html: `
@@ -68,10 +66,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot Team</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending seller rejection email:', error);
       throw error;
@@ -80,8 +81,8 @@ export const emailService = {
 
   async sendNewSellerNotification(adminEmail: string, sellerName: string, sellerEmail: string) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: adminEmail,
         subject: 'New Seller Registration Requires Approval',
         html: `
@@ -94,10 +95,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot System</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending new seller notification email:', error);
       throw error;
@@ -106,8 +110,8 @@ export const emailService = {
 
   async sendSellerBlacklistEmail(sellerEmail: string, sellerName: string, reason: string, expiryDate: Date) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: sellerEmail,
         subject: 'Your Seller Account Has Been Temporarily Suspended',
         html: `
@@ -127,10 +131,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot Team</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending seller blacklist email:', error);
       throw error;
@@ -139,8 +146,8 @@ export const emailService = {
 
   async sendSellerBlacklistRemovalEmail(sellerEmail: string, sellerName: string) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: sellerEmail,
         subject: 'Your Seller Account Has Been Reactivated',
         html: `
@@ -160,10 +167,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot Team</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending seller blacklist removal email:', error);
       throw error;
@@ -172,8 +182,8 @@ export const emailService = {
 
   async sendSellerReapplicationNotification(adminEmail: string, sellerName: string, sellerEmail: string, reapplicationReason: string) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: adminEmail,
         subject: 'Seller Reapplication Request',
         html: `
@@ -187,10 +197,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot System</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending seller reapplication notification email:', error);
       throw error;
@@ -199,8 +212,8 @@ export const emailService = {
 
   async sendNewBuyerNotification(adminEmail: string, buyerName: string, buyerEmail: string, companyName: string) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: adminEmail,
         subject: 'New Buyer Registration Requires Approval',
         html: `
@@ -214,10 +227,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot System</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending new buyer notification email:', error);
       throw error;
@@ -226,8 +242,8 @@ export const emailService = {
 
   async sendBuyerApprovalEmail(buyerEmail: string, buyerName: string, userAccountId: string, password: string) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: buyerEmail,
         subject: 'Your Buyer Account Has Been Approved!',
         html: `
@@ -247,10 +263,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot Team</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending buyer approval email:', error);
       throw error;
@@ -261,8 +280,8 @@ export const emailService = {
 
   async sendBuyerRejectionEmail(buyerEmail: string, buyerName: string, reason: string) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: buyerEmail,
         subject: 'Buyer Account Application Update',
         html: `
@@ -277,10 +296,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot Team</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending buyer rejection email:', error);
       throw error;
@@ -289,8 +311,8 @@ export const emailService = {
 
   async sendPasswordResetOTP(email: string, otp: string, userName: string) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: email,
         subject: 'Password Reset OTP - Chariot Marketplace',
         html: `
@@ -308,10 +330,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot Team</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending password reset OTP email:', error);
       throw error;
@@ -329,8 +354,8 @@ export const emailService = {
     sellerEarnings: number
   ) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: sellerEmail,
         subject: '🎉 New Sale Alert!',
         html: `
@@ -353,10 +378,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot Team</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending sale notification email:', error);
       throw error;
@@ -373,8 +401,8 @@ export const emailService = {
     commissionAmount: number
   ) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: adminEmail,
         subject: 'New Marketplace Sale',
         html: `
@@ -396,10 +424,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot System</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending admin sale notification email:', error);
       throw error;
@@ -414,8 +445,8 @@ export const emailService = {
     commissionEarned: number
   ) {
     try {
-      const mailOptions = {
-        from: process.env.SMTP_USER,
+      const { data, error } = await resend.emails.send({
+        from: fromEmail,
         to: sellerEmail,
         subject: `Commission Summary - ${period}`,
         html: `
@@ -435,10 +466,13 @@ export const emailService = {
             <p>Best regards,<br>The Chariot Team</p>
           </div>
         `,
-      };
+      });
 
-      const info = await transporter.sendMail(mailOptions);
-      return info;
+      if (error) {
+        throw error;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error sending commission earned notification email:', error);
       throw error;

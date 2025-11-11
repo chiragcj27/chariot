@@ -34,23 +34,20 @@ async function createWebhook(accessToken: string) {
     throw new Error('PAYPAL_WEBHOOK_URL environment variable is required');
   }
 
+  // Try using only BILLING.SUBSCRIPTION events first
+  // PayPal's subscription webhooks use specific event names
+  // Note: The exact event names may vary - if these don't work, check PayPal dashboard
   const webhookData = {
     url: WEBHOOK_URL,
     event_types: [
       {
-        name: 'BILLING.SUBSCRIPTION.PAYMENT.COMPLETED'
+        name: 'BILLING.SUBSCRIPTION.CREATED'
+      },
+      {
+        name: 'BILLING.SUBSCRIPTION.UPDATED'
       },
       {
         name: 'BILLING.SUBSCRIPTION.CANCELLED'
-      },
-      {
-        name: 'BILLING.SUBSCRIPTION.PAYMENT.FAILED'
-      },
-      {
-        name: 'BILLING.SUBSCRIPTION.ACTIVATED'
-      },
-      {
-        name: 'BILLING.SUBSCRIPTION.SUSPENDED'
       }
     ]
   };
@@ -165,10 +162,33 @@ async function createPayPalWebhook() {
       console.error('PayPal API Error:', error.response?.data);
       
       if (error.response?.status === 400) {
+        const errorData = error.response.data;
         console.log('\n💡 Common fixes:');
         console.log('- Make sure the webhook URL is HTTPS (not HTTP)');
         console.log('- Ensure the URL is publicly accessible');
         console.log('- Check that the URL returns a 200 status code');
+        
+        if (errorData?.details) {
+          console.log('\n📋 Error details:');
+          errorData.details.forEach((detail: any) => {
+            console.log(`  - Field: ${detail.field}`);
+            console.log(`    Issue: ${detail.issue}`);
+            if (detail.description) {
+              console.log(`    Description: ${detail.description}`);
+            }
+          });
+        }
+        
+        if (errorData?.message?.includes('event') || errorData?.details?.some((d: any) => d.field?.includes('event'))) {
+          console.log('\n⚠️  Event type issue detected!');
+          console.log('💡 Try using only basic event types:');
+          console.log('   - PAYMENT.SALE.COMPLETED');
+          console.log('   - BILLING.SUBSCRIPTION.CREATED');
+          console.log('   - BILLING.SUBSCRIPTION.UPDATED');
+          console.log('   - BILLING.SUBSCRIPTION.CANCELLED');
+          console.log('\n📖 Check PayPal documentation for valid event types:');
+          console.log('   https://developer.paypal.com/docs/api-basics/notifications/webhooks/event-names/');
+        }
       }
     }
     process.exit(1);

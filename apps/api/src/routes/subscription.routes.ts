@@ -9,6 +9,10 @@ const router: Router = Router();
 router.post('/confirm', isBuyer, subscriptionController.confirmSubscription);
 
 // PayPal webhook (no auth required)
+// Allow OPTIONS for CORS preflight
+router.options('/webhook', (req, res) => {
+  res.status(200).end();
+});
 router.post('/webhook', webhookController.handlePaypalWebhook);
 
 export default router; 

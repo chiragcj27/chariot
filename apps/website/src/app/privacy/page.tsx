@@ -12,7 +12,7 @@ export default function PrivacyPolicy() {
               Welcome to Chariot
             </h2>
             <p className="text-base sm:text-lg md:text-xl text-gray-700 leading-relaxed text-left">
-              The Chariot respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and protect information when you visit our website <a href="https://www.thechariotagency.com" target="_blank" rel="noopener noreferrer" className="text-black underline">www.thechariotagency.com</a>, communicate with us, or engage our services. By using our website or services, you agree to the terms outlined in this policy.
+              The Chariot respects your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and protect information when you visit our website <a href="https://www.thechariot.net" target="_blank" rel="noopener noreferrer" className="text-black underline">www.thechariot.net</a>, communicate with us, or engage our services. By using our website or services, you agree to the terms outlined in this policy.
             </p>
           </div>
         </div>

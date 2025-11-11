@@ -6,17 +6,20 @@ import crypto from 'crypto';
 // Helper: Validate webhook signature using PayPal's verification method
 async function verifyPaypalWebhook(req: Request): Promise<boolean> {
   const webhookId = process.env.PAYPAL_WEBHOOK_ID;
-  const webhookSecret = process.env.PAYPAL_WEBHOOK_SECRET;
   
-  // In development, skip verification if webhook credentials aren't set
-  if (process.env.NODE_ENV === 'development' && (!webhookId || !webhookSecret)) {
+  // In development, skip verification if webhook ID isn't set
+  if (process.env.NODE_ENV === 'development' && !webhookId) {
+    console.log('⚠️  Development mode: Skipping webhook verification');
     return true;
   }
   
-  if (!webhookId || !webhookSecret) {
-    console.error('❌ PayPal webhook credentials not configured');
+  if (!webhookId) {
+    console.error('❌ PAYPAL_WEBHOOK_ID not configured');
     return false;
   }
+  
+  // Note: PayPal doesn't use a traditional webhook secret
+  // Verification is done via webhook ID and PayPal's certificate URL
 
   try {
     const transmissionId = req.headers['paypal-transmission-id'] as string;
@@ -64,9 +67,28 @@ async function verifyPaypalWebhook(req: Request): Promise<boolean> {
 export const webhookController = {
   async handlePaypalWebhook(req: Request, res: Response) {
     try {
+      // Handle OPTIONS request for CORS
+      if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+      }
+
+      // For testing without PayPal headers, allow it in development or if no headers present
+      const hasPaypalHeaders = req.headers['paypal-transmission-id'] || req.headers['paypal-transmission-sig'];
+      
+      if (!hasPaypalHeaders) {
+        // This might be a test request or webhook verification from PayPal dashboard
+        console.log('⚠️  Webhook request without PayPal headers - might be a test');
+        return res.status(200).json({ 
+          message: 'Webhook endpoint is accessible',
+          note: 'This endpoint expects PayPal webhook events with proper headers',
+          webhookId: process.env.PAYPAL_WEBHOOK_ID || 'Not configured'
+        });
+      }
+
       // 1. Validate webhook
       const isValid = await verifyPaypalWebhook(req);
       if (!isValid) {
+        console.error('❌ Webhook verification failed');
         return res.status(400).json({ message: 'Invalid webhook signature' });
       }
 
@@ -74,9 +96,63 @@ export const webhookController = {
       const eventType = event.event_type;
       const resource = event.resource;
 
+      console.log(`📥 Received PayPal webhook: ${eventType}`);
 
       // 2. Handle key events
       switch (eventType) {
+        case 'BILLING.SUBSCRIPTION.UPDATED':
+        case 'BILLING.SUBSCRIPTION.CREATED': {
+          // Handle subscription creation/updates
+          const paypalSubscriptionId = resource.id;
+          const subscriptionStatus = resource.status;
+          
+          console.log(`📋 Subscription ${eventType}: ${paypalSubscriptionId}, Status: ${subscriptionStatus}`);
+          
+          // Update subscription status based on PayPal status
+          const statusMap: Record<string, string> = {
+            'ACTIVE': 'active',
+            'APPROVAL_PENDING': 'pending',
+            'APPROVED': 'active',
+            'SUSPENDED': 'suspended',
+            'CANCELLED': 'canceled',
+            'EXPIRED': 'expired'
+          };
+          
+          const userSub = await UserSubscription.findOneAndUpdate(
+            { paypalSubscriptionId },
+            { 
+              status: statusMap[subscriptionStatus] || 'active',
+              ...(subscriptionStatus === 'ACTIVE' && {
+                lastPaymentDate: new Date(),
+                nextBillingDate: resource.billing_info?.next_billing_time 
+                  ? new Date(resource.billing_info.next_billing_time)
+                  : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+              })
+            },
+            { new: true }
+          );
+          
+          // If subscription is activated and user exists, add credits
+          if (subscriptionStatus === 'ACTIVE' && userSub && userSub.status === 'active') {
+            const plan = await SubscriptionCard.findById(userSub.planId);
+            if (plan) {
+              const user = await User.findById(userSub.userId);
+              if (user) {
+                (user as any).creditsPoints = ((user as any).creditsPoints || 0) + plan.credits;
+                await user.save();
+                console.log(`✅ Added ${plan.credits} credits to user ${userSub.userId}`);
+              }
+            }
+          }
+          break;
+        }
+        case 'PAYMENT.SALE.COMPLETED': {
+          // Handle payment completion (works for subscription payments)
+          console.log(`💳 Payment completed: ${resource.id}`);
+          // The subscription should be updated via BILLING.SUBSCRIPTION.UPDATED
+          // But we can log this for tracking
+          break;
+        }
         case 'BILLING.SUBSCRIPTION.PAYMENT.COMPLETED': {
           const paypalSubscriptionId = resource.id;
           const userSub = await UserSubscription.findOne({ paypalSubscriptionId });
@@ -158,6 +234,8 @@ export const webhookController = {
         // Add more event types as needed
         default:
           // Log unhandled events
+          console.log(`⚠️  Unhandled webhook event type: ${eventType}`);
+          console.log(`📦 Event data:`, JSON.stringify(event, null, 2));
       }
 
       // Always respond 200 to acknowledge receipt
