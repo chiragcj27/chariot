@@ -15,7 +15,6 @@
     "@chariot/db": "workspace:*",
     "@chariot/utils": "workspace:*",
     "@types/multer": "^1.4.12",
-    "@types/puppeteer": "^7.0.4",
     "axios": "^1.12.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
