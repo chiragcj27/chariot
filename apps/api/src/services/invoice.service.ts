@@ -1,11 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import puppeteer from 'puppeteer';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import chromium from 'chromium';
-import { Order } from '@chariot/db';
-import { User } from '@chariot/db';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
+
+type LaunchOptions = NonNullable<Parameters<typeof puppeteer.launch>[0]>;
+type HeadlessSetting = LaunchOptions['headless'];
 
 export interface InvoiceData {
   order: any;
@@ -40,85 +39,112 @@ export class InvoiceService {
     }
 
     console.log('Initializing browser for PDF generation...');
-    
-    // Configure Puppeteer for production deployment
-    const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--disable-extensions',
-        '--disable-plugins',
-        '--single-process',
-        '--no-zygote',
-        '--disable-web-security',
-        '--disable-features=VizDisplayCompositor',
-        '--memory-pressure-off',
-        '--max_old_space_size=4096'
-      ],
+
+    const isRender = Boolean(process.env.RENDER);
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isServerless = Boolean(process.env.VERCEL || process.env.AWS_REGION || process.env.LAMBDA_TASK_ROOT);
+
+    const launchOptions: LaunchOptions = {
+      headless: this.getHeadlessMode(),
+      args: this.getLaunchArgs(),
+      defaultViewport: chromium.defaultViewport ?? { width: 1200, height: 800 },
       timeout: 60000
     };
-    
-    // For Render deployment, use bundled Chromium
-    const isRender = process.env.RENDER === 'true' || process.env.RENDER;
-    const isProduction = process.env.NODE_ENV === 'production';
-    
-    if (isRender || isProduction) {
-      // Use bundled Chromium for Render/production
-      console.log('Using bundled Chromium for production deployment...');
-      launchOptions.executablePath = chromium.path;
-    } else {
-      // Try to find Chrome executable for local development
-      const possiblePaths = [
-        '/usr/bin/chromium-browser',
-        '/usr/bin/chromium',
-        '/usr/bin/google-chrome',
-        '/usr/bin/google-chrome-stable',
-        '/usr/bin/chrome',
-        '/usr/bin/chrome-browser',
-        '/opt/google/chrome/chrome'
-      ];
-      
-      let chromeFound = false;
-      for (const chromePath of possiblePaths) {
-        if (fs.existsSync(chromePath)) {
-          launchOptions.executablePath = chromePath;
-          console.log('Found Chrome at:', chromePath);
-          chromeFound = true;
-          break;
-        }
-      }
-      
-      if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-        launchOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
-        chromeFound = true;
-        console.log('Using custom Puppeteer executable:', process.env.PUPPETEER_EXECUTABLE_PATH);
-      }
-      
-      // If no Chrome found, use bundled Chromium
-      if (!chromeFound) {
-        console.log('No Chrome/Chromium found, using bundled Chromium...');
-        launchOptions.executablePath = chromium.path;
-      }
-    }
-    
+
+    launchOptions.executablePath = await this.resolveExecutablePath({
+      preferBundled: isProduction || isRender || isServerless
+    });
+
     console.log('Launching Puppeteer for PDF generation...');
     console.log('Launch options:', { 
-      executablePath: launchOptions.executablePath || 'bundled',
+      executablePath: launchOptions.executablePath || 'auto',
       argsCount: launchOptions.args?.length || 0,
       timeout: launchOptions.timeout
     });
-    
+
     this.browser = await puppeteer.launch(launchOptions);
     this.isBrowserReady = true;
-    
+
     // Set up browser cleanup on process exit
     process.on('SIGINT', () => this.cleanup());
     process.on('SIGTERM', () => this.cleanup());
-    
+
     return this.browser;
+  }
+
+  private getHeadlessMode(): HeadlessSetting {
+    const envValue = process.env.PUPPETEER_HEADLESS?.toLowerCase();
+    if (envValue === 'false' || envValue === '0') {
+      return false;
+    }
+    if (envValue === 'shell') {
+      return 'shell' as HeadlessSetting;
+    }
+    return (chromium.headless as HeadlessSetting | undefined) ?? true;
+  }
+
+  private getLaunchArgs(): string[] {
+    const extraArgs = [
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+      '--disable-extensions',
+      '--disable-plugins',
+      '--single-process',
+      '--no-zygote',
+      '--disable-web-security',
+      '--disable-features=VizDisplayCompositor',
+      '--memory-pressure-off',
+      '--max_old_space_size=4096'
+    ];
+
+    const combined = [...(chromium.args || []), ...extraArgs];
+    return Array.from(new Set(combined));
+  }
+
+  private async resolveExecutablePath(options: { preferBundled: boolean }): Promise<string> {
+    if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+      console.log('Using custom Puppeteer executable from env');
+      return process.env.PUPPETEER_EXECUTABLE_PATH;
+    }
+
+    if (options.preferBundled) {
+      try {
+        const executablePath = await chromium.executablePath();
+        if (executablePath) {
+          console.log('Using @sparticuz/chromium executable for serverless environment');
+          return executablePath;
+        }
+      } catch (error) {
+        console.warn('Failed to resolve @sparticuz/chromium executable path:', error);
+      }
+    }
+
+    const possiblePaths = [
+      '/usr/bin/chromium-browser',
+      '/usr/bin/chromium',
+      '/usr/bin/google-chrome',
+      '/usr/bin/google-chrome-stable',
+      '/usr/bin/chrome',
+      '/usr/bin/chrome-browser',
+      '/opt/google/chrome/chrome',
+      '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+      '/Applications/Google Chrome Beta.app/Contents/MacOS/Google Chrome Beta',
+      '/Applications/Chromium.app/Contents/MacOS/Chromium',
+      'C:\\\\Program Files\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe',
+      'C:\\\\Program Files (x86)\\\\Google\\\\Chrome\\\\Application\\\\chrome.exe'
+    ];
+
+    for (const chromePath of possiblePaths) {
+      if (fs.existsSync(chromePath)) {
+        console.log('Found Chrome executable at:', chromePath);
+        return chromePath;
+      }
+    }
+
+    throw new Error(
+      'Unable to locate a Chromium/Chrome executable. ' + 
+      'Set PUPPETEER_EXECUTABLE_PATH or install Chrome locally.'
+    );
   }
 
   private async cleanup() {
