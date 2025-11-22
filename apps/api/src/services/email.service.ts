@@ -7,8 +7,29 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 // Initialize Resend client
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Get from email address
-const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
+// Helper function to get from email address at runtime
+// IMPORTANT: Must use an email address from your verified domain in Resend
+// If using thechariot.net domain, use something like: customercare@thechariot.net
+function getFromEmail(): string {
+  const rawEmail = process.env.RESEND_FROM_EMAIL?.trim() || '';
+  const fromEmail = rawEmail.replace(/^["']|["']$/g, '') || 'onboarding@resend.dev';
+  return fromEmail;
+}
+
+// Get initial from email for module-level usage
+const fromEmail = getFromEmail();
+
+// Debug logging on module load
+console.log('📧 Resend Email Configuration (on load):');
+console.log('   RESEND_FROM_EMAIL (raw):', process.env.RESEND_FROM_EMAIL);
+console.log('   RESEND_FROM_EMAIL (processed):', fromEmail);
+console.log('   RESEND_API_KEY:', process.env.RESEND_API_KEY ? '✅ Set' : '❌ Not set');
+
+if (!process.env.RESEND_FROM_EMAIL || fromEmail === 'onboarding@resend.dev') {
+  console.warn('⚠️  RESEND_FROM_EMAIL not set or invalid. Using default onboarding@resend.dev which only works in testing mode.');
+  console.warn('⚠️  To send emails to all recipients, set RESEND_FROM_EMAIL to an email from your verified domain (e.g., customercare@thechariot.net)');
+  console.warn('⚠️  Make sure your .env file is in apps/api/.env and the server has been restarted after adding RESEND_FROM_EMAIL');
+}
 
 
 
@@ -354,8 +375,16 @@ export const emailService = {
     sellerEarnings: number
   ) {
     try {
+      // Get from email at runtime to ensure we have the latest value
+      const currentFromEmail = getFromEmail();
+      
+      console.log('📧 Sending sale notification email:');
+      console.log('   From:', currentFromEmail);
+      console.log('   To:', sellerEmail);
+      console.log('   RESEND_FROM_EMAIL env var:', process.env.RESEND_FROM_EMAIL);
+      
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: currentFromEmail,
         to: sellerEmail,
         subject: '🎉 New Sale Alert!',
         html: `
@@ -381,12 +410,25 @@ export const emailService = {
       });
 
       if (error) {
+        console.error('❌ Resend API Error:', error);
+        console.error('   Error details:', JSON.stringify(error, null, 2));
+        console.error('   From email used:', currentFromEmail);
+        console.error('   To email:', sellerEmail);
         throw error;
       }
 
+      console.log('✅ Sale notification email sent successfully');
       return data;
-    } catch (error) {
-      console.error('Error sending sale notification email:', error);
+    } catch (error: any) {
+      console.error('❌ Error sending sale notification email:', error);
+      if (error?.message?.includes('validation_error')) {
+        console.error('   This is a Resend validation error. Common causes:');
+        console.error('   1. RESEND_FROM_EMAIL is not set or using default onboarding@resend.dev');
+        console.error('   2. The from email domain is not verified in Resend');
+        console.error('   3. The from email format is incorrect');
+        console.error('   Current RESEND_FROM_EMAIL:', process.env.RESEND_FROM_EMAIL);
+        console.error('   Current from email value:', getFromEmail());
+      }
       throw error;
     }
   },
