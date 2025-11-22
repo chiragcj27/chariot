@@ -190,9 +190,8 @@ export default function OrdersPage() {
 
   // Listen for PayPal payment events
   useEffect(() => {
-    const handlePayPalPaymentSuccess = (event: CustomEvent) => {
-      const { orderId, paymentId, result } = event.detail;
-      
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handlePayPalPaymentSuccess = (_event: CustomEvent) => {
       // Close payment modal
       setShowPayPalPayment(false);
       setCurrentPendingOrder(null);
@@ -205,9 +204,8 @@ export default function OrdersPage() {
       toast.success('Payment completed! Your order has been processed.');
     };
 
-    const handlePayPalPaymentCancelled = (event: CustomEvent) => {
-      const { orderId, reason } = event.detail;
-      
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handlePayPalPaymentCancelled = (_event: CustomEvent) => {
       // Close payment modal
       setShowPayPalPayment(false);
       setCurrentPendingOrder(null);

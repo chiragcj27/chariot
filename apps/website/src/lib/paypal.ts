@@ -370,7 +370,8 @@ export class PayPalService {
               }
             }
           },
-          onCancel: (data: unknown) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          onCancel: (_data: unknown) => {
             // Handle user cancellation gracefully
             // Trigger cancellation event
             const event = new CustomEvent('paypal-subscription-cancelled', {
@@ -464,7 +465,8 @@ export class PayPalService {
               reject(error);
             }
           },
-          onCancel: (data: unknown) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          onCancel: (_data: unknown) => {
             // Handle user cancellation gracefully
             resolve(''); // Return empty string to indicate cancellation
           },
@@ -500,7 +502,8 @@ export class PayPalService {
               reject(error);
             }
           },
-          onCancel: (data: unknown) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          onCancel: (_data: unknown) => {
             // Handle user cancellation gracefully
             resolve(''); // Return empty string to indicate cancellation
           },
@@ -637,7 +640,8 @@ export class PayPalService {
               }
             }
           },
-          onCancel: (data: unknown) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          onCancel: (_data: unknown) => {
             // Handle user cancellation gracefully
             
             // Trigger cancellation event

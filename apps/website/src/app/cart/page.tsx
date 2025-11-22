@@ -112,7 +112,7 @@ export default function CheckoutPage() {
   useEffect(() => {
     // Listen for PayPal payment success
     const handlePayPalPaymentSuccess = (event: CustomEvent) => {
-      const { orderId, paymentId, result } = event.detail;
+      const { orderId } = event.detail;
 
       // Clear cart and redirect to order confirmation
       clearCart();
@@ -120,9 +120,8 @@ export default function CheckoutPage() {
     };
 
     // Listen for PayPal payment cancellation
-    const handlePayPalPaymentCancelled = (event: CustomEvent) => {
-      const { orderId, reason } = event.detail;
-      
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handlePayPalPaymentCancelled = (_event: CustomEvent) => {
       // Close PayPal payment modal
       setShowPayPalPayment(false);
       setCurrentOrder(null);

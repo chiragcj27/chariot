@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
 
 interface Testimonial {
   text: string;
@@ -19,7 +19,7 @@ const AutoFitGroup: React.FC<{
 }> = ({ children, maxFontSize = 28, minFontSize = 8, padding = 8 }) => {
   const groupRef = useRef<HTMLDivElement>(null);
 
-  const resize = () => {
+  const resize = useCallback(() => {
     const el = groupRef.current;
     if (!el) return;
     const parent = el.parentElement;
@@ -49,7 +49,7 @@ const AutoFitGroup: React.FC<{
     }
 
     el.style.fontSize = `${best}px`;
-  };
+  }, [maxFontSize, minFontSize]);
 
   useLayoutEffect(() => {
     resize();
@@ -59,7 +59,7 @@ const AutoFitGroup: React.FC<{
     if (groupRef.current?.parentElement) ro.observe(groupRef.current.parentElement);
 
     return () => ro.disconnect();
-  }, [children, maxFontSize, minFontSize, padding]);
+  }, [children, maxFontSize, minFontSize, padding, resize]);
 
   return (
     <div
