@@ -1,8 +1,32 @@
 import { Resend } from 'resend';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 
-dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+// Try to load .env file - check multiple possible locations
+const envPaths = [
+  path.resolve(__dirname, '../../.env'),
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), 'apps/api/.env'),
+];
+
+// Load .env from the first location that exists
+let envLoaded = false;
+for (const envPath of envPaths) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    envLoaded = true;
+    console.log(`📧 Loaded .env from: ${envPath}`);
+    break;
+  }
+}
+
+if (!envLoaded) {
+  // If no .env file found, try default dotenv behavior
+  dotenv.config();
+  console.warn('⚠️  No .env file found in expected locations. Using default dotenv behavior.');
+  console.warn('   Expected locations:', envPaths);
+}
 
 // Initialize Resend client
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -10,9 +34,18 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Helper function to get from email address at runtime
 // IMPORTANT: Must use an email address from your verified domain in Resend
 // If using thechariot.net domain, use something like: customercare@thechariot.net
+// This function checks the environment variable at runtime to ensure we get the latest value
 function getFromEmail(): string {
+  // Re-check environment variable at runtime (in case it was set after module load)
   const rawEmail = process.env.RESEND_FROM_EMAIL?.trim() || '';
   const fromEmail = rawEmail.replace(/^["']|["']$/g, '') || 'onboarding@resend.dev';
+  
+  // Log if we're using the default (for debugging)
+  if (fromEmail === 'onboarding@resend.dev' && process.env.NODE_ENV === 'production') {
+    console.warn('⚠️  [Runtime] RESEND_FROM_EMAIL is still not set. Using default onboarding@resend.dev');
+    console.warn('   This will only work for testing emails to your verified email address.');
+  }
+  
   return fromEmail;
 }
 
@@ -21,14 +54,17 @@ const fromEmail = getFromEmail();
 
 // Debug logging on module load
 console.log('📧 Resend Email Configuration (on load):');
-console.log('   RESEND_FROM_EMAIL (raw):', process.env.RESEND_FROM_EMAIL);
+console.log('   RESEND_FROM_EMAIL (raw):', process.env.RESEND_FROM_EMAIL || 'undefined');
 console.log('   RESEND_FROM_EMAIL (processed):', fromEmail);
 console.log('   RESEND_API_KEY:', process.env.RESEND_API_KEY ? '✅ Set' : '❌ Not set');
+console.log('   Current working directory:', process.cwd());
+console.log('   __dirname:', __dirname);
 
 if (!process.env.RESEND_FROM_EMAIL || fromEmail === 'onboarding@resend.dev') {
   console.warn('⚠️  RESEND_FROM_EMAIL not set or invalid. Using default onboarding@resend.dev which only works in testing mode.');
   console.warn('⚠️  To send emails to all recipients, set RESEND_FROM_EMAIL to an email from your verified domain (e.g., customercare@thechariot.net)');
-  console.warn('⚠️  Make sure your .env file is in apps/api/.env and the server has been restarted after adding RESEND_FROM_EMAIL');
+  console.warn('⚠️  Make sure your .env file is in apps/api/.env and contains: RESEND_FROM_EMAIL=customercare@thechariot.net');
+  console.warn('⚠️  Restart the server after adding RESEND_FROM_EMAIL to your .env file');
 }
 
 
