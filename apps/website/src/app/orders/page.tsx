@@ -192,7 +192,6 @@ export default function OrdersPage() {
   useEffect(() => {
     const handlePayPalPaymentSuccess = (event: CustomEvent) => {
       const { orderId, paymentId, result } = event.detail;
-      console.log('PayPal payment successful:', { orderId, paymentId, result });
       
       // Close payment modal
       setShowPayPalPayment(false);
@@ -208,7 +207,6 @@ export default function OrdersPage() {
 
     const handlePayPalPaymentCancelled = (event: CustomEvent) => {
       const { orderId, reason } = event.detail;
-      console.log('PayPal payment cancelled:', { orderId, reason });
       
       // Close payment modal
       setShowPayPalPayment(false);

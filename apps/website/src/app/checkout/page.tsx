@@ -85,7 +85,6 @@ export default function CheckoutPage() {
       }
 
       const data = await response.json();
-      console.log('Checkout info:', data);
       setCheckoutInfo(data);
     } catch (err) {
       console.error('Error fetching checkout info:', err);
@@ -120,7 +119,6 @@ export default function CheckoutPage() {
     // Listen for PayPal payment success
     const handlePayPalPaymentSuccess = (event: CustomEvent) => {
       const { orderId, paymentId, result } = event.detail;
-      console.log('PayPal payment successful:', { orderId, paymentId, result });
 
       // Clear cart/buyNowItem and redirect to order confirmation
       if (buyNowItem) {
@@ -134,7 +132,6 @@ export default function CheckoutPage() {
     // Listen for PayPal payment cancellation
     const handlePayPalPaymentCancelled = (event: CustomEvent) => {
       const { orderId, reason } = event.detail;
-      console.log('PayPal payment cancelled:', { orderId, reason });
       
       // Close PayPal payment modal
       setShowPayPalPayment(false);

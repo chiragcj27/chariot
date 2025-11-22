@@ -38,8 +38,6 @@ export class InvoiceService {
       return this.browser;
     }
 
-    console.log('Initializing browser for PDF generation...');
-
     const isRender = Boolean(process.env.RENDER);
     const isProduction = process.env.NODE_ENV === 'production';
     const isServerless = Boolean(process.env.VERCEL || process.env.AWS_REGION || process.env.LAMBDA_TASK_ROOT);
@@ -53,13 +51,6 @@ export class InvoiceService {
 
     launchOptions.executablePath = await this.resolveExecutablePath({
       preferBundled: isProduction || isRender || isServerless
-    });
-
-    console.log('Launching Puppeteer for PDF generation...');
-    console.log('Launch options:', { 
-      executablePath: launchOptions.executablePath || 'auto',
-      argsCount: launchOptions.args?.length || 0,
-      timeout: launchOptions.timeout
     });
 
     this.browser = await puppeteer.launch(launchOptions);
@@ -103,7 +94,6 @@ export class InvoiceService {
 
   private async resolveExecutablePath(options: { preferBundled: boolean }): Promise<string> {
     if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-      console.log('Using custom Puppeteer executable from env');
       return process.env.PUPPETEER_EXECUTABLE_PATH;
     }
 
@@ -111,7 +101,6 @@ export class InvoiceService {
       try {
         const executablePath = await chromium.executablePath();
         if (executablePath) {
-          console.log('Using @sparticuz/chromium executable for serverless environment');
           return executablePath;
         }
       } catch (error) {
@@ -136,7 +125,6 @@ export class InvoiceService {
 
     for (const chromePath of possiblePaths) {
       if (fs.existsSync(chromePath)) {
-        console.log('Found Chrome executable at:', chromePath);
         return chromePath;
       }
     }
@@ -149,7 +137,6 @@ export class InvoiceService {
 
   private async cleanup() {
     if (this.browser) {
-      console.log('Cleaning up browser instance...');
       await this.browser.close();
       this.browser = null;
       this.isBrowserReady = false;
@@ -176,7 +163,6 @@ export class InvoiceService {
       return null;
     }
     
-    console.log('Returning cached PDF for key:', cacheKey);
     return cached.buffer;
   }
 
@@ -200,8 +186,6 @@ export class InvoiceService {
   }
 
   public generateInvoiceHTML(invoiceData: InvoiceData): string {
-    console.log('Generating invoice HTML...');
-    
     // Load logos
     const chariotLogo = this.loadLogo('chariot');
     const chandraLogo = this.loadLogo('chandra');
@@ -210,13 +194,10 @@ export class InvoiceService {
   }
 
   public async generateInvoicePDF(invoiceData: InvoiceData): Promise<Buffer> {
-    console.log('Generating invoice PDF...');
-    
     // Check cache first
     const cacheKey = this.getCacheKey(invoiceData);
     const cachedPDF = this.getCachedPDF(cacheKey);
     if (cachedPDF) {
-      console.log('Returning cached PDF, size:', cachedPDF.length, 'bytes');
       return cachedPDF;
     }
     
@@ -261,7 +242,6 @@ export class InvoiceService {
         // Cache the PDF
         this.setCachedPDF(cacheKey, buffer);
         
-        console.log('PDF generated successfully, size:', buffer.length, 'bytes');
         return buffer;
         
       } finally {
@@ -308,7 +288,6 @@ export class InvoiceService {
       const mimeType = logoType === 'chariot' ? 'image/svg+xml' : 'image/png';
       const base64 = imgBuffer.toString('base64');
       
-      console.log(`Successfully loaded ${logoType} logo from:`, logoPath);
       return `data:${mimeType};base64,${base64}`;
       
     } catch (error) {

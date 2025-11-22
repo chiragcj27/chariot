@@ -64,24 +64,19 @@ export const adminProductController = {
         );
 
         if (pdfPreviewFiles.length > 0) {
-          console.log(`Generating flipbooks for kit product ${productId} with ${pdfPreviewFiles.length} PDF preview files`);
-          
           // Generate flipbook for each PDF preview file
           for (const pdfFile of pdfPreviewFiles) {
             try {
-                             console.log(`Generating flipbook for PDF file: ${pdfFile.originalname || pdfFile.filename} (${pdfFile.url})`);
-
               // Generate flipbook using Heyzine service
               const heyzineResponse = await heyzineService.generateFlipbook(pdfFile.url);
               
               if (heyzineResponse.success && heyzineResponse.url) {
-                                 flipbookUrls.push({
-                   fileId: pdfFile._id?.toString() || '',
-                   url: heyzineResponse.url,
-                   fileName: pdfFile.originalname || pdfFile.filename || 'Unknown file'
-                 });
+                flipbookUrls.push({
+                  fileId: pdfFile._id?.toString() || '',
+                  url: heyzineResponse.url,
+                  fileName: pdfFile.originalname || pdfFile.filename || 'Unknown file'
+                });
                 flipbookGenerated = true;
-                                 console.log(`Flipbook generated successfully for ${pdfFile.originalname || pdfFile.filename}: ${heyzineResponse.url}`);
                              } else {
                  console.warn(`Heyzine service failed for file ${pdfFile.originalname || pdfFile.filename}:`, heyzineResponse.error);
                }
@@ -95,16 +90,11 @@ export const adminProductController = {
           if (flipbookUrls.length > 0) {
             flipbookUrl = flipbookUrls[0]?.url;
           }
-        } else {
-          console.log(`No PDF preview files found for kit product ${productId}`);
         }
       }
       // Check for digital products with PDF preview files
       else if (productData.type === 'digital' && productData.previewFile) {
         try {
-          console.log(`Generating flipbook for digital product ${productId} with preview file`);
-          console.log(`Using PDF file: ${productData.previewFile.name} (${productData.previewFile.url})`);
-
           // Generate flipbook using Heyzine service
           const heyzineResponse = await heyzineService.generateFlipbook(productData.previewFile.url);
           
@@ -117,7 +107,6 @@ export const adminProductController = {
               url: heyzineResponse.url,
               fileName: productData.previewFile.name
             });
-            console.log(`Flipbook generated successfully: ${flipbookUrl}`);
           } else {
             console.warn(`Heyzine service failed for product ${productId}:`, heyzineResponse.error);
           }
@@ -125,8 +114,6 @@ export const adminProductController = {
           console.error(`Error generating flipbook for product ${productId}:`, flipbookError);
           // Continue with product approval even if flipbook generation fails
         }
-      } else {
-        console.log(`No PDF preview files found for product ${productId}`);
       }
 
       // Update product with approval and flipbook URL if generated

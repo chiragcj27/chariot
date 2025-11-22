@@ -6,14 +6,10 @@ export async function GET(
 ) {
   const { sellerId } = await params;
   try {
-    console.log('🔍 Seller stats API called for sellerId:', sellerId);
-    
     // Get the access token from cookies
     let accessToken = req.cookies.get('accessToken')?.value;
     let newAccessToken = null;
     let newRefreshToken = null;
-    
-    console.log('🔑 Access token from cookies:', accessToken ? 'Present' : 'Missing');
     
     // If no access token, try to refresh using refresh token
     if (!accessToken) {
@@ -53,9 +49,6 @@ export async function GET(
     const baseBackendUrl = process.env.BACKEND_API_URL || 'http://localhost:3001';
     const backendUrl = `${baseBackendUrl}/api/marketplace/seller/stats/${sellerId}?period=${period}`;
     
-    console.log('🌐 Making request to:', backendUrl);
-    console.log('🔑 Using token:', accessToken ? 'Present' : 'Missing');
-    
     const response = await fetch(backendUrl, {
       method: 'GET',
       headers: {
@@ -65,9 +58,6 @@ export async function GET(
     });
 
     const data = await response.json();
-    
-    console.log('📡 Backend response status:', response.status);
-    console.log('📡 Backend response data:', data);
     
     if (!response.ok) {
       return NextResponse.json(data, { status: response.status });

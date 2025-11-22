@@ -104,36 +104,24 @@ export class MarketplaceService {
 
   // Process a sale and create notifications
   public async processSale(orderId: string): Promise<void> {
-    console.log('🔄 Starting marketplace sale processing for order:', orderId);
-    
     const order = await Order.findById(orderId).populate('userId');
     if (!order) {
       throw new Error('Order not found');
     }
 
-    console.log('📦 Order found:', order.orderNumber, 'with', order.items.length, 'items');
-
     const settings = await this.getSettings();
 
     // Process each item in the order
     for (const item of order.items) {
-      console.log('🔍 Processing item:', item.productId);
-      
       const product = await Product.findById(item.productId);
       if (!product) {
-        console.log('❌ Product not found:', item.productId);
         continue;
       }
-
-      console.log('📦 Product found:', product.name, 'SKU:', product.sku, 'Seller:', product.sellerId);
       
       const seller = await Seller.findById(product.sellerId);
       if (!seller) {
-        console.log('❌ Seller not found:', product.sellerId);
         continue;
       }
-
-      console.log('👤 Seller found:', seller.name);
 
       // Calculate pricing
       const pricing = await this.calculateProductPricing(

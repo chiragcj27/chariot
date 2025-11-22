@@ -372,8 +372,6 @@ export class PayPalService {
           },
           onCancel: (data: unknown) => {
             // Handle user cancellation gracefully
-            console.log('PayPal subscription cancelled by user:', data);
-            
             // Trigger cancellation event
             const event = new CustomEvent('paypal-subscription-cancelled', {
               detail: {
@@ -468,7 +466,6 @@ export class PayPalService {
           },
           onCancel: (data: unknown) => {
             // Handle user cancellation gracefully
-            console.log('PayPal subscription cancelled by user:', data);
             resolve(''); // Return empty string to indicate cancellation
           },
           onError: (err: unknown) => {
@@ -505,7 +502,6 @@ export class PayPalService {
           },
           onCancel: (data: unknown) => {
             // Handle user cancellation gracefully
-            console.log('PayPal subscription cancelled by user:', data);
             resolve(''); // Return empty string to indicate cancellation
           },
           onError: (err: unknown) => {
@@ -643,7 +639,6 @@ export class PayPalService {
           },
           onCancel: (data: unknown) => {
             // Handle user cancellation gracefully
-            console.log('PayPal payment cancelled by user:', data);
             
             // Trigger cancellation event
             const event = new CustomEvent('paypal-payment-cancelled', {

@@ -144,8 +144,6 @@ export const s3Service = {
       // Use provided key or fallback to default pattern
       const fileKey = key || `digital-products/${productId}.zip`;
 
-      console.log(`[S3] Generating download URL for bucket: ${bucket}, key: ${fileKey}`);
-
       const command = new GetObjectCommand({
         Bucket: bucket,
         Key: fileKey,
@@ -153,8 +151,6 @@ export const s3Service = {
 
       // Generate a short-lived signed URL (5 minutes)
       const downloadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
-
-      console.log(`[S3] Successfully generated signed URL for key: ${fileKey}`);
 
       return {
         downloadUrl,

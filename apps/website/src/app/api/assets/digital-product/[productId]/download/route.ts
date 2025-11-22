@@ -4,8 +4,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
   try {
     const { productId } = await params;
     
-    console.log(`[Next.js API] Download request for productId: ${productId}`);
-    
     // Get the access token from Authorization header
     const authHeader = req.headers.get('authorization');
     let accessToken = null;
@@ -15,7 +13,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
     }
     
     if (!accessToken) {
-      console.log('[Next.js API] No access token provided');
       return NextResponse.json({ 
         message: 'No token provided - please login again',
         needsLogin: true
@@ -37,8 +34,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
     }
     
     const backendUrl = `${baseBackendUrl}/api/assets/digital-product/${productId}/download`;
-    
-    console.log(`[Next.js API] Forwarding request to: ${backendUrl}`);
     
     let response: Response;
     let timeoutId: NodeJS.Timeout | null = null;
@@ -119,7 +114,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ prod
       return NextResponse.json(data, { status: response.status });
     }
 
-    console.log(`[Next.js API] Successfully forwarded download request`);
     return NextResponse.json(data);
   } catch (error) {
     console.error('[Next.js API] Error in digital product download route:', {

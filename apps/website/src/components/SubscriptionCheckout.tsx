@@ -87,8 +87,6 @@ export default function SubscriptionCheckout({
 
     const handleSubscriptionCancelled = (event: CustomEvent) => {
       if (event.detail.planKey === plan.planKey) {
-        console.log('PayPal subscription cancelled:', event.detail);
-        
         // Reset to initial step and allow user to try again
         setStep('checkout');
         setLoading(false);

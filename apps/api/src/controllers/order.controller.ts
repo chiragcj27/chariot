@@ -80,7 +80,6 @@ export const getCheckoutInfo = async (req: Request, res: Response) => {
     const products = await Product.find({ _id: { $in: productIds } })
       .populate('images')
       .populate('categoryId', 'title slug');
-    console.log(products);
 
     let subtotal = 0;
     let totalCreditsCost = 0;
@@ -377,7 +376,6 @@ export const createOrder = async (req: Request, res: Response) => {
             : user.name || 'Valued Customer';
 
           if (buyerEmail) {
-            console.log('📧 Sending order confirmation email to:', buyerEmail);
             await emailService.sendOrderConfirmationEmail(
               buyerEmail,
               buyerName,
@@ -397,7 +395,6 @@ export const createOrder = async (req: Request, res: Response) => {
               order.paymentBreakdown,
               (order as any)._id.toString()
             );
-            console.log('✅ Order confirmation email sent successfully');
           } else {
             console.warn('⚠️  Buyer email not found, skipping order confirmation email');
           }
@@ -565,9 +562,7 @@ export const updateOrderPaymentStatus = async (req: Request, res: Response) => {
 
       // Process marketplace sale when payment is completed
       try {
-        console.log('🔄 Processing marketplace sale for order:', order.orderNumber);
         await marketplaceService.processSale((order as any)._id.toString());
-        console.log('✅ Marketplace sale processed successfully for order:', order.orderNumber);
       } catch (marketplaceError) {
         console.error('❌ Error processing marketplace sale:', marketplaceError);
         // Don't fail the payment status update if marketplace processing fails
@@ -575,13 +570,11 @@ export const updateOrderPaymentStatus = async (req: Request, res: Response) => {
 
       // Generate invoice PDF when payment is completed
       try {
-        console.log('🔄 Generating invoice for order:', order.orderNumber);
         const invoiceBuffer = await generateInvoiceForOrder((order as any)._id.toString(), order.userId.toString());
         if (invoiceBuffer) {
           // Store the invoice in the order document for future reference
           order.invoiceGenerated = true;
           order.invoiceGeneratedAt = new Date();
-          console.log('✅ Invoice generated successfully for order:', order.orderNumber);
         }
       } catch (invoiceError) {
         console.error('❌ Error generating invoice:', invoiceError);
@@ -599,7 +592,6 @@ export const updateOrderPaymentStatus = async (req: Request, res: Response) => {
             : buyer.name || 'Valued Customer';
 
           if (buyerEmail) {
-            console.log('📧 Sending order confirmation email to:', buyerEmail);
             await emailService.sendOrderConfirmationEmail(
               buyerEmail,
               buyerName,
@@ -619,7 +611,6 @@ export const updateOrderPaymentStatus = async (req: Request, res: Response) => {
               order.paymentBreakdown,
               (order as any)._id.toString()
             );
-            console.log('✅ Order confirmation email sent successfully');
           } else {
             console.warn('⚠️  Buyer email not found, skipping order confirmation email');
           }

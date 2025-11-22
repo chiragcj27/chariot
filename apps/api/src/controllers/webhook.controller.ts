@@ -9,7 +9,6 @@ async function verifyPaypalWebhook(req: Request): Promise<boolean> {
   
   // In development, skip verification if webhook ID isn't set
   if (process.env.NODE_ENV === 'development' && !webhookId) {
-    console.log('⚠️  Development mode: Skipping webhook verification');
     return true;
   }
   
@@ -77,7 +76,6 @@ export const webhookController = {
       
       if (!hasPaypalHeaders) {
         // This might be a test request or webhook verification from PayPal dashboard
-        console.log('⚠️  Webhook request without PayPal headers - might be a test');
         return res.status(200).json({ 
           message: 'Webhook endpoint is accessible',
           note: 'This endpoint expects PayPal webhook events with proper headers',
@@ -96,8 +94,6 @@ export const webhookController = {
       const eventType = event.event_type;
       const resource = event.resource;
 
-      console.log(`📥 Received PayPal webhook: ${eventType}`);
-
       // 2. Handle key events
       switch (eventType) {
         case 'BILLING.SUBSCRIPTION.UPDATED':
@@ -105,8 +101,6 @@ export const webhookController = {
           // Handle subscription creation/updates
           const paypalSubscriptionId = resource.id;
           const subscriptionStatus = resource.status;
-          
-          console.log(`📋 Subscription ${eventType}: ${paypalSubscriptionId}, Status: ${subscriptionStatus}`);
           
           // Update subscription status based on PayPal status
           const statusMap: Record<string, string> = {
@@ -140,7 +134,6 @@ export const webhookController = {
               if (user) {
                 (user as any).creditsPoints = ((user as any).creditsPoints || 0) + plan.credits;
                 await user.save();
-                console.log(`✅ Added ${plan.credits} credits to user ${userSub.userId}`);
               }
             }
           }
@@ -148,9 +141,7 @@ export const webhookController = {
         }
         case 'PAYMENT.SALE.COMPLETED': {
           // Handle payment completion (works for subscription payments)
-          console.log(`💳 Payment completed: ${resource.id}`);
           // The subscription should be updated via BILLING.SUBSCRIPTION.UPDATED
-          // But we can log this for tracking
           break;
         }
         case 'BILLING.SUBSCRIPTION.PAYMENT.COMPLETED': {
@@ -233,9 +224,8 @@ export const webhookController = {
         }
         // Add more event types as needed
         default:
-          // Log unhandled events
-          console.log(`⚠️  Unhandled webhook event type: ${eventType}`);
-          console.log(`📦 Event data:`, JSON.stringify(event, null, 2));
+          // Unhandled events are silently ignored
+          break;
       }
 
       // Always respond 200 to acknowledge receipt

@@ -22,7 +22,6 @@ if (!isProduction || !isRender) {
     if (fs.existsSync(envPath)) {
       dotenv.config({ path: envPath });
       envLoaded = true;
-      console.log(`📧 Loaded .env from: ${envPath}`);
       break;
     }
   }
@@ -30,12 +29,7 @@ if (!isProduction || !isRender) {
   if (!envLoaded) {
     // If no .env file found, try default dotenv behavior
     dotenv.config();
-    console.warn('⚠️  No .env file found in expected locations. Using default dotenv behavior.');
-    console.warn('   Expected locations:', envPaths);
   }
-} else {
-  // In production on Render, environment variables are already in process.env
-  console.log('📧 Running on Render - using environment variables from Render dashboard');
 }
 
 // Initialize Resend client
@@ -404,11 +398,6 @@ export const emailService = {
       // Get from email at runtime to ensure we have the latest value
       const currentFromEmail = getFromEmail();
       
-      console.log('📧 Sending sale notification email:');
-      console.log('   From:', currentFromEmail);
-      console.log('   To:', sellerEmail);
-      console.log('   RESEND_FROM_EMAIL env var:', process.env.RESEND_FROM_EMAIL);
-      
       const { data, error } = await resend.emails.send({
         from: currentFromEmail,
         to: sellerEmail,
@@ -443,7 +432,6 @@ export const emailService = {
         throw error;
       }
 
-      console.log('✅ Sale notification email sent successfully');
       return data;
     } catch (error: any) {
       console.error('❌ Error sending sale notification email:', error);
@@ -751,7 +739,6 @@ export const emailService = {
         throw error;
       }
 
-      console.log('✅ Order confirmation email sent successfully to:', buyerEmail);
       return data;
     } catch (error) {
       console.error('❌ Error sending order confirmation email:', error);

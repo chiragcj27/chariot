@@ -96,8 +96,6 @@ export const assetController = {
       const userId = req.user?.userId; // From auth middleware
       const ipAddress = req.ip || req.connection.remoteAddress;
 
-      console.log(`[Download] Request for productId: ${productId}, userId: ${userId}`);
-
       if (!userId) {
         return res.status(401).json({
           message: "Authentication required"
@@ -152,7 +150,6 @@ export const assetController = {
       }
       
       if (!product) {
-        console.log(`[Download] Product not found: ${productId}`);
         return res.status(404).json({
           message: "Product not found"
         });
@@ -160,25 +157,19 @@ export const assetController = {
 
       // Check if product has a ZIP file
       if (!zipFileKey) {
-        console.log(`[Download] ${productType === 'digital' ? 'Digital product' : 'Kit'} file not found for product: ${productId}`);
         return res.status(404).json({
           message: `${productType === 'digital' ? 'Digital product' : 'Kit'} file not found`
         });
       }
 
-      console.log(`[Download] Found ${productType} product: ${productName}, file key: ${zipFileKey}`);
-
       // Verify purchase using the purchase verification service
       const purchaseVerification = await purchaseVerificationService.verifyPurchase(userId, productId);
 
       if (!purchaseVerification.hasPurchased) {
-        console.log(`[Download] Purchase verification failed for userId: ${userId}, productId: ${productId}`);
         return res.status(403).json({
           message: "You need to purchase this product to download it"
         });
       }
-
-      console.log(`[Download] Purchase verified. Order: ${purchaseVerification.orderId}`);
 
       // Log the download attempt for security
       if (purchaseVerification.orderId) {
@@ -186,8 +177,6 @@ export const assetController = {
       }
       
       const downloadData = await s3Service.getDigitalProductDownloadUrl(productId, userId, zipFileKey);
-      
-      console.log(`[Download] Successfully generated download URL for productId: ${productId}`);
       
       // Add purchase information to the response
       res.status(200).json({
