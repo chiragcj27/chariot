@@ -200,9 +200,9 @@ export default function OrderConfirmationPage() {
         toast.error('Please log in to download your digital products');
         return;
       }
-
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
       // Get the download URL from our frontend API
-      const response = await fetch(`/api/assets/digital-product/${productId}/download`, {
+      const response = await fetch(`${API_URL}/api/assets/digital-product/${productId}/download`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

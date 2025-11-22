@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Order, PaymentMethod, PaymentStatus, OrderStatus, User, Product, Kit, IUser, MarketplaceSettings } from '@chariot/db';
 import { marketplaceService } from '../services/marketplace.service';
 import { generateInvoiceForOrder } from './invoice.controller';
+import { emailService } from '../services/email.service';
 
 interface CartItem {
   productId: string;
@@ -365,6 +366,46 @@ export const createOrder = async (req: Request, res: Response) => {
         console.error('Error processing marketplace sale:', marketplaceError);
         // Don't fail the order creation if marketplace processing fails
       }
+
+      // Send order confirmation email to buyer
+      try {
+        if (user.role === 'buyer') {
+          const buyer = user as any;
+          const buyerEmail = buyer.contactInformation?.email || user.email;
+          const buyerName = buyer.contactInformation?.firstName 
+            ? `${buyer.contactInformation.firstName} ${buyer.contactInformation.lastName || ''}`.trim()
+            : user.name || 'Valued Customer';
+
+          if (buyerEmail) {
+            console.log('📧 Sending order confirmation email to:', buyerEmail);
+            await emailService.sendOrderConfirmationEmail(
+              buyerEmail,
+              buyerName,
+              order.orderNumber,
+              order.createdAt,
+              order.items.map(item => ({
+                productName: item.productName,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice,
+                imageUrl: item.imageUrl,
+              })),
+              order.subtotal,
+              order.tax,
+              order.total,
+              order.paymentMethod,
+              order.paymentBreakdown,
+              (order as any)._id.toString()
+            );
+            console.log('✅ Order confirmation email sent successfully');
+          } else {
+            console.warn('⚠️  Buyer email not found, skipping order confirmation email');
+          }
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending order confirmation email:', emailError);
+        // Don't fail the order creation if email sending fails
+      }
     }
 
     const response: CheckoutResponse = {
@@ -545,6 +586,47 @@ export const updateOrderPaymentStatus = async (req: Request, res: Response) => {
       } catch (invoiceError) {
         console.error('❌ Error generating invoice:', invoiceError);
         // Don't fail the payment status update if invoice generation fails
+      }
+
+      // Send order confirmation email to buyer
+      try {
+        const buyer = await User.findById(order.userId);
+        if (buyer && buyer.role === 'buyer') {
+          const buyerData = buyer as any;
+          const buyerEmail = buyerData.contactInformation?.email || buyer.email;
+          const buyerName = buyerData.contactInformation?.firstName 
+            ? `${buyerData.contactInformation.firstName} ${buyerData.contactInformation.lastName || ''}`.trim()
+            : buyer.name || 'Valued Customer';
+
+          if (buyerEmail) {
+            console.log('📧 Sending order confirmation email to:', buyerEmail);
+            await emailService.sendOrderConfirmationEmail(
+              buyerEmail,
+              buyerName,
+              order.orderNumber,
+              order.createdAt,
+              order.items.map(item => ({
+                productName: item.productName,
+                quantity: item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice,
+                imageUrl: item.imageUrl,
+              })),
+              order.subtotal,
+              order.tax,
+              order.total,
+              order.paymentMethod,
+              order.paymentBreakdown,
+              (order as any)._id.toString()
+            );
+            console.log('✅ Order confirmation email sent successfully');
+          } else {
+            console.warn('⚠️  Buyer email not found, skipping order confirmation email');
+          }
+        }
+      } catch (emailError) {
+        console.error('❌ Error sending order confirmation email:', emailError);
+        // Don't fail the payment status update if email sending fails
       }
     }
 

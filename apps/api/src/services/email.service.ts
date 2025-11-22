@@ -54,30 +54,8 @@ function getFromEmail(): string {
 }
 
 // Debug logging on module load
-console.log('📧 Resend Email Configuration (on load):');
-console.log('   RESEND_FROM_EMAIL (raw):', process.env.RESEND_FROM_EMAIL || 'undefined');
-console.log('   RESEND_FROM_EMAIL (processed):', getFromEmail());
-console.log('   RESEND_API_KEY:', process.env.RESEND_API_KEY ? '✅ Set' : '❌ Not set');
-console.log('   NODE_ENV:', process.env.NODE_ENV || 'undefined');
-console.log('   RENDER:', isRender ? '✅ Yes' : '❌ No');
-console.log('   Current working directory:', process.cwd());
-console.log('   __dirname:', __dirname);
 
-if (!process.env.RESEND_FROM_EMAIL || getFromEmail() === 'onboarding@resend.dev') {
-  console.warn('⚠️  RESEND_FROM_EMAIL not set or invalid. Using default onboarding@resend.dev which only works in testing mode.');
-  console.warn('⚠️  To send emails to all recipients, set RESEND_FROM_EMAIL to an email from your verified domain (e.g., customercare@thechariot.net)');
-  
-  if (isRender) {
-    console.warn('⚠️  [RENDER] Set RESEND_FROM_EMAIL in your Render dashboard:');
-    console.warn('   1. Go to your Render service dashboard');
-    console.warn('   2. Navigate to Environment tab');
-    console.warn('   3. Add environment variable: RESEND_FROM_EMAIL=customercare@thechariot.net');
-    console.warn('   4. Save and redeploy your service');
-  } else {
-    console.warn('⚠️  Make sure your .env file is in apps/api/.env and contains: RESEND_FROM_EMAIL=customercare@thechariot.net');
-    console.warn('⚠️  Restart the server after adding RESEND_FROM_EMAIL to your .env file');
-  }
-}
+
 
 
 
@@ -580,6 +558,203 @@ export const emailService = {
       return data;
     } catch (error) {
       console.error('Error sending commission earned notification email:', error);
+      throw error;
+    }
+  },
+
+  async sendOrderConfirmationEmail(
+    buyerEmail: string,
+    buyerName: string,
+    orderNumber: string,
+    orderDate: Date,
+    items: Array<{
+      productName: string;
+      quantity: number;
+      unitPrice: number;
+      totalPrice: number;
+      imageUrl?: string;
+    }>,
+    subtotal: number,
+    tax: number,
+    total: number,
+    paymentMethod: string,
+    paymentBreakdown: {
+      creditsUsed: number;
+      creditsAmount: number;
+      paypalAmount: number;
+      totalAmount: number;
+    },
+    orderId: string
+  ) {
+    try {
+      const websiteUrl = process.env.WEBSITE_URL || 'http://localhost:3000';
+      const orderUrl = `${websiteUrl}/order-confirmation?orderId=${orderId}`;
+      
+      // Format order date
+      const formattedDate = orderDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+
+      // Format payment method display
+      const getPaymentMethodDisplay = (method: string) => {
+        switch (method) {
+          case 'credits':
+            return 'Credits Only';
+          case 'paypal':
+            return 'PayPal Only';
+          case 'mixed':
+            return 'Mixed (Credits + PayPal)';
+          default:
+            return method;
+        }
+      };
+
+      // Build items HTML
+      const itemsHtml = items.map(item => `
+        <tr style="border-bottom: 1px solid #e5e7eb;">
+          <td style="padding: 15px 0;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              ${item.imageUrl ? `<img src="${item.imageUrl}" alt="${item.productName}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" />` : ''}
+              <div>
+                <p style="margin: 0; font-weight: 600; color: #111827;">${item.productName}</p>
+                <p style="margin: 4px 0 0 0; color: #6b7280; font-size: 14px;">Quantity: ${item.quantity}</p>
+              </div>
+            </div>
+          </td>
+          <td style="padding: 15px 0; text-align: right; color: #111827; font-weight: 600;">
+            $${item.totalPrice.toFixed(2)}
+          </td>
+        </tr>
+      `).join('');
+
+      const { data, error } = await resend.emails.send({
+        from: getFromEmail(),
+        to: buyerEmail,
+        subject: `Order Confirmation - ${orderNumber}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Order Confirmed!</h1>
+              <p style="color: #ffffff; margin: 10px 0 0 0; font-size: 16px;">Thank you for your purchase</p>
+            </div>
+
+            <!-- Content -->
+            <div style="padding: 30px; background-color: #ffffff;">
+              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                Dear ${buyerName},
+              </p>
+              <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                We're excited to confirm that your order has been successfully placed and payment has been received. Your order details are below.
+              </p>
+
+              <!-- Order Summary Card -->
+              <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                <h2 style="color: #111827; font-size: 20px; margin: 0 0 20px 0; border-bottom: 2px solid #f97316; padding-bottom: 10px;">Order Summary</h2>
+                
+                <div style="margin-bottom: 15px;">
+                  <p style="margin: 0; color: #6b7280; font-size: 14px;">Order Number</p>
+                  <p style="margin: 5px 0 0 0; color: #111827; font-size: 18px; font-weight: 600;">${orderNumber}</p>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                  <p style="margin: 0; color: #6b7280; font-size: 14px;">Order Date</p>
+                  <p style="margin: 5px 0 0 0; color: #111827; font-size: 16px;">${formattedDate}</p>
+                </div>
+                
+                <div style="margin-bottom: 0;">
+                  <p style="margin: 0; color: #6b7280; font-size: 14px;">Payment Method</p>
+                  <p style="margin: 5px 0 0 0; color: #111827; font-size: 16px;">${getPaymentMethodDisplay(paymentMethod)}</p>
+                </div>
+              </div>
+
+              <!-- Order Items -->
+              <div style="margin-bottom: 30px;">
+                <h2 style="color: #111827; font-size: 20px; margin: 0 0 20px 0; border-bottom: 2px solid #f97316; padding-bottom: 10px;">Order Items</h2>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <thead>
+                    <tr style="border-bottom: 2px solid #e5e7eb;">
+                      <th style="text-align: left; padding: 10px 0; color: #6b7280; font-weight: 600; font-size: 14px;">Product</th>
+                      <th style="text-align: right; padding: 10px 0; color: #6b7280; font-weight: 600; font-size: 14px;">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${itemsHtml}
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Payment Breakdown -->
+              <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                <h2 style="color: #111827; font-size: 20px; margin: 0 0 20px 0; border-bottom: 2px solid #f97316; padding-bottom: 10px;">Payment Breakdown</h2>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                  <span style="color: #6b7280;">Subtotal</span>
+                  <span style="color: #111827; font-weight: 600;">$${subtotal.toFixed(2)}</span>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                  <span style="color: #6b7280;">Tax</span>
+                  <span style="color: #111827; font-weight: 600;">$${tax.toFixed(2)}</span>
+                </div>
+                
+                ${paymentBreakdown.creditsUsed > 0 ? `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                  <span style="color: #6b7280;">Credits Used</span>
+                  <span style="color: #f97316; font-weight: 600;">${paymentBreakdown.creditsUsed.toFixed(2)} credits ($${paymentBreakdown.creditsAmount.toFixed(2)})</span>
+                </div>
+                ` : ''}
+                
+                ${paymentBreakdown.paypalAmount > 0 ? `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                  <span style="color: #6b7280;">PayPal Payment</span>
+                  <span style="color: #f97316; font-weight: 600;">$${paymentBreakdown.paypalAmount.toFixed(2)}</span>
+                </div>
+                ` : ''}
+                
+                <div style="border-top: 2px solid #e5e7eb; margin-top: 15px; padding-top: 15px; display: flex; justify-content: space-between;">
+                  <span style="color: #111827; font-size: 18px; font-weight: 700;">Total</span>
+                  <span style="color: #111827; font-size: 18px; font-weight: 700;">$${total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <!-- CTA Button -->
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${orderUrl}" style="display: inline-block; background-color: #f97316; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                  View Order Details
+                </a>
+              </div>
+
+              <!-- Additional Info -->
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0 0 10px 0;">
+                  You can view all your orders and download invoices from your account dashboard.
+                </p>
+                <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0;">
+                  If you have any questions about your order, please don't hesitate to contact our support team.
+                </p>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-radius: 0 0 8px 8px; border-top: 1px solid #e5e7eb;">
+              <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0;">Best regards,</p>
+              <p style="color: #111827; font-size: 16px; font-weight: 600; margin: 0;">The Chariot Team</p>
+            </div>
+          </div>
+        `,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('✅ Order confirmation email sent successfully to:', buyerEmail);
+      return data;
+    } catch (error) {
+      console.error('❌ Error sending order confirmation email:', error);
       throw error;
     }
   },
