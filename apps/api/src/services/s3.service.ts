@@ -131,11 +131,20 @@ export const s3Service = {
       const bucket = process.env.AWS_S3_PRIVATE_BUCKET || process.env.AWS_S3_BUCKET || "";
       
       if (!bucket) {
-        throw new Error("Private S3 bucket not configured");
+        console.error("[S3] Private S3 bucket not configured");
+        throw new Error("Private S3 bucket not configured. Please set AWS_S3_PRIVATE_BUCKET or AWS_S3_BUCKET environment variable.");
+      }
+
+      // Validate AWS credentials
+      if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+        console.error("[S3] AWS credentials not configured");
+        throw new Error("AWS credentials not configured. Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.");
       }
 
       // Use provided key or fallback to default pattern
       const fileKey = key || `digital-products/${productId}.zip`;
+
+      console.log(`[S3] Generating download URL for bucket: ${bucket}, key: ${fileKey}`);
 
       const command = new GetObjectCommand({
         Bucket: bucket,
@@ -145,7 +154,7 @@ export const s3Service = {
       // Generate a short-lived signed URL (5 minutes)
       const downloadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
 
-      // Log the download attempt for security
+      console.log(`[S3] Successfully generated signed URL for key: ${fileKey}`);
 
       return {
         downloadUrl,
@@ -154,7 +163,16 @@ export const s3Service = {
         userId,
       };
     } catch (error) {
-      console.error("Error in getDigitalProductDownloadUrl:", error);
+      console.error("[S3] Error in getDigitalProductDownloadUrl:", {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        productId,
+        userId,
+        key,
+        bucket: process.env.AWS_S3_PRIVATE_BUCKET || process.env.AWS_S3_BUCKET || "not set",
+        hasAccessKey: !!process.env.AWS_ACCESS_KEY_ID,
+        hasSecretKey: !!process.env.AWS_SECRET_ACCESS_KEY
+      });
       throw error;
     }
   }

@@ -96,6 +96,8 @@ export const assetController = {
       const userId = req.user?.userId; // From auth middleware
       const ipAddress = req.ip || req.connection.remoteAddress;
 
+      console.log(`[Download] Request for productId: ${productId}, userId: ${userId}`);
+
       if (!userId) {
         return res.status(401).json({
           message: "Authentication required"
@@ -105,6 +107,27 @@ export const assetController = {
       if (!productId) {
         return res.status(400).json({
           message: "Product ID is required"
+        });
+      }
+
+      // Check AWS configuration early
+      const awsBucket = process.env.AWS_S3_PRIVATE_BUCKET || process.env.AWS_S3_BUCKET;
+      const awsAccessKey = process.env.AWS_ACCESS_KEY_ID;
+      const awsSecretKey = process.env.AWS_SECRET_ACCESS_KEY;
+      
+      if (!awsBucket) {
+        console.error('[Download] AWS S3 bucket not configured');
+        return res.status(500).json({
+          message: "Server configuration error: S3 bucket not configured",
+          error: "AWS_S3_PRIVATE_BUCKET or AWS_S3_BUCKET environment variable is missing"
+        });
+      }
+
+      if (!awsAccessKey || !awsSecretKey) {
+        console.error('[Download] AWS credentials not configured');
+        return res.status(500).json({
+          message: "Server configuration error: AWS credentials not configured",
+          error: "AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY environment variable is missing"
         });
       }
 
@@ -129,6 +152,7 @@ export const assetController = {
       }
       
       if (!product) {
+        console.log(`[Download] Product not found: ${productId}`);
         return res.status(404).json({
           message: "Product not found"
         });
@@ -136,19 +160,25 @@ export const assetController = {
 
       // Check if product has a ZIP file
       if (!zipFileKey) {
+        console.log(`[Download] ${productType === 'digital' ? 'Digital product' : 'Kit'} file not found for product: ${productId}`);
         return res.status(404).json({
           message: `${productType === 'digital' ? 'Digital product' : 'Kit'} file not found`
         });
       }
 
+      console.log(`[Download] Found ${productType} product: ${productName}, file key: ${zipFileKey}`);
+
       // Verify purchase using the purchase verification service
       const purchaseVerification = await purchaseVerificationService.verifyPurchase(userId, productId);
 
       if (!purchaseVerification.hasPurchased) {
+        console.log(`[Download] Purchase verification failed for userId: ${userId}, productId: ${productId}`);
         return res.status(403).json({
           message: "You need to purchase this product to download it"
         });
       }
+
+      console.log(`[Download] Purchase verified. Order: ${purchaseVerification.orderId}`);
 
       // Log the download attempt for security
       if (purchaseVerification.orderId) {
@@ -156,6 +186,8 @@ export const assetController = {
       }
       
       const downloadData = await s3Service.getDigitalProductDownloadUrl(productId, userId, zipFileKey);
+      
+      console.log(`[Download] Successfully generated download URL for productId: ${productId}`);
       
       // Add purchase information to the response
       res.status(200).json({
@@ -169,11 +201,16 @@ export const assetController = {
         }
       });
     } catch (error) {
-      console.error('Error in getDigitalProductDownloadUrl:', error);
+      console.error('[Download] Error in getDigitalProductDownloadUrl:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        productId: req.params?.productId,
+        userId: req.user?.userId
+      });
       res.status(500).json({
         message: "Error generating download URL",
         error: error instanceof Error ? error.message : "Unknown error",
-        details: error instanceof Error ? error.stack : undefined
+        details: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : undefined) : undefined
       });
     }
   }
