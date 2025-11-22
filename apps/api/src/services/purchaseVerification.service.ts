@@ -16,6 +16,8 @@ export const purchaseVerificationService = {
    */
   async verifyPurchase(userId: string, productId: string): Promise<PurchaseVerificationResult> {
     try {
+      console.log(`[Purchase Verification] Checking purchase for userId: ${userId}, productId: ${productId}`);
+      
       // Find orders where the user has purchased this product
       // Allow more flexible status checking - any order that's not cancelled or refunded
       const order = await Order.findOne({
@@ -26,10 +28,26 @@ export const purchaseVerificationService = {
       }).sort({ createdAt: -1 }); // Get the most recent purchase
 
       if (!order) {
+        console.log(`[Purchase Verification] No completed order found for userId: ${userId}, productId: ${productId}`);
+        // Log additional info for debugging
+        const allOrders = await Order.find({
+          userId: new mongoose.Types.ObjectId(userId),
+          "items.productId": new mongoose.Types.ObjectId(productId)
+        }).select('orderNumber paymentStatus status createdAt');
+        if (allOrders.length > 0) {
+          console.log(`[Purchase Verification] Found ${allOrders.length} order(s) with this product, but none match criteria:`);
+          allOrders.forEach(o => {
+            console.log(`  - Order ${o.orderNumber}: paymentStatus=${o.paymentStatus}, status=${o.status}`);
+          });
+        } else {
+          console.log(`[Purchase Verification] No orders found at all for this user/product combination`);
+        }
         return {
           hasPurchased: false
         };
       }
+
+      console.log(`[Purchase Verification] Found order: ${order.orderNumber}, paymentStatus: ${order.paymentStatus}, status: ${order.status}`);
 
       // Find the specific item in the order
       const orderItem = order.items.find(item => 
@@ -37,11 +55,13 @@ export const purchaseVerificationService = {
       );
 
       if (!orderItem) {
+        console.log(`[Purchase Verification] Product ${productId} not found in order items`);
         return {
           hasPurchased: false
         };
       }
 
+      console.log(`[Purchase Verification] Purchase verified successfully for order: ${order.orderNumber}`);
       return {
         hasPurchased: true,
         orderId: (order._id as unknown as mongoose.Types.ObjectId).toString(),
@@ -51,7 +71,7 @@ export const purchaseVerificationService = {
         lastDownloadDate: undefined // TODO: Implement download tracking
       };
     } catch (error) {
-      console.error('Error verifying purchase:', error);
+      console.error('[Purchase Verification] Error verifying purchase:', error);
       throw new Error('Failed to verify purchase');
     }
   },

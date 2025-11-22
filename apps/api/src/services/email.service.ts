@@ -3,29 +3,39 @@ import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
 
-// Try to load .env file - check multiple possible locations
-const envPaths = [
-  path.resolve(__dirname, '../../.env'),
-  path.resolve(process.cwd(), '.env'),
-  path.resolve(process.cwd(), 'apps/api/.env'),
-];
+// Only try to load .env files in development/local environments
+// In production (e.g., Render), environment variables are set via the platform's dashboard
+const isProduction = process.env.NODE_ENV === 'production';
+const isRender = process.env.RENDER === 'true' || process.env.RENDER_SERVICE_NAME;
 
-// Load .env from the first location that exists
-let envLoaded = false;
-for (const envPath of envPaths) {
-  if (fs.existsSync(envPath)) {
-    dotenv.config({ path: envPath });
-    envLoaded = true;
-    console.log(`📧 Loaded .env from: ${envPath}`);
-    break;
+if (!isProduction || !isRender) {
+  // Try to load .env file - check multiple possible locations (only for local/dev)
+  const envPaths = [
+    path.resolve(__dirname, '../../.env'),
+    path.resolve(process.cwd(), '.env'),
+    path.resolve(process.cwd(), 'apps/api/.env'),
+  ];
+
+  // Load .env from the first location that exists
+  let envLoaded = false;
+  for (const envPath of envPaths) {
+    if (fs.existsSync(envPath)) {
+      dotenv.config({ path: envPath });
+      envLoaded = true;
+      console.log(`📧 Loaded .env from: ${envPath}`);
+      break;
+    }
   }
-}
 
-if (!envLoaded) {
-  // If no .env file found, try default dotenv behavior
-  dotenv.config();
-  console.warn('⚠️  No .env file found in expected locations. Using default dotenv behavior.');
-  console.warn('   Expected locations:', envPaths);
+  if (!envLoaded) {
+    // If no .env file found, try default dotenv behavior
+    dotenv.config();
+    console.warn('⚠️  No .env file found in expected locations. Using default dotenv behavior.');
+    console.warn('   Expected locations:', envPaths);
+  }
+} else {
+  // In production on Render, environment variables are already in process.env
+  console.log('📧 Running on Render - using environment variables from Render dashboard');
 }
 
 // Initialize Resend client
@@ -40,31 +50,33 @@ function getFromEmail(): string {
   const rawEmail = process.env.RESEND_FROM_EMAIL?.trim() || '';
   const fromEmail = rawEmail.replace(/^["']|["']$/g, '') || 'onboarding@resend.dev';
   
-  // Log if we're using the default (for debugging)
-  if (fromEmail === 'onboarding@resend.dev' && process.env.NODE_ENV === 'production') {
-    console.warn('⚠️  [Runtime] RESEND_FROM_EMAIL is still not set. Using default onboarding@resend.dev');
-    console.warn('   This will only work for testing emails to your verified email address.');
-  }
-  
   return fromEmail;
 }
-
-// Get initial from email for module-level usage
-const fromEmail = getFromEmail();
 
 // Debug logging on module load
 console.log('📧 Resend Email Configuration (on load):');
 console.log('   RESEND_FROM_EMAIL (raw):', process.env.RESEND_FROM_EMAIL || 'undefined');
-console.log('   RESEND_FROM_EMAIL (processed):', fromEmail);
+console.log('   RESEND_FROM_EMAIL (processed):', getFromEmail());
 console.log('   RESEND_API_KEY:', process.env.RESEND_API_KEY ? '✅ Set' : '❌ Not set');
+console.log('   NODE_ENV:', process.env.NODE_ENV || 'undefined');
+console.log('   RENDER:', isRender ? '✅ Yes' : '❌ No');
 console.log('   Current working directory:', process.cwd());
 console.log('   __dirname:', __dirname);
 
-if (!process.env.RESEND_FROM_EMAIL || fromEmail === 'onboarding@resend.dev') {
+if (!process.env.RESEND_FROM_EMAIL || getFromEmail() === 'onboarding@resend.dev') {
   console.warn('⚠️  RESEND_FROM_EMAIL not set or invalid. Using default onboarding@resend.dev which only works in testing mode.');
   console.warn('⚠️  To send emails to all recipients, set RESEND_FROM_EMAIL to an email from your verified domain (e.g., customercare@thechariot.net)');
-  console.warn('⚠️  Make sure your .env file is in apps/api/.env and contains: RESEND_FROM_EMAIL=customercare@thechariot.net');
-  console.warn('⚠️  Restart the server after adding RESEND_FROM_EMAIL to your .env file');
+  
+  if (isRender) {
+    console.warn('⚠️  [RENDER] Set RESEND_FROM_EMAIL in your Render dashboard:');
+    console.warn('   1. Go to your Render service dashboard');
+    console.warn('   2. Navigate to Environment tab');
+    console.warn('   3. Add environment variable: RESEND_FROM_EMAIL=customercare@thechariot.net');
+    console.warn('   4. Save and redeploy your service');
+  } else {
+    console.warn('⚠️  Make sure your .env file is in apps/api/.env and contains: RESEND_FROM_EMAIL=customercare@thechariot.net');
+    console.warn('⚠️  Restart the server after adding RESEND_FROM_EMAIL to your .env file');
+  }
 }
 
 
@@ -73,7 +85,7 @@ export const emailService = {
   async sendSellerApprovalEmail(sellerEmail: string, sellerName: string) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: sellerEmail,
         subject: 'Your Seller Account Has Been Approved!',
         html: `
@@ -108,7 +120,7 @@ export const emailService = {
   async sendSellerRejectionEmail(sellerEmail: string, sellerName: string, reason: string) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: sellerEmail,
         subject: 'Seller Account Application Update',
         html: `
@@ -139,7 +151,7 @@ export const emailService = {
   async sendNewSellerNotification(adminEmail: string, sellerName: string, sellerEmail: string) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: adminEmail,
         subject: 'New Seller Registration Requires Approval',
         html: `
@@ -168,7 +180,7 @@ export const emailService = {
   async sendSellerBlacklistEmail(sellerEmail: string, sellerName: string, reason: string, expiryDate: Date) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: sellerEmail,
         subject: 'Your Seller Account Has Been Temporarily Suspended',
         html: `
@@ -204,7 +216,7 @@ export const emailService = {
   async sendSellerBlacklistRemovalEmail(sellerEmail: string, sellerName: string) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: sellerEmail,
         subject: 'Your Seller Account Has Been Reactivated',
         html: `
@@ -240,7 +252,7 @@ export const emailService = {
   async sendSellerReapplicationNotification(adminEmail: string, sellerName: string, sellerEmail: string, reapplicationReason: string) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: adminEmail,
         subject: 'Seller Reapplication Request',
         html: `
@@ -270,7 +282,7 @@ export const emailService = {
   async sendNewBuyerNotification(adminEmail: string, buyerName: string, buyerEmail: string, companyName: string) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: adminEmail,
         subject: 'New Buyer Registration Requires Approval',
         html: `
@@ -300,7 +312,7 @@ export const emailService = {
   async sendBuyerApprovalEmail(buyerEmail: string, buyerName: string, userAccountId: string, password: string) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: buyerEmail,
         subject: 'Your Buyer Account Has Been Approved!',
         html: `
@@ -338,7 +350,7 @@ export const emailService = {
   async sendBuyerRejectionEmail(buyerEmail: string, buyerName: string, reason: string) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: buyerEmail,
         subject: 'Buyer Account Application Update',
         html: `
@@ -369,7 +381,7 @@ export const emailService = {
   async sendPasswordResetOTP(email: string, otp: string, userName: string) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: email,
         subject: 'Password Reset OTP - Chariot Marketplace',
         html: `
@@ -462,8 +474,23 @@ export const emailService = {
         console.error('   1. RESEND_FROM_EMAIL is not set or using default onboarding@resend.dev');
         console.error('   2. The from email domain is not verified in Resend');
         console.error('   3. The from email format is incorrect');
-        console.error('   Current RESEND_FROM_EMAIL:', process.env.RESEND_FROM_EMAIL);
+        console.error('   Current RESEND_FROM_EMAIL:', process.env.RESEND_FROM_EMAIL || 'NOT SET');
         console.error('   Current from email value:', getFromEmail());
+        
+        const isRender = process.env.RENDER === 'true' || process.env.RENDER_SERVICE_NAME;
+        if (isRender) {
+          console.error('   [RENDER] To fix this:');
+          console.error('   1. Go to your Render service dashboard');
+          console.error('   2. Navigate to Environment tab');
+          console.error('   3. Add: RESEND_FROM_EMAIL=customercare@thechariot.net');
+          console.error('   4. Make sure thechariot.net domain is verified in Resend');
+          console.error('   5. Save and redeploy your service');
+        } else {
+          console.error('   [LOCAL] To fix this:');
+          console.error('   1. Add RESEND_FROM_EMAIL=customercare@thechariot.net to your .env file');
+          console.error('   2. Make sure thechariot.net domain is verified in Resend');
+          console.error('   3. Restart your server');
+        }
       }
       throw error;
     }
@@ -480,7 +507,7 @@ export const emailService = {
   ) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: adminEmail,
         subject: 'New Marketplace Sale',
         html: `
@@ -524,7 +551,7 @@ export const emailService = {
   ) {
     try {
       const { data, error } = await resend.emails.send({
-        from: fromEmail,
+        from: getFromEmail(),
         to: sellerEmail,
         subject: `Commission Summary - ${period}`,
         html: `
