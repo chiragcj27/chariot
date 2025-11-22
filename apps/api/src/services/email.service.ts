@@ -48,7 +48,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 function getFromEmail(): string {
   // Re-check environment variable at runtime (in case it was set after module load)
   const rawEmail = process.env.RESEND_FROM_EMAIL?.trim() || '';
-  const fromEmail = rawEmail.replace(/^["']|["']$/g, '') || 'onboarding@resend.dev';
+  const fromEmail = rawEmail.replace(/^["']|["']$/g, '') || 'noreply@thechariot.net';
   
   return fromEmail;
 }
