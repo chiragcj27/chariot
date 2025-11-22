@@ -635,7 +635,7 @@ export const emailService = {
                 Dear ${buyerName},
               </p>
               <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-                We're excited to confirm that your order has been successfully placed and payment has been received. Your order details are below.
+                We're excited to confirm that your order has been successfully placed and payment has been received. Please find your order details below.
               </p>
 
               <!-- Order Summary Card -->
@@ -679,31 +679,31 @@ export const emailService = {
                 <h2 style="color: #111827; font-size: 20px; margin: 0 0 20px 0; border-bottom: 2px solid #f97316; padding-bottom: 10px;">Payment Breakdown</h2>
                 
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                  <span style="color: #6b7280;">Subtotal</span>
+                  <span style="color: #6b7280;">Subtotal:</span>
                   <span style="color: #111827; font-weight: 600;">$${subtotal.toFixed(2)}</span>
                 </div>
                 
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                  <span style="color: #6b7280;">Tax</span>
+                  <span style="color: #6b7280;">Tax:</span>
                   <span style="color: #111827; font-weight: 600;">$${tax.toFixed(2)}</span>
                 </div>
                 
                 ${paymentBreakdown.creditsUsed > 0 ? `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                  <span style="color: #6b7280;">Credits Used</span>
+                  <span style="color: #6b7280;">Credits Used:</span>
                   <span style="color: #f97316; font-weight: 600;">${paymentBreakdown.creditsUsed.toFixed(2)} credits ($${paymentBreakdown.creditsAmount.toFixed(2)})</span>
                 </div>
                 ` : ''}
                 
                 ${paymentBreakdown.paypalAmount > 0 ? `
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                  <span style="color: #6b7280;">PayPal Payment</span>
+                  <span style="color: #6b7280;">PayPal Payment:</span>
                   <span style="color: #f97316; font-weight: 600;">$${paymentBreakdown.paypalAmount.toFixed(2)}</span>
                 </div>
                 ` : ''}
                 
                 <div style="border-top: 2px solid #e5e7eb; margin-top: 15px; padding-top: 15px; display: flex; justify-content: space-between;">
-                  <span style="color: #111827; font-size: 18px; font-weight: 700;">Total</span>
+                  <span style="color: #111827; font-size: 18px; font-weight: 700;">Total:</span>
                   <span style="color: #111827; font-size: 18px; font-weight: 700;">$${total.toFixed(2)}</span>
                 </div>
               </div>
@@ -721,7 +721,7 @@ export const emailService = {
                   You can view all your orders and download invoices from your account dashboard.
                 </p>
                 <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 0;">
-                  If you have any questions about your order, please don't hesitate to contact our support team.
+                  If you have any questions about your order, please contact our support team.
                 </p>
               </div>
             </div>
