@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -10,6 +11,7 @@ export default function LoginPage() {
     email: '',
     password: '',
   });
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,9 +129,13 @@ export default function LoginPage() {
             </div>
 
             <div className="text-sm">
-              <Link href="/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+              <button
+                type="button"
+                onClick={() => router.push('/forgot-password')}
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
                 Forgot your password?
-              </Link>
+              </button>
             </div>
           </div>
 

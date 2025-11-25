@@ -4,6 +4,7 @@ import { jwtVerify } from 'jose';
 const PUBLIC_PATHS = [
   '/login',
   '/register',
+  '/forgot-password',
   '/favicon.ico',
   '/_next',
   '/api/sellers/login',
@@ -37,5 +38,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|login|register).*)'],
-}; 
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|login|register|forgot-password).*)'],
+};
