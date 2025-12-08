@@ -1401,14 +1401,14 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
               </div>
 
               <div>
-                <Label>Kit Contents</Label>
+                <Label>What&apos;s Included?</Label>
                 <div className="space-y-2">
                   {(formData.kitContents || []).map((content, index) => (
                     <div key={index} className="flex gap-2">
                       <Input
                         value={content}
                         onChange={(e) => updateKitContent(index, e.target.value)}
-                        placeholder="e.g., 10 PSD templates, 5 PDF guides"
+                        placeholder="e.g., logo, photography, brand tone, stationery"
                       />
                       <Button
                         type="button"
@@ -1421,11 +1421,11 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
                     </div>
                   ))}
                   <Button type="button" variant="outline" size="sm" onClick={addKitContent}>
-                    Add Content Item
+                    Add Item
                   </Button>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  List the specific items included in this kit.
+                  List the specific items that will be displayed in the &quot;What&apos;s Included?&quot; section on the product page.
                 </p>
               </div>
             </CardContent>

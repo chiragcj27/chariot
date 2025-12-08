@@ -16,6 +16,8 @@ interface KitImage {
   originalname?: string;
   size?: number;
   mimetype?: string;
+  title?: string;
+  description?: string;
 }
 
 interface KitFile {
@@ -30,6 +32,8 @@ interface KitFile {
   documentType?: string;
   containsFiles?: number;
   isPreview?: boolean;
+  title?: string;
+  description?: string;
 }
 
 interface KitMainFile {
@@ -186,15 +190,55 @@ export default function EditProductPage() {
           kitDescription: data.product.kitDescription || '',
           kitInstructions: data.product.kitInstructions || '',
           kitContents: data.product.kitContents || [],
-          kitImages: data.product.kitImages ? data.product.kitImages.map((img: KitImage & { filename?: string; originalname?: string; size?: number; mimetype?: string }) => ({
-            _id: img._id,
-            url: img.url,
-            filename: img.filename,
-            originalname: img.originalname,
-            size: img.size,
-            mimetype: img.mimetype
-          })) : [],
-          kitFiles: data.product.kitFiles || [],
+          kitImages: data.product.kitImages ? (() => {
+            // Create a map of imageId to metadata for quick lookup
+            const metadataMap = new Map();
+            if (data.product.kitImageMetadata && Array.isArray(data.product.kitImageMetadata)) {
+              data.product.kitImageMetadata.forEach((meta: { imageId: string; title: string; description?: string }) => {
+                metadataMap.set(String(meta.imageId), {
+                  title: meta.title,
+                  description: meta.description || ''
+                });
+              });
+            }
+            
+            // Map images and merge with metadata
+            return data.product.kitImages.map((img: KitImage & { filename?: string; originalname?: string; size?: number; mimetype?: string }) => {
+              const metadata = metadataMap.get(String(img._id));
+              return {
+                _id: img._id,
+                url: img.url,
+                filename: img.filename,
+                originalname: img.originalname,
+                size: img.size,
+                mimetype: img.mimetype,
+                title: metadata?.title || '',
+                description: metadata?.description || ''
+              };
+            });
+          })() : [],
+          kitFiles: data.product.kitFiles ? (() => {
+            // Create a map of fileId to metadata for quick lookup
+            const metadataMap = new Map();
+            if (data.product.kitFileMetadata && Array.isArray(data.product.kitFileMetadata)) {
+              data.product.kitFileMetadata.forEach((meta: { fileId: string; title: string; description?: string }) => {
+                metadataMap.set(String(meta.fileId), {
+                  title: meta.title,
+                  description: meta.description || ''
+                });
+              });
+            }
+            
+            // Map files and merge with metadata
+            return data.product.kitFiles.map((file: KitFile) => {
+              const metadata = metadataMap.get(String(file._id));
+              return {
+                ...file,
+                title: metadata?.title || '',
+                description: metadata?.description || ''
+              };
+            });
+          })() : [],
           kitMainFile: data.product.kitMainFile || null,
           kitColorHex: data.product.kitColorHex || '',
           previewFile: data.product.previewFile || null,

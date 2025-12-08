@@ -38,7 +38,8 @@ const FlipbookEmbed = ({
   );
 };
 
-const includedItems = [
+// Fallback included items if not provided from seller portal
+const defaultIncludedItems = [
     "logo","photography","brand tone","stationery","instagram starter kit"
 ];
 
@@ -342,7 +343,10 @@ export default function KitProductDetailPage({ params }: PageProps) {
           </h2>
           <div className="w-full">
             <ul className="space-y-2 pt-2">
-              {includedItems.map((item, idx) => (
+              {((product?.kitContents && Array.isArray(product.kitContents) && product.kitContents.length > 0)
+                ? product.kitContents 
+                : defaultIncludedItems
+              ).map((item, idx) => (
                 <li key={idx} className="flex items-center py-2">
                   <span className="text-white mr-6 "><PlayIcon fill="white" className=" w-4 h-4 " /></span>
                   <span className="text-lg text-white uppercase">{item}</span>

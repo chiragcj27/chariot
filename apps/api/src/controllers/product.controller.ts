@@ -474,9 +474,19 @@ export const productController = {
         Product.countDocuments(filter)
       ]);
       
+      // Convert to plain objects and ensure kitContents is included
+      const productsWithKitFields = products.map((product: any) => {
+        const productObj = product.toObject ? product.toObject() : product;
+        return {
+          ...productObj,
+          // Explicitly ensure kitContents is included (even if empty array)
+          kitContents: productObj.kitContents || [],
+        };
+      });
+      
       res.status(200).json({
         message: "Kit products retrieved successfully",
-        products,
+        products: productsWithKitFields,
         total,
         page: Number(page),
         limit: Number(limit),
