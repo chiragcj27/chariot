@@ -152,12 +152,32 @@ export default function KitProductDetailPage({ params }: PageProps) {
     if (!product) return;
     try {
       setAddingToCart(true);
+
+      const basePrice = product.price?.amount || 0;
+      const discount = product.discount;
+      const hasPriceDiscount =
+        discount && typeof discount.percentage === "number" && discount.percentage > 0;
+      const finalPrice = hasPriceDiscount
+        ? Math.max(
+            0,
+            parseFloat((basePrice * (1 - discount!.percentage / 100)).toFixed(2))
+          )
+        : basePrice;
+
+      const credits = product.creditsCost || 0;
+      const discountedCredits = product.discountedCreditsCost;
+      const hasCreditsDiscount =
+        typeof discountedCredits === "number" &&
+        discountedCredits > 0 &&
+        discountedCredits < credits;
+      const finalCredits = hasCreditsDiscount ? discountedCredits! : credits;
+
       addItem({
         productId: product._id,
         productName: product.name,
         productSlug: product.slug,
-        price: product.price?.amount || 0,
-        creditsCost: product.creditsCost || 0,
+        price: finalPrice || 0,
+        creditsCost: finalCredits || 0,
         imageUrl: product.images?.[0]?.url,
         category: 'kit',
       });
@@ -174,12 +194,32 @@ export default function KitProductDetailPage({ params }: PageProps) {
     if (!product) return;
     try {
       setBuyingNow(true);
+
+      const basePrice = product.price?.amount || 0;
+      const discount = product.discount;
+      const hasPriceDiscount =
+        discount && typeof discount.percentage === "number" && discount.percentage > 0;
+      const finalPrice = hasPriceDiscount
+        ? Math.max(
+            0,
+            parseFloat((basePrice * (1 - discount!.percentage / 100)).toFixed(2))
+          )
+        : basePrice;
+
+      const credits = product.creditsCost || 0;
+      const discountedCredits = product.discountedCreditsCost;
+      const hasCreditsDiscount =
+        typeof discountedCredits === "number" &&
+        discountedCredits > 0 &&
+        discountedCredits < credits;
+      const finalCredits = hasCreditsDiscount ? discountedCredits! : credits;
+
       setBuyNowItem({
         productId: product._id,
         productName: product.name,
         productSlug: product.slug,
-        price: product.price?.amount || 0,
-        creditsCost: product.creditsCost || 0,
+        price: finalPrice || 0,
+        creditsCost: finalCredits || 0,
         imageUrl: product.images?.[0]?.url,
         category: 'kit',
       });
@@ -298,8 +338,49 @@ export default function KitProductDetailPage({ params }: PageProps) {
             <h1 className="text-4xl font-balgin-regular lg:text-[32px] text-black">
               {product.name}
             </h1>
-            <div className="text-[20px] 2xl:text-[24px] text-gray-900">
-              {product.price?.amount ? `$${product.price.amount}` : ""}
+            {/* Price (final discounted price only, no strike-through) */}
+            <div className="mt-1 space-y-1">
+              {product.price?.amount ? (
+                (() => {
+                  const basePrice = product.price!.amount;
+                  const discount = product.discount;
+                  const hasPriceDiscount =
+                    discount && typeof discount.percentage === "number" && discount.percentage > 0;
+                  const finalPrice = hasPriceDiscount
+                    ? Math.max(
+                        0,
+                        parseFloat(
+                          (basePrice * (1 - (discount!.percentage / 100))).toFixed(2)
+                        )
+                      )
+                    : basePrice;
+
+                  return (
+                    <div className="text-[20px] 2xl:text-[24px] text-gray-900">
+                      ${finalPrice.toFixed(2)}
+                    </div>
+                  );
+                })()
+              ) : null}
+
+              {/* Credits (final discounted credits only, no strike-through) */}
+              {product.creditsCost !== undefined && product.creditsCost > 0 && (
+                (() => {
+                  const credits = product.creditsCost!;
+                  const discountedCredits = product.discountedCreditsCost;
+                  const hasCreditsDiscount =
+                    typeof discountedCredits === "number" &&
+                    discountedCredits > 0 &&
+                    discountedCredits < credits;
+                  const finalCredits = hasCreditsDiscount ? discountedCredits! : credits;
+
+                  return (
+                    <div className="text-sm text-gray-900">
+                      {finalCredits} credits
+                    </div>
+                  );
+                })()
+              )}
             </div>
             <p className="text-lg mt-5 text-gray-700 leading-relaxed">
               {product.description}
@@ -343,9 +424,12 @@ export default function KitProductDetailPage({ params }: PageProps) {
           </h2>
           <div className="w-full">
             <ul className="space-y-2 pt-2">
-              {((product?.kitContents && Array.isArray(product.kitContents) && product.kitContents.length > 0)
-                ? product.kitContents 
-                : defaultIncludedItems
+              {(
+                (product?.includedItems && Array.isArray(product.includedItems) && product.includedItems.length > 0)
+                  ? product.includedItems
+                  : (product?.kitContents && Array.isArray(product.kitContents) && product.kitContents.length > 0)
+                  ? product.kitContents 
+                  : defaultIncludedItems
               ).map((item, idx) => (
                 <li key={idx} className="flex items-center py-2">
                   <span className="text-white mr-6 "><PlayIcon fill="white" className=" w-4 h-4 " /></span>

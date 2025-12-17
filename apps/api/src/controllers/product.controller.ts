@@ -810,7 +810,7 @@ export const productController = {
         'kind', 'deliveryTime', 'revisions', 'isKitProduct', 
         'kitId', 'typeOfKit', 'zipFile', 'previewFile', 'kitDescription', 
         'kitInstructions', 'kitContents', 'kitImageMetadata', 'kitFileMetadata',
-        'kitFiles', 'kitImages', 'kitColorHex'
+        'kitFiles', 'kitImages', 'kitColorHex', 'includedItems'
       ];
       
       // Normalize kitColorHex if present

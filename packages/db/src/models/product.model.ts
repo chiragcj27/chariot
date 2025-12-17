@@ -75,6 +75,7 @@ export interface IProduct {
   filterValues?: Record<string, string[]>; // Filter values for product categorization
   flipbookUrl?: string; // Heyzine flipbook URL for PDF preview files (legacy, single file)
   flipbookUrls?: { fileId: string; url: string; fileName: string }[]; // Multiple flipbook URLs for multiple preview files
+  includedItems?: string[]; // List of what's included in the product (shown in "What's Included?" section)
 }
 
 // Kit Product interface for products that are kits
@@ -261,6 +262,10 @@ const baseProductSchema = new mongoose.Schema<IProduct>(
           required: true,
         },
       }],
+      default: [],
+    },
+    includedItems: {
+      type: [String],
       default: [],
     },
   },

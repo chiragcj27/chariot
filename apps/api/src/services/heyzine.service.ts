@@ -17,9 +17,8 @@ export const heyzineService = {
       const response = await axios.post(`https://heyzine.com/api1/rest`, {
         pdf: pdfUrl,
         client_id: clientId,
-        prev_next: true,
         full_screen: true,
-        download: false,
+        download: true,
       });
 
       if (response.data && response.data.url) {

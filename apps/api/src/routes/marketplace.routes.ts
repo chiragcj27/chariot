@@ -85,6 +85,18 @@ router.get('/admin/stats', isAdmin, async (req, res) => {
   }
 });
 
+// Get seller-wise sales analytics (admin only)
+router.get('/admin/seller-analytics', isAdmin, async (req, res) => {
+  try {
+    const { period = 'month' } = req.query;
+    const analytics = await marketplaceService.getSellerWiseSalesAnalytics(period as any);
+    res.json(analytics);
+  } catch (error) {
+    console.error('Error fetching seller-wise analytics:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // Get seller notifications
 router.get('/seller/notifications/:sellerId', isAdminOrSeller, async (req, res) => {
   try {

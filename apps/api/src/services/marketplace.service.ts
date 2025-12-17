@@ -324,6 +324,143 @@ export class MarketplaceService {
     };
   }
 
+  // Get seller-wise sales analytics (admin only)
+  public async getSellerWiseSalesAnalytics(period: 'day' | 'week' | 'month' | 'year' = 'month'): Promise<{
+    sellerAnalytics: Array<{
+      sellerId: string;
+      sellerName: string;
+      sellerEmail: string;
+      storeName: string;
+      totalSales: number;
+      totalRevenue: number;
+      totalCommission: number;
+      sellerEarnings: number;
+      platformEarnings: number;
+      orderCount: number;
+      averageOrderValue: number;
+      productCount: number;
+    }>;
+    summary: {
+      totalSellers: number;
+      totalRevenue: number;
+      totalCommission: number;
+      totalSellerEarnings: number;
+      totalPlatformEarnings: number;
+    };
+  }> {
+    const startDate = this.getStartDate(period);
+    
+    const sales = await Sale.find({
+      saleDate: { $gte: startDate },
+      status: SaleStatus.COMPLETED,
+    });
+
+    // Get unique seller IDs
+    const uniqueSellerIds = [...new Set(sales.map(sale => sale.sellerId.toString()))];
+    
+    // Fetch all sellers at once - Mongoose will automatically convert string IDs to ObjectIds
+    const sellers = await Seller.find({
+      _id: { $in: uniqueSellerIds }
+    }).select('name email storeDetails');
+
+    // Create a map of sellerId to seller data
+    const sellerDataMap = new Map<string, {
+      name: string;
+      email: string;
+      storeName: string;
+    }>();
+
+    sellers.forEach((seller: any) => {
+      const sellerId = seller._id.toString();
+      // Prefer storeDetails name, fallback to seller name, avoid "N/A" if we have a name
+      const storeName = seller.storeDetails?.name || seller.name || null;
+      sellerDataMap.set(sellerId, {
+        name: seller.name || 'Unknown',
+        email: seller.email || 'N/A',
+        storeName: storeName || 'N/A',
+      });
+    });
+
+    // Group sales by seller
+    const sellerMap = new Map<string, {
+      sellerId: string;
+      sellerName: string;
+      sellerEmail: string;
+      storeName: string;
+      sales: typeof sales;
+    }>();
+
+    sales.forEach((sale) => {
+      const sellerId = sale.sellerId.toString();
+      const sellerData = sellerDataMap.get(sellerId);
+      
+      // Use seller data from database if available, otherwise fallback to sale data
+      const sellerName = sellerData?.name || sale.sellerName || 'Unknown';
+      const sellerEmail = sellerData?.email || 'N/A';
+      
+      // Prefer storeDetails name, then seller name, then sale sellerName
+      // Only use "N/A" if we truly have no name available
+      let storeName = sellerData?.storeName;
+      if (!storeName || storeName === 'N/A') {
+        storeName = sellerName || sale.sellerName || 'N/A';
+      }
+      
+      if (!sellerMap.has(sellerId)) {
+        sellerMap.set(sellerId, {
+          sellerId,
+          sellerName,
+          sellerEmail,
+          storeName,
+          sales: [],
+        });
+      }
+      
+      sellerMap.get(sellerId)!.sales.push(sale);
+    });
+
+    // Calculate analytics for each seller
+    const sellerAnalytics = Array.from(sellerMap.values()).map((sellerData) => {
+      const sellerSales = sellerData.sales;
+      const totalSales = sellerSales.length;
+      const totalRevenue = sellerSales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+      const totalCommission = sellerSales.reduce((sum, sale) => sum + sale.commissionAmount, 0);
+      const sellerEarnings = sellerSales.reduce((sum, sale) => sum + sale.sellerEarnings, 0);
+      const platformEarnings = sellerSales.reduce((sum, sale) => sum + sale.platformEarnings, 0);
+      const orderCount = new Set(sellerSales.map(sale => sale.orderId.toString())).size;
+      const averageOrderValue = orderCount > 0 ? totalRevenue / orderCount : 0;
+      const productCount = new Set(sellerSales.map(sale => sale.productId.toString())).size;
+
+      return {
+        sellerId: sellerData.sellerId,
+        sellerName: sellerData.sellerName,
+        sellerEmail: sellerData.sellerEmail,
+        storeName: sellerData.storeName,
+        totalSales,
+        totalRevenue,
+        totalCommission,
+        sellerEarnings,
+        platformEarnings,
+        orderCount,
+        averageOrderValue,
+        productCount,
+      };
+    }).sort((a, b) => b.totalRevenue - a.totalRevenue); // Sort by revenue descending
+
+    // Calculate summary
+    const summary = {
+      totalSellers: sellerAnalytics.length,
+      totalRevenue: sellerAnalytics.reduce((sum, s) => sum + s.totalRevenue, 0),
+      totalCommission: sellerAnalytics.reduce((sum, s) => sum + s.totalCommission, 0),
+      totalSellerEarnings: sellerAnalytics.reduce((sum, s) => sum + s.sellerEarnings, 0),
+      totalPlatformEarnings: sellerAnalytics.reduce((sum, s) => sum + s.platformEarnings, 0),
+    };
+
+    return {
+      sellerAnalytics,
+      summary,
+    };
+  }
+
   // Get seller notifications
   public async getSellerNotifications(sellerId: string, limit: number = 20): Promise<any[]> {
     return await Notification.find({

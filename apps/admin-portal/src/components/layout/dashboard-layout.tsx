@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   HomeIcon,
-  CurrencyDollarIcon,
-  MegaphoneIcon,
   UsersIcon,
   BuildingStorefrontIcon,
   Cog6ToothIcon,
@@ -22,17 +20,14 @@ import clsx from 'clsx';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Marketplace Analytics', href: '/marketplace', icon: ChartBarIcon },
+  { name: 'Seller Sales Analytics', href: '/dashboard/sales', icon: ChartBarIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
-  { name: 'Pricing & Discounts', href: '/pricing', icon: CurrencyDollarIcon },
-  { name: 'Marketing', href: '/marketing', icon: MegaphoneIcon },
-  { name: 'Customers', href: '/customers', icon: UsersIcon },
   { name: 'Buyers', href: '/buyers', icon: UsersIcon },
   { name: 'Sellers', href: '/sellers', icon: BuildingStorefrontIcon },
   { name: 'Products', href: '/products', icon: ShoppingBagIcon },
   { name: 'Blacklisted Sellers', href: '/blacklist', icon: ExclamationTriangleIcon },
   { name: 'Menu Settings', href: '/menu', icon: Cog6ToothIcon },
   { name: 'Kits', href: '/kit', icon: AdjustmentsHorizontalIcon },
-  { name: 'Landing Page Configuration', href: '/landing', icon: AdjustmentsHorizontalIcon },
   { name: 'Subscription Cards', href: '/subscription-cards', icon: AdjustmentsHorizontalIcon },
 ];
 

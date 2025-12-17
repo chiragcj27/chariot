@@ -94,6 +94,7 @@ interface Product {
   kitDescription?: string;
   kitInstructions?: string;
   kitContents?: string[];
+  includedItems?: string[];
   createdAt: string;
   updatedAt: string;
   isAdminApproved: boolean;

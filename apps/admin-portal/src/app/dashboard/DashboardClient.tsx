@@ -12,11 +12,13 @@ import {
   Tooltip,
   Legend,
   ArcElement,
+  Filler,
 } from 'chart.js';
 import { Line, Doughnut } from 'react-chartjs-2';
 import { JwtPayload } from 'jsonwebtoken';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { TrendingUp, TrendingDown, DollarSign, Users, ShoppingCart, Package } from 'lucide-react';
 
 ChartJS.register(
   CategoryScale,
@@ -26,63 +28,45 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
+  Filler
 );
 
-const stats = [
-  {
-    name: 'Total Sales',
-    value: '$45,231.89',
-    change: '+20.1%',
-    changeType: 'positive',
-  },
-  {
-    name: 'Active Sellers',
-    value: '2,338',
-    change: '+12.5%',
-    changeType: 'positive',
-  },
-  {
-    name: 'Active Buyers',
-    value: '12,234',
-    change: '+8.2%',
-    changeType: 'positive',
-  },
-  {
-    name: 'Average Order Value',
-    value: '$234.00',
-    change: '-2.3%',
-    changeType: 'negative',
-  },
-];
+interface AnalyticsStats {
+  totalSales: {
+    value: number;
+    change: number;
+    changeType: 'positive' | 'negative';
+  };
+  activeSellers: {
+    value: number;
+    change: number;
+    changeType: 'positive' | 'negative';
+  };
+  activeBuyers: {
+    value: number;
+    change: number;
+    changeType: 'positive' | 'negative';
+  };
+  avgOrderValue: {
+    value: number;
+    change: number;
+    changeType: 'positive' | 'negative';
+  };
+}
 
-const salesData = {
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-  datasets: [
-    {
-      label: 'Sales',
-      data: [30, 40, 35, 50, 49, 60],
-      borderColor: 'rgb(75, 192, 192)',
-      tension: 0.1,
-    },
-  ],
-};
-
-const categoryData = {
-  labels: ['Electronics', 'Fashion', 'Home', 'Sports', 'Others'],
-  datasets: [
-    {
-      data: [30, 25, 20, 15, 10],
-      backgroundColor: [
-        'rgb(255, 99, 132)',
-        'rgb(54, 162, 235)',
-        'rgb(255, 206, 86)',
-        'rgb(75, 192, 192)',
-        'rgb(153, 102, 255)',
-      ],
-    },
-  ],
-};
+interface AnalyticsData {
+  stats: AnalyticsStats;
+  salesOverTime: Array<{ label: string; value: number }>;
+  salesByCategory: Array<{ category: string; total: number; count: number }>;
+  topSellers: Array<{
+    sellerId: string;
+    sellerName: string;
+    totalSales: number;
+    orderCount: number;
+    productCount: number;
+  }>;
+}
 
 interface PendingSeller {
   _id: string;
@@ -108,305 +92,486 @@ interface PendingBuyer {
   createdAt: string;
 }
 
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
+const formatNumber = (value: number): string => {
+  return new Intl.NumberFormat('en-US').format(value);
+};
+
+const getChartColors = () => {
+  return [
+    'rgba(99, 102, 241, 1)',   // indigo
+    'rgba(236, 72, 153, 1)',   // pink
+    'rgba(251, 146, 60, 1)',   // orange
+    'rgba(34, 197, 94, 1)',    // green
+    'rgba(59, 130, 246, 1)',   // blue
+    'rgba(168, 85, 247, 1)',   // purple
+  ];
+};
+
 export default function DashboardClient({ user }: { user: JwtPayload | null }) {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [pendingSellers, setPendingSellers] = useState<PendingSeller[]>([]);
   const [pendingBuyers, setPendingBuyers] = useState<PendingBuyer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPendingSellers = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/admin/sellers/pending');
-        const data = await response.json();
-        if (response.ok) {
-          setPendingSellers(data.sellers || []);
+        setLoading(true);
+        setError(null);
+
+        // Fetch analytics
+        const analyticsResponse = await fetch('/api/admin/analytics');
+        if (!analyticsResponse.ok) {
+          throw new Error('Failed to fetch analytics');
         }
-      } catch (error) {
-        console.error('Failed to fetch pending sellers:', error);
+        const analyticsData = await analyticsResponse.json();
+        setAnalytics(analyticsData);
+
+        // Fetch pending sellers
+        const sellersResponse = await fetch('/api/admin/sellers/pending');
+        if (sellersResponse.ok) {
+          const sellersData = await sellersResponse.json();
+          setPendingSellers(sellersData.sellers || []);
+        }
+
+        // Fetch pending buyers
+        const buyersResponse = await fetch('/api/admin/buyers/pending');
+        if (buyersResponse.ok) {
+          const buyersData = await buyersResponse.json();
+          setPendingBuyers(buyersData.buyers || []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch dashboard data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
+      } finally {
+        setLoading(false);
       }
     };
 
-    const fetchPendingBuyers = async () => {
-      try {
-        const response = await fetch('/api/admin/buyers/pending');
-        const data = await response.json();
-        if (response.ok) {
-          setPendingBuyers(data.buyers || []);
-        }
-      } catch (error) {
-        console.error('Failed to fetch pending buyers:', error);
-      }
-    };
-
-    fetchPendingSellers();
-    fetchPendingBuyers();
+    fetchData();
   }, []);
+
+  const salesData = analytics
+    ? {
+        labels: analytics.salesOverTime.map((item) => item.label),
+        datasets: [
+          {
+            label: 'Sales',
+            data: analytics.salesOverTime.map((item) => item.value),
+            borderColor: 'rgba(99, 102, 241, 1)',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: 'rgba(99, 102, 241, 1)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+          },
+        ],
+      }
+    : {
+        labels: [],
+        datasets: [],
+      };
+
+  const categoryData = analytics
+    ? {
+        labels: analytics.salesByCategory.map((item) => item.category),
+        datasets: [
+          {
+            data: analytics.salesByCategory.map((item) => item.total),
+            backgroundColor: getChartColors(),
+            borderWidth: 2,
+            borderColor: '#fff',
+          },
+        ],
+      }
+    : {
+        labels: [],
+        datasets: [],
+      };
+
+  const stats = analytics
+    ? [
+        {
+          name: 'Total Sales',
+          value: formatCurrency(analytics.stats.totalSales.value),
+          change: `${analytics.stats.totalSales.change >= 0 ? '+' : ''}${analytics.stats.totalSales.change.toFixed(1)}%`,
+          changeType: analytics.stats.totalSales.changeType,
+          icon: DollarSign,
+          color: 'text-indigo-600',
+          bgColor: 'bg-indigo-50',
+        },
+        {
+          name: 'Active Sellers',
+          value: formatNumber(analytics.stats.activeSellers.value),
+          change: `${analytics.stats.activeSellers.change >= 0 ? '+' : ''}${analytics.stats.activeSellers.change.toFixed(1)}%`,
+          changeType: analytics.stats.activeSellers.changeType,
+          icon: Users,
+          color: 'text-emerald-600',
+          bgColor: 'bg-emerald-50',
+        },
+        {
+          name: 'Active Buyers',
+          value: formatNumber(analytics.stats.activeBuyers.value),
+          change: `${analytics.stats.activeBuyers.change >= 0 ? '+' : ''}${analytics.stats.activeBuyers.change.toFixed(1)}%`,
+          changeType: analytics.stats.activeBuyers.changeType,
+          icon: ShoppingCart,
+          color: 'text-blue-600',
+          bgColor: 'bg-blue-50',
+        },
+        {
+          name: 'Average Order Value',
+          value: formatCurrency(analytics.stats.avgOrderValue.value),
+          change: `${analytics.stats.avgOrderValue.change >= 0 ? '+' : ''}${analytics.stats.avgOrderValue.change.toFixed(1)}%`,
+          changeType: analytics.stats.avgOrderValue.changeType,
+          icon: Package,
+          color: 'text-amber-600',
+          bgColor: 'bg-amber-50',
+        },
+      ]
+    : [];
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+            <p className="text-gray-600">Loading dashboard data...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card className="p-6 bg-red-50 border-red-200">
+            <p className="text-red-800 font-medium">Error loading dashboard</p>
+            <p className="text-red-600 text-sm mt-1">{error}</p>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-        {user && (
-          <div className="mb-4 p-4 bg-gray-100 rounded">
-            <p className="text-sm text-gray-700">Email: {user.email}</p>
-            <p className="text-sm text-gray-700">Role: {user.role}</p>
+      <div className="space-y-8 p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-gray-600 mt-1">Welcome back, {user?.email || 'Admin'}</p>
           </div>
-        )}
+        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <Card key={stat.name} className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                  <p className="mt-1 text-3xl font-semibold text-gray-900">
-                    {stat.value}
-                  </p>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <Card key={stat.name} className="p-6 hover:shadow-lg transition-shadow duration-200 border-0 shadow-md">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className={`inline-flex p-3 rounded-lg ${stat.bgColor} mb-4`}>
+                      <Icon className={`h-6 w-6 ${stat.color}`} />
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">{stat.name}</p>
+                    <p className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</p>
+                    <div className="flex items-center gap-1">
+                      {stat.changeType === 'positive' ? (
+                        <TrendingUp className="h-4 w-4 text-emerald-600" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                      )}
+                      <span
+                        className={`text-sm font-medium ${
+                          stat.changeType === 'positive' ? 'text-emerald-600' : 'text-red-600'
+                        }`}
+                      >
+                        {stat.change}
+                      </span>
+                      <span className="text-sm text-gray-500">vs last month</span>
+                    </div>
+                  </div>
                 </div>
-                <div
-                  className={`rounded-full px-2.5 py-0.5 text-sm font-medium ${
-                    stat.changeType === 'positive'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}
-                >
-                  {stat.change}
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            );
+          })}
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-          <Card className="p-6">
-            <h2 className="text-lg font-medium text-gray-900">Sales Overview</h2>
-            <div className="mt-4 h-80">
-              <Line
-                data={salesData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      display: false,
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Card className="p-6 border-0 shadow-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Sales Overview</h2>
+              <span className="text-sm text-gray-500">Last 6 months</span>
+            </div>
+            <div className="h-80">
+              {analytics && analytics.salesOverTime.length > 0 ? (
+                <Line
+                  data={salesData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        display: false,
+                      },
+                      tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        callbacks: {
+                          label: (context) => formatCurrency(context.parsed.y),
+                        },
+                      },
                     },
-                  },
-                }}
-              />
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        ticks: {
+                          callback: (value) => formatCurrency(value as number),
+                        },
+                        grid: {
+                          color: 'rgba(0, 0, 0, 0.05)',
+                        },
+                      },
+                      x: {
+                        grid: {
+                          display: false,
+                        },
+                      },
+                    },
+                  }}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  No sales data available
+                </div>
+              )}
             </div>
           </Card>
 
-          <Card className="p-6">
-            <h2 className="text-lg font-medium text-gray-900">
-              Sales by Category
-            </h2>
-            <div className="mt-4 h-80">
-              <Doughnut
-                data={categoryData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                }}
-              />
+          <Card className="p-6 border-0 shadow-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Sales by Category</h2>
+            </div>
+            <div className="h-80">
+              {analytics && analytics.salesByCategory.length > 0 ? (
+                <>
+                  <Doughnut
+                    data={categoryData}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: {
+                          position: 'bottom',
+                          labels: {
+                            padding: 15,
+                            font: { size: 12 },
+                          },
+                        },
+                        tooltip: {
+                          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                          padding: 12,
+                          callbacks: {
+                            label: (context) => {
+                              const label = context.label || '';
+                              const value = formatCurrency(context.parsed);
+                              const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                              const percentage = ((context.parsed / total) * 100).toFixed(1);
+                              return `${label}: ${value} (${percentage}%)`;
+                            },
+                          },
+                        },
+                      },
+                    }}
+                  />
+                  <div className="mt-4 space-y-2">
+                    {analytics.salesByCategory.slice(0, 3).map((category, index) => (
+                      <div key={category.category} className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: getChartColors()[index] }}
+                          />
+                          <span className="text-gray-700">{category.category}</span>
+                        </div>
+                        <span className="font-semibold text-gray-900">{formatCurrency(category.total)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  No category data available
+                </div>
+              )}
             </div>
           </Card>
         </div>
 
-        {/* Pending Sellers */}
-        {pendingSellers.length > 0 && (
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium text-gray-900">Pending Seller Approvals</h2>
-              <Link
-                href="/sellers"
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                View all sellers →
-              </Link>
-            </div>
-            <div className="mt-4">
-              <div className="flow-root">
-                <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                  <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                    <table className="min-w-full divide-y divide-gray-300">
-                      <thead>
-                        <tr>
-                          <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                            Seller
-                          </th>
-                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                            Store Name
-                          </th>
-                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                            Registered
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {pendingSellers.slice(0, 5).map((seller) => (
-                          <tr key={seller._id}>
-                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                              {seller.name}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {seller.storeDetails.name}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {new Date(seller.createdAt).toLocaleDateString()}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              {pendingSellers.length > 5 && (
-                <div className="mt-4 text-center">
-                  <Link
-                    href="/sellers"
-                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                  >
-                    View {pendingSellers.length - 5} more pending sellers
-                  </Link>
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
-
-        {/* Pending Buyers */}
-        {pendingBuyers.length > 0 && (
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium text-gray-900">Pending Buyer Approvals</h2>
-              <Link
-                href="/buyers"
-                className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                View all buyers →
-              </Link>
-            </div>
-            <div className="mt-4">
-              <div className="flow-root">
-                <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                  <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                    <table className="min-w-full divide-y divide-gray-300">
-                      <thead>
-                        <tr>
-                          <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                            Buyer
-                          </th>
-                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                            Company
-                          </th>
-                          <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                            Registered
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {pendingBuyers.slice(0, 5).map((buyer) => (
-                          <tr key={buyer._id}>
-                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                              {buyer.contactInformation?.firstName || 'N/A'} {buyer.contactInformation?.lastName || 'N/A'}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {buyer.companyInformation?.name || 'N/A'}
-                            </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                              {new Date(buyer.createdAt).toLocaleDateString()}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-              {pendingBuyers.length > 5 && (
-                <div className="mt-4 text-center">
-                  <Link
-                    href="/buyers"
-                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                  >
-                    View {pendingBuyers.length - 5} more pending buyers
-                  </Link>
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
-
         {/* Top Sellers */}
-        <Card className="p-6">
-          <h2 className="text-lg font-medium text-gray-900">Top Sellers</h2>
-          <div className="mt-4">
-            <div className="flow-root">
-              <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                  <table className="min-w-full divide-y divide-gray-300">
-                    <thead>
-                      <tr>
-                        <th className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                          Seller
-                        </th>
-                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                          Total Sales
-                        </th>
-                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                          Products
-                        </th>
-                        <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                          Rating
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {[
-                        {
-                          name: 'Tech Store',
-                          sales: '$12,345',
-                          products: 234,
-                          rating: '4.8',
-                        },
-                        {
-                          name: 'Fashion Hub',
-                          sales: '$10,234',
-                          products: 156,
-                          rating: '4.6',
-                        },
-                        {
-                          name: 'Home Goods',
-                          sales: '$8,765',
-                          products: 98,
-                          rating: '4.9',
-                        },
-                      ].map((seller) => (
-                        <tr key={seller.name}>
-                          <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-0">
-                            {seller.name}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {seller.sales}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {seller.products}
-                          </td>
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {seller.rating}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+        {analytics && analytics.topSellers.length > 0 && (
+          <Card className="p-6 border-0 shadow-md">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-900">Top Sellers</h2>
             </div>
-          </div>
-        </Card>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Seller
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Total Sales
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Orders
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                      Products
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {analytics.topSellers.map((seller, index) => (
+                    <tr key={seller.sellerId} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                            <span className="text-indigo-600 font-semibold text-sm">
+                              {index + 1}
+                            </span>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{seller.sellerName}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-semibold text-gray-900">
+                          {formatCurrency(seller.totalSales)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700">{formatNumber(seller.orderCount)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700">{formatNumber(seller.productCount)}</div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
+
+        {/* Pending Approvals */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {pendingSellers.length > 0 && (
+            <Card className="p-6 border-0 shadow-md">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Pending Seller Approvals</h2>
+                <Link
+                  href="/sellers"
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                >
+                  View all →
+                </Link>
+              </div>
+              <div className="space-y-3">
+                {pendingSellers.slice(0, 5).map((seller) => (
+                  <div
+                    key={seller._id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{seller.name}</p>
+                      <p className="text-xs text-gray-500">{seller.storeDetails.name}</p>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {new Date(seller.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                ))}
+                {pendingSellers.length > 5 && (
+                  <div className="pt-2 text-center">
+                    <Link
+                      href="/sellers"
+                      className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                    >
+                      View {pendingSellers.length - 5} more →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {pendingBuyers.length > 0 && (
+            <Card className="p-6 border-0 shadow-md">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900">Pending Buyer Approvals</h2>
+                <Link
+                  href="/buyers"
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                >
+                  View all →
+                </Link>
+              </div>
+              <div className="space-y-3">
+                {pendingBuyers.slice(0, 5).map((buyer) => (
+                  <div
+                    key={buyer._id}
+                    className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {buyer.contactInformation?.firstName || 'N/A'}{' '}
+                        {buyer.contactInformation?.lastName || 'N/A'}
+                      </p>
+                      <p className="text-xs text-gray-500">{buyer.companyInformation?.name || 'N/A'}</p>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {new Date(buyer.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                ))}
+                {pendingBuyers.length > 5 && (
+                  <div className="pt-2 text-center">
+                    <Link
+                      href="/buyers"
+                      className="text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                    >
+                      View {pendingBuyers.length - 5} more →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );
-} 
+}

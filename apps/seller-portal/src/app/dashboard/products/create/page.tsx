@@ -119,6 +119,9 @@ interface ProductFormData {
   images: (string | { _id: string; url: string })[];
   previewFile?: { name: string; url: string; key: string } | null;
   kitColorHex?: string;
+  
+  // Included items for "What's Included?" section (available for all products)
+  includedItems?: string[];
 }
 
 export default function CreateProductPage() {

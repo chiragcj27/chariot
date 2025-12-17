@@ -15,7 +15,8 @@ interface ProductPageProps {
   params: Promise<{ "product-slug": string }>;
 }
 
-const includedItems = [
+// Default included items (fallback if product doesn't have custom items)
+const defaultIncludedItems = [
   "logo",
   "photography",
   "brand tone",
@@ -65,14 +66,37 @@ export default function ProductPage({ params }: ProductPageProps) {
   // Use SWR hook to fetch product data
   const { product, relatedProducts, isLoading, error } = useProduct(slug || "");
 
-  // Helper function to get price amount
-  const getPriceAmount = (price: unknown): number => {
+  // Helper: base price from backend (number or { amount })
+  const getBasePriceAmount = (price: unknown): number => {
     if (typeof price === "number") return price;
     if (price && typeof price === "object" && "amount" in price) {
       const priceObj = price as { amount: number };
       return priceObj.amount;
     }
     return 0;
+  };
+
+  // Helper: final price that customer sees and pays
+  const getFinalPriceAmount = (price: unknown, discount?: { percentage: number } | null): number => {
+    const base = getBasePriceAmount(price);
+    if (!base || !discount || typeof discount.percentage !== "number" || discount.percentage <= 0) {
+      return base;
+    }
+    const discounted = base * (1 - discount.percentage / 100);
+    return Math.max(0, parseFloat(discounted.toFixed(2)));
+  };
+
+  // Helper: final credits cost (use discountedCreditsCost when valid, otherwise creditsCost)
+  const getFinalCreditsCost = (creditsCost?: number, discountedCreditsCost?: number | null): number => {
+    if (
+      typeof creditsCost === "number" &&
+      typeof discountedCreditsCost === "number" &&
+      discountedCreditsCost > 0 &&
+      discountedCreditsCost < creditsCost
+    ) {
+      return discountedCreditsCost;
+    }
+    return creditsCost || 0;
   };
 
   // Use product images or fallback to placeholder
@@ -85,12 +109,32 @@ export default function ProductPage({ params }: ProductPageProps) {
   // Check if we should show flipbook or images
   const showFlipbook = !!product?.flipbookUrl;
 
+  // Ensure the current image index is always valid when the images array changes
+  React.useEffect(() => {
+    if (images.length === 0) return;
+    if (currentImageIndex >= images.length) {
+      setCurrentImageIndex(0);
+    }
+  }, [images.length, currentImageIndex]);
+
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    if (images.length === 0) return;
+    setCurrentImageIndex((prev) => {
+      const lastIndex = images.length - 1;
+      // If for any reason the previous index is out of bounds, reset to 0
+      if (prev >= lastIndex) return 0;
+      return prev + 1;
+    });
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    if (images.length === 0) return;
+    setCurrentImageIndex((prev) => {
+      const lastIndex = images.length - 1;
+      // If previous index is out of bounds, go to last image
+      if (prev > lastIndex) return lastIndex;
+      return prev === 0 ? lastIndex : prev - 1;
+    });
   };
 
   const handleAddToCart = async () => {
@@ -99,12 +143,15 @@ export default function ProductPage({ params }: ProductPageProps) {
     try {
       setAddingToCart(true);
 
+      const finalPrice = getFinalPriceAmount(product.price, product.discount as { percentage: number } | undefined);
+      const finalCredits = getFinalCreditsCost(product.creditsCost, product.discountedCreditsCost);
+
       addItem({
         productId: product._id,
         productName: product.name,
         productSlug: product.slug,
-        price: getPriceAmount(product.price) || 0,
-        creditsCost: product.creditsCost || 0,
+        price: finalPrice || 0,
+        creditsCost: finalCredits || 0,
         imageUrl: product.images?.[0]?.url,
         category: product.category,
       });
@@ -124,12 +171,15 @@ export default function ProductPage({ params }: ProductPageProps) {
     try {
       setBuyingNow(true);
 
+      const finalPrice = getFinalPriceAmount(product.price, product.discount as { percentage: number } | undefined);
+      const finalCredits = getFinalCreditsCost(product.creditsCost, product.discountedCreditsCost);
+
       setBuyNowItem({
         productId: product._id,
         productName: product.name,
         productSlug: product.slug,
-        price: getPriceAmount(product.price) || 0,
-        creditsCost: product.creditsCost || 0,
+        price: finalPrice || 0,
+        creditsCost: finalCredits || 0,
         imageUrl: product.images?.[0]?.url,
         category: product.category,
       });
@@ -189,7 +239,12 @@ export default function ProductPage({ params }: ProductPageProps) {
                   <div
                     className="flex transition-transform duration-500 ease-in-out h-full"
                     style={{
-                      transform: `translateX(-${currentImageIndex * 100}%)`,
+                      // Move exactly one slide width at a time based on the number of images
+                      transform: `translateX(-${
+                        images.length > 0
+                          ? (currentImageIndex * 100) / images.length
+                          : 0
+                      }%)`,
                       width: `${images.length * 100}%`,
                     }}
                   >
@@ -265,11 +320,38 @@ export default function ProductPage({ params }: ProductPageProps) {
               {product.name}
             </h1>
 
-            {/* Price */}
-            <div className="text-[18px] lg:text-[20px] text-gray-900 mt-2 sm:mt-1">
-              {product.price
-                ? `$${getPriceAmount(product.price)}`
-                : "Contact for pricing"}
+            {/* Price (shows final discounted price only, no strike-through) */}
+            <div className="text-[18px] lg:text-[20px] text-gray-900 mt-2 sm:mt-1 space-y-1">
+              {product.price ? (
+                (() => {
+                  const finalPrice = getFinalPriceAmount(
+                    product.price,
+                    product.discount as { percentage: number } | undefined
+                  );
+                  return (
+                    <div className="text-[18px] lg:text-[20px] text-gray-900">
+                      ${finalPrice.toFixed(2)}
+                    </div>
+                  );
+                })()
+              ) : (
+                <div>Contact for pricing</div>
+              )}
+
+              {/* Credits (shows final discounted credits only, no strike-through) */}
+              {product.creditsCost !== undefined && product.creditsCost > 0 && (
+                (() => {
+                  const finalCredits = getFinalCreditsCost(
+                    product.creditsCost,
+                    product.discountedCreditsCost
+                  );
+                  return (
+                    <div className="text-sm text-gray-900">
+                      {finalCredits} credits
+                    </div>
+                  );
+                })()
+              )}
             </div>
 
             {/* Description */}
@@ -312,7 +394,14 @@ export default function ProductPage({ params }: ProductPageProps) {
           </h2>
           <div className="w-full max-w-2xl">
             <ul className="space-y-3 sm:space-y-4 pt-2">
-              {includedItems.map((item, idx) => (
+              {(
+                (product.includedItems && product.includedItems.length > 0
+                  ? product.includedItems
+                  : product.kitContents && product.kitContents.length > 0
+                  ? product.kitContents
+                  : defaultIncludedItems
+                )
+              ).map((item, idx) => (
                 <li key={idx} className="flex items-center py-2">
                   <span className=" mr-4 sm:mr-6 flex-shrink-0">
                     <PlayIcon fill="black" className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -370,12 +459,21 @@ export default function ProductPage({ params }: ProductPageProps) {
                       <button
                         className="w-full bg-[#FFC1A0] text-black py-2 px-3 sm:px-4 rounded-md font-medium text-sm sm:text-base hover:bg-sunrise transition-colors duration-200"
                         onClick={() => {
+                          const finalPrice = getFinalPriceAmount(
+                            relatedProduct.price,
+                            (relatedProduct as unknown as { discount?: { percentage: number } }).discount
+                          );
+                          const finalCredits = getFinalCreditsCost(
+                            relatedProduct.creditsCost,
+                            (relatedProduct as unknown as { discountedCreditsCost?: number }).discountedCreditsCost
+                          );
+
                           addItem({
                             productId: relatedProduct._id,
                             productName: relatedProduct.name,
                             productSlug: relatedProduct.slug,
-                            price: getPriceAmount(relatedProduct.price) || 0,
-                            creditsCost: relatedProduct.creditsCost || 0,
+                            price: finalPrice || 0,
+                            creditsCost: finalCredits || 0,
                             imageUrl: relatedProduct.images?.[0]?.url,
                             category: relatedProduct.category,
                           });

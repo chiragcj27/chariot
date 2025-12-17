@@ -213,6 +213,7 @@ export default function SalesHistoryPage() {
                     <th className="text-left py-3 px-4 font-medium">Your Earnings</th>
                     <th className="text-left py-3 px-4 font-medium">Commission</th>
                     <th className="text-left py-3 px-4 font-medium">Status</th>
+                    <th className="text-left py-3 px-4 font-medium">Payment Status</th>
                     <th className="text-left py-3 px-4 font-medium">Date</th>
                   </tr>
                 </thead>
@@ -257,10 +258,10 @@ export default function SalesHistoryPage() {
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        <div className="space-y-1">
-                          {getStatusBadge(sale.status)}
-                          {getPaymentStatusBadge(sale.paymentStatus)}
-                        </div>
+                        {getStatusBadge(sale.status)}
+                      </td>
+                      <td className="py-3 px-4">
+                        {getPaymentStatusBadge(sale.paymentStatus)}
                       </td>
                       <td className="py-3 px-4">
                         <div className="text-sm text-gray-500">

@@ -152,6 +152,9 @@ interface ProductFormData {
   
   // Filter values
   filterValues?: Record<string, string[]>;
+  
+  // Included items for "What's Included?" section (available for all products)
+  includedItems?: string[];
 }
 
 interface ProductFormProps {
@@ -189,6 +192,7 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
     kitFiles: [],
     kitMainFile: null,
     filterValues: {},
+    includedItems: [],
     ...initialData
   });
 
@@ -211,9 +215,51 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
     if (initialData?.itemId) {
       setSelectedItem(initialData.itemId);
     }
+    
+    // For kit products, sync kitContents to includedItems if includedItems is empty
+    if (initialData?.isKitProduct && initialData?.kitContents && initialData.kitContents.length > 0) {
+      if (!initialData.includedItems || initialData.includedItems.length === 0) {
+        setFormData(prev => ({
+          ...prev,
+          includedItems: initialData.kitContents
+        }));
+      }
+    }
   }, [initialData]);
 
+  // Automatically derive discounted credits cost from credits + discount percentage
+  useEffect(() => {
+    setFormData(prev => {
+      const credits = prev.creditsCost;
+      const discountPercentage = prev.discount?.percentage;
 
+      // Only calculate when both values are present and valid
+      if (credits && credits > 0 && discountPercentage !== undefined && discountPercentage > 0) {
+        const discounted = Math.max(
+          0,
+          parseFloat((credits * (1 - discountPercentage / 100)).toFixed(2))
+        );
+
+        if (prev.discountedCreditsCost === discounted) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          discountedCreditsCost: discounted
+        };
+      }
+
+      // If either credits or discount is cleared, also clear discounted credits
+      if (prev.discountedCreditsCost !== undefined) {
+        const updated = { ...prev };
+        delete updated.discountedCreditsCost;
+        return updated;
+      }
+
+      return prev;
+    });
+  }, [formData.creditsCost, formData.discount?.percentage]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -275,8 +321,23 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
       newErrors.discountedCreditsCost = 'Discounted credits cost must be greater than 0';
     }
 
-    if (formData.discount && formData.discount.percentage !== undefined && formData.discount.percentage < 0) {
-      newErrors.discount = 'Discount percentage cannot be negative';
+    if (formData.discount && formData.discount.percentage !== undefined) {
+      if (formData.discount.percentage < 0) {
+        newErrors.discount = 'Discount percentage cannot be negative';
+      } else if (formData.discount.percentage > 100) {
+        newErrors.discount = 'Discount percentage cannot be greater than 100';
+      }
+    }
+
+    // Ensure discounted credits (when present) is less than base credits
+    if (
+      formData.creditsCost &&
+      formData.creditsCost > 0 &&
+      formData.discountedCreditsCost &&
+      formData.discountedCreditsCost > 0 &&
+      formData.discountedCreditsCost >= formData.creditsCost
+    ) {
+      newErrors.discountedCreditsCost = 'Discounted credits cost must be less than credits cost';
     }
 
     if (formData.type === 'physical' && formData.stock < 0) {
@@ -503,25 +564,62 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
     }));
   };
 
-  // Kit content management functions
+  // Kit content management functions (also syncs with includedItems for consistency)
   const addKitContent = () => {
-    setFormData(prev => ({
-      ...prev,
-      kitContents: [...(prev.kitContents || []), '']
-    }));
+    setFormData(prev => {
+      const newKitContents = [...(prev.kitContents || []), ''];
+      return {
+        ...prev,
+        kitContents: newKitContents,
+        // Sync with includedItems for kit products
+        includedItems: prev.isKitProduct ? newKitContents : prev.includedItems
+      };
+    });
   };
 
   const removeKitContent = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      kitContents: (prev.kitContents || []).filter((_, i) => i !== index)
-    }));
+    setFormData(prev => {
+      const newKitContents = (prev.kitContents || []).filter((_, i) => i !== index);
+      return {
+        ...prev,
+        kitContents: newKitContents,
+        // Sync with includedItems for kit products
+        includedItems: prev.isKitProduct ? newKitContents : prev.includedItems
+      };
+    });
   };
 
   const updateKitContent = (index: number, value: string) => {
+    setFormData(prev => {
+      const newKitContents = (prev.kitContents || []).map((item, i) => i === index ? value : item);
+      return {
+        ...prev,
+        kitContents: newKitContents,
+        // Sync with includedItems for kit products
+        includedItems: prev.isKitProduct ? newKitContents : prev.includedItems
+      };
+    });
+  };
+
+  // Included items management functions (for all products)
+  const addIncludedItem = () => {
     setFormData(prev => ({
       ...prev,
-      kitContents: (prev.kitContents || []).map((item, i) => i === index ? value : item)
+      includedItems: [...(prev.includedItems || []), '']
+    }));
+  };
+
+  const removeIncludedItem = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      includedItems: (prev.includedItems || []).filter((_, i) => i !== index)
+    }));
+  };
+
+  const updateIncludedItem = (index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      includedItems: (prev.includedItems || []).map((item, i) => i === index ? value : item)
     }));
   };
 
@@ -588,6 +686,38 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
             />
             {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
           </div>
+
+          {/* What's Included Section - Only show for non-kit products */}
+          {!formData.isKitProduct && (
+            <div>
+              <Label>What&apos;s Included?</Label>
+              <div className="space-y-2">
+                {(formData.includedItems || []).map((item, index) => (
+                  <div key={index} className="flex gap-2">
+                    <Input
+                      value={item}
+                      onChange={(e) => updateIncludedItem(index, e.target.value)}
+                      placeholder="e.g., logo, photography, brand tone, stationery"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeIncludedItem(index)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+                <Button type="button" variant="outline" size="sm" onClick={addIncludedItem}>
+                  Add Item
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                List the specific items that will be displayed in the &quot;What&apos;s Included?&quot; section on the product page. Leave empty to use default items.
+              </p>
+            </div>
+          )}
 
           {/* Kit Selection */}
           <div className="space-y-4">
@@ -919,7 +1049,7 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
                     ...prev,
                     discountedCreditsCost: e.target.value === '' ? undefined : parseFloat(e.target.value) || undefined
                   }))}
-                  placeholder="Enter discounted credits cost"
+                  placeholder="Automatically calculated when discount is set"
                   className={errors.discountedCreditsCost ? 'border-red-500' : ''}
                 />
                 {errors.discountedCreditsCost && <p className="text-red-500 text-sm mt-1">{errors.discountedCreditsCost}</p>}
@@ -932,14 +1062,27 @@ export default function ProductForm({ initialData, onSubmit, isLoading = false }
             <h4 className="text-sm font-medium text-gray-900 mb-2">Pricing Summary</h4>
             <div className="space-y-1 text-sm">
               {formData.price && formData.price.amount && formData.price.amount > 0 ? (
-                <p className="text-gray-700">
-                  Price: ${formData.price.amount} {formData.price.currency}
+                <>
+                  <p className="text-gray-700">
+                    Price: ${formData.price.amount} {formData.price.currency}
+                  </p>
                   {formData.discount && formData.discount.percentage > 0 && (
-                    <span className="text-green-600 ml-2">
-                      (with {formData.discount.percentage}% discount)
-                    </span>
+                    <p className="text-gray-700">
+                      Discounted Price:{' '}
+                      <span className="font-semibold">
+                        $
+                        {(
+                          formData.price.amount *
+                          (1 - formData.discount.percentage / 100)
+                        ).toFixed(2)}{' '}
+                        {formData.price.currency}
+                      </span>
+                      <span className="text-green-600 ml-2">
+                        ({formData.discount.percentage}% off)
+                      </span>
+                    </p>
                   )}
-                </p>
+                </>
               ) : (
                 <p className="text-gray-500">No price set</p>
               )}

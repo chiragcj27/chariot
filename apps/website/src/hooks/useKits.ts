@@ -45,11 +45,15 @@ export interface KitProduct {
     amount: number;
     currency: string;
   };
+  discount?: {
+    percentage: number;
+  };
   creditsCost?: number;
   discountedCreditsCost?: number;
   kitDescription?: string;
   kitInstructions?: string;
-  kitContents?: string[];
+  kitContents?: string[]; // Legacy field, use includedItems instead
+  includedItems?: string[]; // New field for "What's Included?" (consistent across all products)
   images: ProductImage[];
   kitImages?: ProductImage[];
   kitFiles?: ProductFile[];

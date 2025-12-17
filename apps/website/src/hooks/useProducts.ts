@@ -18,6 +18,10 @@ export interface Product {
     currency: string;
   } | number;
   creditsCost?: number;
+  discountedCreditsCost?: number;
+  discount?: {
+    percentage: number;
+  };
   images: ProductImage[];
   flipbookUrl?: string;
   category?: string;
@@ -25,6 +29,9 @@ export interface Product {
   relatedProducts?: RelatedProduct[];
   type?: string;
   isKitProduct?: boolean;
+  includedItems?: string[];
+  // Legacy kit content list (used as fallback for includedItems)
+  kitContents?: string[];
 }
 
 export interface RelatedProduct {

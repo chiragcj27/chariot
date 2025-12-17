@@ -75,6 +75,16 @@ interface ProductFormData {
   kitImages?: KitImage[];
   kitFiles?: KitFile[];
   kitMainFile?: KitMainFile | null;
+  kitImageMetadata?: {
+    imageId: string;
+    title: string;
+    description?: string;
+  }[];
+  kitFileMetadata?: {
+    fileId: string;
+    title: string;
+    description?: string;
+  }[];
   
   // Physical product specific
   dimensions?: {
@@ -130,6 +140,12 @@ interface ProductFormData {
   images: (string | { _id: string; url: string })[];
   previewFile?: { name: string; url: string; key: string } | null;
   kitColorHex?: string;
+
+  // Filter values
+  filterValues?: Record<string, string[]>;
+  
+  // Included items for "What's Included?" section (available for all products)
+  includedItems?: string[];
 }
 
 export default function EditProductPage() {
@@ -172,6 +188,7 @@ export default function EditProductPage() {
           tags: data.product.tags || [],
           featured: data.product.featured || false,
           status: data.product.status === 'rejected' ? 'draft' : data.product.status,
+          filterValues: data.product.filterValues || {},
           // SEO
           seo: data.product.seo || { metaTitle: '', metaDescription: '', metaKeywords: [] },
           stock: data.product.stock || 0,
@@ -183,6 +200,8 @@ export default function EditProductPage() {
             _id: img._id,
             url: img.url
           })) : [],
+        kitImageMetadata: data.product.kitImageMetadata || [],
+        kitFileMetadata: data.product.kitFileMetadata || [],
           // Kit-specific fields (populated from backend)
           isKitProduct: data.product.isKitProduct,
           kitId: data.product.kitId,
@@ -243,6 +262,7 @@ export default function EditProductPage() {
           kitColorHex: data.product.kitColorHex || '',
           previewFile: data.product.previewFile || null,
           zipFile: data.product.zipFile || null,
+          includedItems: data.product.includedItems || [],
         };
 
         setProduct(formData);
@@ -383,7 +403,7 @@ export default function EditProductPage() {
     for (let i = 0; i < kitFiles.length; i++) {
       const kitFile = kitFiles[i];
       if (!kitFile.url.startsWith('blob:')) {
-        // Create DB record if not already
+        // Create DB record if not already, and capture the ID so it is persisted on update
         const fileResponse = await fetch('/api/files/kit-preview-files', {
           method: 'POST',
           headers: {
@@ -405,6 +425,10 @@ export default function EditProductPage() {
           }),
         });
         if (!fileResponse.ok) throw new Error('Failed to store kit preview file metadata');
+        const { file: storedFile } = await fileResponse.json();
+        if (storedFile?._id) {
+          uploadedFileIds.push(storedFile._id);
+        }
         continue;
       }
 
@@ -459,8 +483,8 @@ export default function EditProductPage() {
     return uploadedFileIds;
   };
 
-  const uploadKitMainFile = async (kitMainFile: KitMainFile, productId: string) => {
-    if (!kitMainFile) return;
+  const uploadKitMainFile = async (kitMainFile: KitMainFile, productId: string): Promise<KitMainFile | null> => {
+    if (!kitMainFile) return null;
 
     if (!kitMainFile.url.startsWith('blob:')) {
       const fileResponse = await fetch('/api/files/kit-main-files', {
@@ -484,7 +508,14 @@ export default function EditProductPage() {
         }),
       });
       if (!fileResponse.ok) throw new Error('Failed to store kit main file metadata');
-      return;
+      const { file } = await fileResponse.json();
+      const resolvedKey = file?.key || file?.filename || kitMainFile.key;
+      return {
+        name: file?.originalname || kitMainFile.name,
+        url: file?.url || kitMainFile.url,
+        key: resolvedKey,
+        size: file?.size || kitMainFile.size
+      };
     }
 
     const response = await fetch(kitMainFile.url);
@@ -529,6 +560,14 @@ export default function EditProductPage() {
       }),
     });
     if (!fileResponse.ok) throw new Error('Failed to store kit main file metadata');
+    const { file: storedFile } = await fileResponse.json();
+    const resolvedKey = storedFile?.key || storedFile?.filename || kitMainFile.name;
+    return {
+      name: storedFile?.originalname || kitMainFile.name,
+      url: storedFile?.url || kitMainFile.url,
+      key: resolvedKey,
+      size: storedFile?.size || kitMainFile.size
+    };
   };
 
   const handleSubmit = async (formData: ProductFormData) => {
@@ -548,8 +587,9 @@ export default function EditProductPage() {
 
       // Upload newly added kit images
       let uploadedKitImageIds: string[] = [];
+      let newKitImages: KitImage[] = [];
       if (formData.isKitProduct && formData.kitImages && formData.kitImages.length > 0) {
-        const newKitImages = formData.kitImages.filter(img => img.url.startsWith('blob:'));
+        newKitImages = formData.kitImages.filter(img => img.url.startsWith('blob:'));
         if (newKitImages.length > 0) {
           uploadedKitImageIds = await uploadKitImages(newKitImages, productId);
         }
@@ -557,22 +597,23 @@ export default function EditProductPage() {
 
       // Upload new kit preview files FIRST
       let apiPayload: Omit<ProductFormData, 'kitFiles' | 'kitImages'> & { kitFiles: string[], kitImages: string[] } | null = null;
-      
+      let uploadedKitFileIds: string[] = [];
+      let newKitFiles: KitFile[] = [];
+
       if (formData.isKitProduct && formData.kitFiles && formData.kitFiles.length > 0) {
         // Separate existing files (have _id) from new files (blob URLs)
         const existingKitFiles = formData.kitFiles.filter((file): file is KitFile => 
           typeof file === 'object' && file._id !== undefined && !file.url.startsWith('blob:')
         );
-        const newKitFiles = formData.kitFiles.filter((file): file is KitFile => 
+        newKitFiles = formData.kitFiles.filter((file): file is KitFile => 
           typeof file === 'object' && file.url.startsWith('blob:')
         );
         
         
         
         // Upload new files first and get their IDs
-        let uploadedFileIds: string[] = [];
         if (newKitFiles.length > 0) {
-          uploadedFileIds = await uploadKitFiles(newKitFiles as KitFile[], productId);
+          uploadedKitFileIds = await uploadKitFiles(newKitFiles as KitFile[], productId);
           
         }
         
@@ -583,7 +624,7 @@ export default function EditProductPage() {
           ...formData,
           kitFiles: [
             ...existingFileIds,
-            ...uploadedFileIds
+            ...uploadedKitFileIds
           ],
           kitImages: [] // Initialize as empty array, will be populated later if needed
         };
@@ -616,17 +657,81 @@ export default function EditProductPage() {
         }
       }
 
+      // Merge metadata for existing and newly uploaded kit assets
+      let kitImageMetadataPayload: ProductFormData['kitImageMetadata'] | undefined;
+      let kitFileMetadataPayload: ProductFormData['kitFileMetadata'] | undefined;
+
+      if (formData.isKitProduct) {
+        const existingKitImageMetadata = (formData.kitImages || [])
+          .filter(img => img._id && !img.url.startsWith('blob:'))
+          .map(img => ({
+            imageId: img._id as string,
+            title: img.title || '',
+            description: img.description || ''
+          }));
+
+        const newKitImageMetadata = newKitImages.map((img, index) => ({
+          imageId: uploadedKitImageIds[index],
+          title: img.title || '',
+          description: img.description || ''
+        })).filter(meta => !!meta.imageId);
+
+        kitImageMetadataPayload = [
+          ...existingKitImageMetadata,
+          ...newKitImageMetadata
+        ];
+
+        const existingKitFileMetadata = (formData.kitFiles || [])
+          .filter(file => file._id && !file.url.startsWith('blob:'))
+          .map(file => ({
+            fileId: file._id as string,
+            title: file.title || '',
+            description: file.description || ''
+          }));
+
+        const newKitFileMetadata = newKitFiles.map((file, index) => ({
+          fileId: uploadedKitFileIds[index],
+          title: file.title || '',
+          description: file.description || ''
+        })).filter(meta => !!meta.fileId);
+
+        kitFileMetadataPayload = [
+          ...existingKitFileMetadata,
+          ...newKitFileMetadata
+        ];
+      }
+
       // Upload or set kit main file
+      let savedMainFile: KitMainFile | null = null;
       if (formData.isKitProduct && formData.kitMainFile) {
         const isNewMain = formData.kitMainFile.url.startsWith('blob:');
         if (isNewMain) {
-          await uploadKitMainFile(formData.kitMainFile, productId);
+          savedMainFile = await uploadKitMainFile(formData.kitMainFile, productId);
+        } else {
+          savedMainFile = await uploadKitMainFile(formData.kitMainFile, productId);
         }
       }
 
       // NOW update the product with all the form data
       // The kitFiles and kitImages arrays will now include both existing and newly uploaded files
-      const payloadToSend = (formData.isKitProduct && ((formData.kitFiles && formData.kitFiles.length > 0) || (formData.kitImages && formData.kitImages.length > 0))) ? apiPayload : formData;
+      type KitPayload = Omit<ProductFormData, 'kitFiles' | 'kitImages'> & { kitFiles: string[]; kitImages: string[] };
+      const hasKitAssets = formData.isKitProduct && (
+        (formData.kitFiles && formData.kitFiles.length > 0) ||
+        (formData.kitImages && formData.kitImages.length > 0)
+      );
+      let payloadToSend: ProductFormData | KitPayload = hasKitAssets && apiPayload ? apiPayload : formData;
+
+      if (formData.isKitProduct) {
+        if (kitImageMetadataPayload) {
+          payloadToSend = { ...payloadToSend, kitImageMetadata: kitImageMetadataPayload };
+        }
+        if (kitFileMetadataPayload) {
+          payloadToSend = { ...payloadToSend, kitFileMetadata: kitFileMetadataPayload };
+        }
+        if (savedMainFile) {
+          payloadToSend = { ...payloadToSend, kitMainFile: savedMainFile };
+        }
+      }
       const response = await fetch(`/api/products/${productId}`, {
         method: 'PUT',
         headers: {

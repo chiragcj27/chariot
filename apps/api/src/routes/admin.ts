@@ -6,6 +6,9 @@ import buyerApprovalRoutes from './admin/buyer-approval.routes';
 
 const router : Router = Router();
 
+// Analytics route
+router.get('/admin/analytics', isAdmin, adminController.getAnalytics);
+
 // Create a promotional strip
 router.post('/admin/add-promotional-strip', isAdmin, adminController.addPromotionalStrip);
 
