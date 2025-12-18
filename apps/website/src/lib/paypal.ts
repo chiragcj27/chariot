@@ -130,7 +130,7 @@ export class PayPalService {
     try {
       // Check if window is still valid and not closed
       return window && !window.closed && typeof window.postMessage === 'function';
-    } catch (error) {
+    } catch {
       return false;
     }
   }

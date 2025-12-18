@@ -49,10 +49,10 @@ export default function BlacklistDialog({ sellerId, sellerName, onSuccess, trigg
         setExpiryDate('');
         onSuccess();
       } else {
-        const error = await response.json();
-        toast.error(error.message || 'Failed to blacklist seller');
+        const errorResponse = await response.json();
+        toast.error(errorResponse.message || 'Failed to blacklist seller');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error blacklisting seller');
     } finally {
       setLoading(false);

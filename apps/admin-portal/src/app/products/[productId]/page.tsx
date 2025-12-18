@@ -185,7 +185,7 @@ export default function ProductDetailsPage() {
         toast.error(data.message || "Failed to fetch product");
         router.push("/products");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error fetching product");
       router.push("/products");
     } finally {
@@ -234,7 +234,7 @@ export default function ProductDetailsPage() {
         const data = await res.json();
         toast.error(data.message || "Failed to approve product");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error approving product");
     }
   }
@@ -261,7 +261,7 @@ export default function ProductDetailsPage() {
         const data = await res.json();
         toast.error(data.message || "Failed to reject product");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error rejecting product");
     }
   }

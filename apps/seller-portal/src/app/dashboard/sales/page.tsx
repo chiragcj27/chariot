@@ -77,7 +77,7 @@ export default function SalesHistoryPage() {
         setSales(data.sales);
         setPagination(data.pagination);
       }
-    } catch (error) {
+    } catch {
       // no-op
     } finally {
       setLoading(false);

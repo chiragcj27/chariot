@@ -56,7 +56,7 @@ export default function BlacklistPage() {
       } else {
         toast.error('Failed to fetch blacklisted sellers');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error fetching blacklisted sellers');
     } finally {
       setLoading(false);
@@ -75,8 +75,8 @@ export default function BlacklistPage() {
         const data = await response.json();
         setStats(data.stats);
       }
-    } catch (error) {
-      console.error('Error fetching blacklist stats:', error);
+    } catch {
+      console.error('Error fetching blacklist stats');
     }
   };
 
@@ -96,7 +96,7 @@ export default function BlacklistPage() {
       } else {
         toast.error('Failed to remove seller from blacklist');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error removing seller from blacklist');
     }
   };

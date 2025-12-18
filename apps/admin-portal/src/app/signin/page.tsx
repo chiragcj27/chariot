@@ -25,7 +25,7 @@ export default function AdminSignInPage() {
         // const data = await res.json();
         window.location.href = "/dashboard";
       }
-    } catch (err) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);

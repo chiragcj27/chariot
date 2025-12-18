@@ -163,7 +163,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           const errorData = await response.json();
           message = errorData?.message;
-        } catch (_) {
+        } catch {
           // ignore json parse error
         }
         return { success: false, status: response.status, message: message || 'Registration failed' };

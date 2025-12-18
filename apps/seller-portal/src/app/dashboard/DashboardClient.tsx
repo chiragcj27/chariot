@@ -149,8 +149,8 @@ export default function DashboardClient({ user }: DashboardClientProps) {
             fetchNotifications(effectiveUserId),
           ]);
         }
-      } catch (error) {
-        
+      } catch {
+        // no-op
       } finally {
         setIsLoading(false);
       }
@@ -175,8 +175,8 @@ export default function DashboardClient({ user }: DashboardClientProps) {
           )
         );
       }
-    } catch (error) {
-      
+    } catch {
+      // no-op
     }
   };
 
@@ -267,7 +267,6 @@ export default function DashboardClient({ user }: DashboardClientProps) {
         <BlacklistNotification
           blacklistInfo={userInfo.blacklistInfo}
           sellerId={userInfo.id}
-          sellerName={userInfo.name}
         />
       )}
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,14 +49,7 @@ export default function PayoutsClient({ user }: PayoutsClientProps) {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    if (user?.userId) {
-      fetchEarningsInfo();
-      fetchPayoutRequests();
-    }
-  }, [user, page]);
-
-  const fetchEarningsInfo = async () => {
+  const fetchEarningsInfo = useCallback(async () => {
     if (!user?.userId) return;
     try {
       const response = await fetch(`/api/marketplace/payout/earnings/${user.userId}`);
@@ -67,9 +60,9 @@ export default function PayoutsClient({ user }: PayoutsClientProps) {
     } catch (error) {
       console.error('Error fetching earnings info:', error);
     }
-  };
+  }, [user?.userId]);
 
-  const fetchPayoutRequests = async () => {
+  const fetchPayoutRequests = useCallback(async () => {
     if (!user?.userId) return;
     try {
       setIsLoading(true);
@@ -86,7 +79,14 @@ export default function PayoutsClient({ user }: PayoutsClientProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user?.userId, page]);
+
+  useEffect(() => {
+    if (user?.userId) {
+      fetchEarningsInfo();
+      fetchPayoutRequests();
+    }
+  }, [user?.userId, fetchEarningsInfo, fetchPayoutRequests]);
 
   const handleRequestPayout = async () => {
     if (!user?.userId || !earningsInfo) return;

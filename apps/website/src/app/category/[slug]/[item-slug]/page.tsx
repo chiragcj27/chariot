@@ -109,7 +109,7 @@ export default function ProductListPage({ params }: { params: Promise<{ slug: st
         if (isMounted) {
           setFilters(item?.filters || []);
         }
-      } catch (err) {
+      } catch {
         // Silently ignore filter load errors so page still works
         if (isMounted) {
           setFilters([]);

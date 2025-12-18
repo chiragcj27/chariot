@@ -46,7 +46,7 @@ export function RelatedProductsDialog({ product, onUpdate, trigger }: RelatedPro
       } else {
         toast.error(data.message || "Failed to fetch products");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error fetching products");
     } finally {
       setLoading(false);
@@ -77,7 +77,7 @@ export function RelatedProductsDialog({ product, onUpdate, trigger }: RelatedPro
         const data = await res.json();
         toast.error(data.message || "Failed to update related products");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error updating related products");
     } finally {
       setUpdating(false);

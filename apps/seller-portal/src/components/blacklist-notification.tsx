@@ -19,7 +19,6 @@ interface BlacklistInfo {
 interface BlacklistNotificationProps {
   blacklistInfo: BlacklistInfo;
   sellerId: string;
-  sellerName: string;
 }
 
 export default function BlacklistNotification({ blacklistInfo, sellerId }: BlacklistNotificationProps) {
@@ -61,10 +60,10 @@ export default function BlacklistNotification({ blacklistInfo, sellerId }: Black
         setShowReapplication(false);
         setReapplicationReason('');
       } else {
-        const error = await response.json();
-        toast.error(error.message || 'Failed to submit reapplication');
+        const errorResponse = await response.json();
+        toast.error(errorResponse.message || 'Failed to submit reapplication');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error submitting reapplication');
     } finally {
       setLoading(false);

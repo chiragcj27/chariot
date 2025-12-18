@@ -64,7 +64,7 @@ export default function SellersPage() {
       } else {
         toast.error('Failed to fetch sellers');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error fetching sellers');
     } finally {
       setLoading(false);
@@ -104,7 +104,7 @@ export default function SellersPage() {
       } else {
         toast.error('Failed to approve seller');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error approving seller');
     }
   };
@@ -126,7 +126,7 @@ export default function SellersPage() {
       } else {
         toast.error('Failed to reject seller');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error rejecting seller');
     }
   };

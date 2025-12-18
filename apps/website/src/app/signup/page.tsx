@@ -80,7 +80,7 @@ export default function SignupPage() {
           setError(result.message || 'Registration failed. Please try again.');
         }
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);

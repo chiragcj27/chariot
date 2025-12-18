@@ -141,7 +141,7 @@ export default function ProfilePage() {
         const errorData = await response.json();
         setMessage(errorData.message || 'Failed to update profile');
       }
-    } catch (error) {
+    } catch {
       setMessage('An error occurred. Please try again.');
     } finally {
       setIsUpdating(false);

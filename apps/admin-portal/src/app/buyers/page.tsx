@@ -91,7 +91,7 @@ export default function BuyersPage() {
       } else {
         toast.error('Failed to fetch buyers');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error fetching buyers');
     } finally {
       setLoading(false);
@@ -111,8 +111,8 @@ export default function BuyersPage() {
         const data = await response.json();
         setStats(data.stats);
       }
-    } catch (error) {
-      console.error('Error fetching stats:', error);
+    } catch {
+      console.error('Error fetching stats');
     }
   };
 
@@ -133,7 +133,7 @@ export default function BuyersPage() {
         const data = await response.json();
         toast.error(data.message || 'Failed to approve buyer');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error approving buyer');
     }
   };
@@ -156,7 +156,7 @@ export default function BuyersPage() {
         const data = await response.json();
         toast.error(data.message || 'Failed to reject buyer');
       }
-    } catch (error) {
+    } catch {
       toast.error('Error rejecting buyer');
     }
   };

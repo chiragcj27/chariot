@@ -73,7 +73,7 @@ export default function ProductsPage() {
       } else {
         toast.error(data.message || "Failed to fetch products");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error fetching products");
     } finally {
       setLoading(false);
@@ -85,7 +85,7 @@ export default function ProductsPage() {
       const res = await fetch("/api/admin/sellers");
       const data = await res.json();
       setSellers(data.sellers || []);
-    } catch (error) {
+    } catch {
       toast.error("Failed to fetch sellers");
     }
   }
@@ -111,7 +111,7 @@ export default function ProductsPage() {
         const data = await res.json();
         toast.error(data.message || "Failed to approve product");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error approving product");
     }
   }
@@ -139,7 +139,7 @@ export default function ProductsPage() {
         const data = await res.json();
         toast.error(data.message || "Failed to reject product");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error rejecting product");
     }
   }

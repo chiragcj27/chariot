@@ -46,7 +46,7 @@ export default function LoginPage() {
       } else if (formMode === 'new-password') {
         await resetPassword();
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -71,7 +71,7 @@ export default function LoginPage() {
       } else {
         setError(data.message || 'Failed to send OTP');
       }
-    } catch (error) {
+    } catch {
       setError('Failed to send OTP. Please try again.');
     }
   };
@@ -97,7 +97,7 @@ export default function LoginPage() {
       } else {
         setError(data.message || 'Invalid OTP');
       }
-    } catch (error) {
+    } catch {
       setError('Failed to verify OTP. Please try again.');
     }
   };
@@ -142,7 +142,7 @@ export default function LoginPage() {
       } else {
         setError(data.message || 'Failed to reset password');
       }
-    } catch (error) {
+    } catch {
       setError('Failed to reset password. Please try again.');
     }
   };

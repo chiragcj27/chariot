@@ -10,7 +10,7 @@ export default async function Dashboard() {
   if (accessToken) {
     try {
       user = jwt.decode(accessToken) as JwtPayload;
-    } catch (e) {
+    } catch {
       user = null;
     }
   }

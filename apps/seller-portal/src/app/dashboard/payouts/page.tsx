@@ -10,11 +10,10 @@ export default async function PayoutsPage() {
   if (accessToken) {
     try {
       user = jwt.decode(accessToken) as JwtPayload;
-    } catch (e) {
+    } catch {
       user = null;
     }
   }
 
   return <PayoutsClient user={user} />;
 }
-
