@@ -15,6 +15,7 @@ import { OTP, IOTP } from './models/otp.model';
 import { MarketplaceSettings, IMarketplaceSettings } from './models/marketplaceSettings.model';
 import { Notification, INotification, NotificationType, NotificationStatus } from './models/notification.model';
 import { Sale, ISale, SaleStatus } from './models/sales.model';
+import { PayoutRequest, IPayoutRequest, PayoutRequestStatus } from './models/payoutRequest.model';
 
 export {
   connectDB,
@@ -48,6 +49,7 @@ export {
   MarketplaceSettings,
   Notification,
   Sale,
+  PayoutRequest,
 };
 
 export type {
@@ -68,6 +70,7 @@ export type {
   IMarketplaceSettings,
   INotification,
   ISale,
+  IPayoutRequest,
 };
 
 export {
@@ -79,6 +82,7 @@ export {
   NotificationType,
   NotificationStatus,
   SaleStatus,
+  PayoutRequestStatus,
 };
 
 export const hello = (): string => {

@@ -17,6 +17,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Products', href: '/dashboard/products', icon: ShoppingBagIcon },
   { name: 'Sales History', href: '/dashboard/sales', icon: CurrencyDollarIcon },
+  { name: 'Payouts', href: '/dashboard/payouts', icon: CurrencyDollarIcon },
   { name: 'Analytics', href: '/dashboard/analytics', icon: ChartBarIcon },
   { name: 'Settings', href: '/dashboard/settings', icon: CogIcon },
   { name: 'Profile', href: '/dashboard/profile', icon: UserIcon },

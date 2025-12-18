@@ -6,8 +6,10 @@ import {
   MarketplaceSettings, 
   Notification, 
   Sale,
+  PayoutRequest,
   NotificationType,
   SaleStatus,
+  PayoutRequestStatus,
   IProduct,
   IOrder,
   ISeller,
@@ -509,6 +511,249 @@ export class MarketplaceService {
       .sort({ saleDate: -1 })
       .populate('sellerId', 'name email')
       .populate('buyerId', 'name email');
+  }
+
+  // Calculate available earnings for a seller (total earnings minus paid out amounts)
+  public async getAvailableEarnings(sellerId: string): Promise<number> {
+    // Get all completed sales for the seller
+    const sales = await Sale.find({
+      sellerId,
+      status: SaleStatus.COMPLETED,
+    });
+
+    const totalEarnings = sales.reduce((sum, sale) => sum + sale.sellerEarnings, 0);
+
+    // Get all approved/completed payout requests
+    const paidOutRequests = await PayoutRequest.find({
+      sellerId,
+      status: { $in: [PayoutRequestStatus.APPROVED, PayoutRequestStatus.COMPLETED] },
+    });
+
+    const paidOutAmount = paidOutRequests.reduce((sum, request) => sum + request.requestedAmount, 0);
+
+    return Math.max(0, totalEarnings - paidOutAmount);
+  }
+
+  // Create a payout request
+  public async createPayoutRequest(sellerId: string, requestedAmount: number): Promise<any> {
+    const seller = await Seller.findById(sellerId);
+    if (!seller) {
+      throw new Error('Seller not found');
+    }
+
+    const settings = await this.getSettings();
+    const availableEarnings = await this.getAvailableEarnings(sellerId);
+
+    // Check if requested amount exceeds available earnings
+    if (requestedAmount > availableEarnings) {
+      throw new Error('Requested amount exceeds available earnings');
+    }
+
+    // Check if requested amount meets minimum payout requirement
+    if (requestedAmount < settings.minimumPayoutAmount) {
+      throw new Error(`Minimum payout amount is $${settings.minimumPayoutAmount}`);
+    }
+
+    // Check if there's already a pending request
+    const pendingRequest = await PayoutRequest.findOne({
+      sellerId,
+      status: PayoutRequestStatus.PENDING,
+    });
+
+    if (pendingRequest) {
+      throw new Error('You already have a pending payout request');
+    }
+
+    // Generate unique request number
+    const requestNumber = `PAY-${Date.now()}-${sellerId.substring(0, 6).toUpperCase()}`;
+
+    const payoutRequest = await PayoutRequest.create({
+      sellerId,
+      sellerName: seller.name,
+      sellerEmail: seller.email,
+      requestedAmount,
+      availableEarnings,
+      status: PayoutRequestStatus.PENDING,
+      requestNumber,
+    });
+
+    // Send email notification to all admins
+    if (settings.emailNotifications) {
+      try {
+        const admins = await User.find({ role: 'admin' });
+        for (const admin of admins) {
+          await emailService.sendPayoutRequestEmail(
+            admin.email,
+            seller.name,
+            seller.email,
+            requestNumber,
+            requestedAmount,
+            availableEarnings
+          );
+        }
+      } catch (error) {
+        console.error('Failed to send payout request email:', error);
+      }
+    }
+
+    return payoutRequest;
+  }
+
+  // Get payout requests for a seller
+  public async getSellerPayoutRequests(sellerId: string, page: number = 1, limit: number = 20): Promise<{
+    requests: any[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }> {
+    const skip = (page - 1) * limit;
+
+    const requests = await PayoutRequest.find({ sellerId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('approvedBy', 'name email')
+      .populate('rejectedBy', 'name email')
+      .populate('completedBy', 'name email');
+
+    const total = await PayoutRequest.countDocuments({ sellerId });
+
+    return {
+      requests,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  // Get all payout requests (admin only)
+  public async getAllPayoutRequests(
+    status?: PayoutRequestStatus,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<{
+    requests: any[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      pages: number;
+    };
+  }> {
+    const skip = (page - 1) * limit;
+    const query: any = {};
+    if (status) {
+      query.status = status;
+    }
+
+    const requests = await PayoutRequest.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate('sellerId', 'name email')
+      .populate('approvedBy', 'name email')
+      .populate('rejectedBy', 'name email')
+      .populate('completedBy', 'name email');
+
+    const total = await PayoutRequest.countDocuments(query);
+
+    return {
+      requests,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  // Approve a payout request
+  public async approvePayoutRequest(requestId: string, adminId: string, notes?: string): Promise<any> {
+    const payoutRequest = await PayoutRequest.findById(requestId);
+    if (!payoutRequest) {
+      throw new Error('Payout request not found');
+    }
+
+    if (payoutRequest.status !== PayoutRequestStatus.PENDING) {
+      throw new Error('Payout request is not pending');
+    }
+
+    payoutRequest.status = PayoutRequestStatus.APPROVED;
+    payoutRequest.approvedBy = adminId as any;
+    payoutRequest.approvedAt = new Date();
+    if (notes) {
+      payoutRequest.notes = notes;
+    }
+
+    await payoutRequest.save();
+
+    // Send email notification to seller
+    const settings = await this.getSettings();
+    if (settings.emailNotifications) {
+      try {
+        await emailService.sendPayoutApprovalEmail(
+          payoutRequest.sellerEmail,
+          payoutRequest.sellerName,
+          payoutRequest.requestNumber,
+          payoutRequest.requestedAmount
+        );
+      } catch (error) {
+        console.error('Failed to send payout approval email:', error);
+      }
+    }
+
+    return payoutRequest;
+  }
+
+  // Reject a payout request
+  public async rejectPayoutRequest(requestId: string, adminId: string, reason: string): Promise<any> {
+    const payoutRequest = await PayoutRequest.findById(requestId);
+    if (!payoutRequest) {
+      throw new Error('Payout request not found');
+    }
+
+    if (payoutRequest.status !== PayoutRequestStatus.PENDING) {
+      throw new Error('Payout request is not pending');
+    }
+
+    payoutRequest.status = PayoutRequestStatus.REJECTED;
+    payoutRequest.rejectedBy = adminId as any;
+    payoutRequest.rejectedAt = new Date();
+    payoutRequest.rejectionReason = reason;
+
+    await payoutRequest.save();
+
+    return payoutRequest;
+  }
+
+  // Mark payout as completed (after admin processes payment internally)
+  public async completePayoutRequest(requestId: string, adminId: string, notes?: string): Promise<any> {
+    const payoutRequest = await PayoutRequest.findById(requestId);
+    if (!payoutRequest) {
+      throw new Error('Payout request not found');
+    }
+
+    if (payoutRequest.status !== PayoutRequestStatus.APPROVED) {
+      throw new Error('Payout request must be approved before completion');
+    }
+
+    payoutRequest.status = PayoutRequestStatus.COMPLETED;
+    payoutRequest.completedBy = adminId as any;
+    payoutRequest.completedAt = new Date();
+    if (notes) {
+      payoutRequest.notes = notes;
+    }
+
+    await payoutRequest.save();
+
+    return payoutRequest;
   }
 
   private getStartDate(period: 'day' | 'week' | 'month' | 'year'): Date {

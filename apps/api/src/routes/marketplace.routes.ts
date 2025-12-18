@@ -232,4 +232,177 @@ router.get('/seller/sales/:sellerId', isAdminOrSeller, async (req, res) => {
   }
 });
 
+// Get available earnings for a seller
+router.get('/seller/earnings/:sellerId', isAdminOrSeller, async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    
+    if (!sellerId) {
+      return res.status(400).json({ message: 'Seller ID is required' });
+    }
+    
+    // Check if user is admin or the seller themselves
+    if (req.user?.role !== 'admin' && req.user?.userId !== sellerId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const availableEarnings = await marketplaceService.getAvailableEarnings(sellerId);
+    const settings = await marketplaceService['getSettings']();
+    
+    res.json({ 
+      availableEarnings,
+      minimumPayoutAmount: settings.minimumPayoutAmount,
+      canRequestPayout: availableEarnings >= settings.minimumPayoutAmount,
+    });
+  } catch (error) {
+    console.error('Error fetching available earnings:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Create a payout request
+router.post('/payout/request', isAdminOrSeller, async (req, res) => {
+  try {
+    const { requestedAmount } = req.body;
+    const sellerId = req.user?.userId;
+
+    if (!sellerId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    if (req.user?.role !== 'seller') {
+      return res.status(403).json({ message: 'Only sellers can request payouts' });
+    }
+
+    if (!requestedAmount || requestedAmount <= 0) {
+      return res.status(400).json({ message: 'Valid requested amount is required' });
+    }
+
+    const payoutRequest = await marketplaceService.createPayoutRequest(sellerId, requestedAmount);
+    res.status(201).json({ payoutRequest, message: 'Payout request created successfully' });
+  } catch (error: any) {
+    console.error('Error creating payout request:', error);
+    res.status(400).json({ message: error.message || 'Failed to create payout request' });
+  }
+});
+
+// Get payout requests for a seller
+router.get('/payout/requests/seller/:sellerId', isAdminOrSeller, async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+    const { page = 1, limit = 20 } = req.query;
+    
+    if (!sellerId) {
+      return res.status(400).json({ message: 'Seller ID is required' });
+    }
+    
+    // Check if user is admin or the seller themselves
+    if (req.user?.role !== 'admin' && req.user?.userId !== sellerId) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const result = await marketplaceService.getSellerPayoutRequests(
+      sellerId,
+      Number(page),
+      Number(limit)
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching seller payout requests:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Get all payout requests (admin only)
+router.get('/payout/requests', isAdmin, async (req, res) => {
+  try {
+    const { status, page = 1, limit = 20 } = req.query;
+    
+    const result = await marketplaceService.getAllPayoutRequests(
+      status as any,
+      Number(page),
+      Number(limit)
+    );
+    
+    res.json(result);
+  } catch (error) {
+    console.error('Error fetching payout requests:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Approve a payout request
+router.put('/payout/requests/:requestId/approve', isAdmin, async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { notes } = req.body;
+    const adminId = req.user?.userId;
+
+    if (!adminId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    if (!requestId) {
+      return res.status(400).json({ message: 'Request ID is required' });
+    }
+
+    const payoutRequest = await marketplaceService.approvePayoutRequest(requestId, adminId, notes);
+    res.json({ payoutRequest, message: 'Payout request approved successfully' });
+  } catch (error: any) {
+    console.error('Error approving payout request:', error);
+    res.status(400).json({ message: error.message || 'Failed to approve payout request' });
+  }
+});
+
+// Reject a payout request
+router.put('/payout/requests/:requestId/reject', isAdmin, async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { reason } = req.body;
+    const adminId = req.user?.userId;
+
+    if (!adminId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    if (!requestId) {
+      return res.status(400).json({ message: 'Request ID is required' });
+    }
+
+    if (!reason) {
+      return res.status(400).json({ message: 'Rejection reason is required' });
+    }
+
+    const payoutRequest = await marketplaceService.rejectPayoutRequest(requestId, adminId, reason);
+    res.json({ payoutRequest, message: 'Payout request rejected' });
+  } catch (error: any) {
+    console.error('Error rejecting payout request:', error);
+    res.status(400).json({ message: error.message || 'Failed to reject payout request' });
+  }
+});
+
+// Complete a payout request (mark as completed after payment is processed)
+router.put('/payout/requests/:requestId/complete', isAdmin, async (req, res) => {
+  try {
+    const { requestId } = req.params;
+    const { notes } = req.body;
+    const adminId = req.user?.userId;
+
+    if (!adminId) {
+      return res.status(401).json({ message: 'User not authenticated' });
+    }
+
+    if (!requestId) {
+      return res.status(400).json({ message: 'Request ID is required' });
+    }
+
+    const payoutRequest = await marketplaceService.completePayoutRequest(requestId, adminId, notes);
+    res.json({ payoutRequest, message: 'Payout request marked as completed' });
+  } catch (error: any) {
+    console.error('Error completing payout request:', error);
+    res.status(400).json({ message: error.message || 'Failed to complete payout request' });
+  }
+});
+
 export default router;

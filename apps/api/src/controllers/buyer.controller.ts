@@ -70,15 +70,17 @@ export async function registerBuyer(req: Request, res: Response) {
 
     await buyer.save();
 
-    // Send notification email to admin
+    // Send notification email to all admins
     try {
-      const adminEmail = process.env.ADMIN_EMAIL || 'admin@chariot.com';
-      await emailService.sendNewBuyerNotification(
-        adminEmail,
-        `${firstName} ${lastName}`,
-        email,
-        companyName
-      );
+      const adminUsers = await User.find({ role: 'admin' });
+      for (const admin of adminUsers) {
+        await emailService.sendNewBuyerNotification(
+          admin.email,
+          `${firstName} ${lastName}`,
+          email,
+          companyName
+        );
+      }
     } catch (emailError) {
       console.error('Failed to send admin notification email:', emailError);
       // Don't fail the registration if email fails

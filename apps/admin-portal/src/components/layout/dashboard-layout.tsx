@@ -13,7 +13,8 @@ import {
   AdjustmentsHorizontalIcon,
   ExclamationTriangleIcon,
   ShoppingBagIcon,
-  ChartBarIcon
+  ChartBarIcon,
+  CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
@@ -21,6 +22,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Marketplace Analytics', href: '/marketplace', icon: ChartBarIcon },
   { name: 'Seller Sales Analytics', href: '/dashboard/sales', icon: ChartBarIcon },
+  { name: 'Payouts', href: '/payouts', icon: CurrencyDollarIcon },
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon },
   { name: 'Buyers', href: '/buyers', icon: UsersIcon },
   { name: 'Sellers', href: '/sellers', icon: BuildingStorefrontIcon },

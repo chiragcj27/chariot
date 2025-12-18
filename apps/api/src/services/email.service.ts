@@ -745,4 +745,164 @@ export const emailService = {
       throw error;
     }
   },
+
+  async sendPayoutRequestEmail(
+    adminEmail: string,
+    sellerName: string,
+    sellerEmail: string,
+    requestNumber: string,
+    requestedAmount: number,
+    availableEarnings: number
+  ) {
+    try {
+      const { data, error } = await resend.emails.send({
+        from: getFromEmail(),
+        to: adminEmail,
+        subject: `💰 New Payout Request from ${sellerName}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); padding: 30px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">New Payout Request</h1>
+            </div>
+
+            <!-- Content -->
+            <div style="padding: 30px;">
+              <p style="color: #111827; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                A seller has requested a payout. Please review and process the request.
+              </p>
+
+              <!-- Request Details -->
+              <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #111827; margin-top: 0; margin-bottom: 15px; font-size: 18px;">Request Details:</h3>
+                
+                <div style="margin-bottom: 12px;">
+                  <span style="color: #6b7280; font-size: 14px;">Request Number:</span>
+                  <span style="color: #111827; font-weight: 600; margin-left: 8px;">${requestNumber}</span>
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                  <span style="color: #6b7280; font-size: 14px;">Seller Name:</span>
+                  <span style="color: #111827; font-weight: 600; margin-left: 8px;">${sellerName}</span>
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                  <span style="color: #6b7280; font-size: 14px;">Seller Email:</span>
+                  <span style="color: #111827; font-weight: 600; margin-left: 8px;">${sellerEmail}</span>
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                  <span style="color: #6b7280; font-size: 14px;">Requested Amount:</span>
+                  <span style="color: #059669; font-weight: 700; font-size: 18px; margin-left: 8px;">$${requestedAmount.toFixed(2)}</span>
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                  <span style="color: #6b7280; font-size: 14px;">Available Earnings:</span>
+                  <span style="color: #111827; font-weight: 600; margin-left: 8px;">$${availableEarnings.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <!-- CTA Button -->
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.ADMIN_PORTAL_URL || 'http://localhost:3000'}/payouts" style="display: inline-block; background-color: #f97316; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                  Review Payout Request
+                </a>
+              </div>
+
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0;">
+                Please log in to the admin portal to approve or reject this payout request.
+              </p>
+            </div>
+
+            <!-- Footer -->
+            <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0;">Best regards,</p>
+              <p style="color: #111827; font-size: 16px; font-weight: 600; margin: 0;">The Chariot Team</p>
+            </div>
+          </div>
+        `,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('❌ Error sending payout request email:', error);
+      throw error;
+    }
+  },
+
+  async sendPayoutApprovalEmail(
+    sellerEmail: string,
+    sellerName: string,
+    requestNumber: string,
+    approvedAmount: number
+  ) {
+    try {
+      const { data, error } = await resend.emails.send({
+        from: getFromEmail(),
+        to: sellerEmail,
+        subject: '✅ Your Payout Request Has Been Approved',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 30px; text-align: center;">
+              <h1 style="color: #ffffff; margin: 0; font-size: 24px; font-weight: 700;">Payout Approved</h1>
+            </div>
+
+            <!-- Content -->
+            <div style="padding: 30px;">
+              <p style="color: #111827; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                Dear ${sellerName},
+              </p>
+              
+              <p style="color: #111827; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                Great news! Your payout request has been approved by our admin team.
+              </p>
+
+              <!-- Approval Details -->
+              <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #86efac;">
+                <h3 style="color: #111827; margin-top: 0; margin-bottom: 15px; font-size: 18px;">Payout Details:</h3>
+                
+                <div style="margin-bottom: 12px;">
+                  <span style="color: #6b7280; font-size: 14px;">Request Number:</span>
+                  <span style="color: #111827; font-weight: 600; margin-left: 8px;">${requestNumber}</span>
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                  <span style="color: #6b7280; font-size: 14px;">Approved Amount:</span>
+                  <span style="color: #059669; font-weight: 700; font-size: 20px; margin-left: 8px;">$${approvedAmount.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0;">
+                The payment will be processed internally by our team. You should receive the funds according to your payment method on file.
+              </p>
+              
+              <p style="color: #6b7280; font-size: 14px; line-height: 1.6; margin: 10px 0 0 0;">
+                If you have any questions, please don't hesitate to contact our support team.
+              </p>
+            </div>
+
+            <!-- Footer -->
+            <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0;">Best regards,</p>
+              <p style="color: #111827; font-size: 16px; font-weight: 600; margin: 0;">The Chariot Team</p>
+            </div>
+          </div>
+        `,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('❌ Error sending payout approval email:', error);
+      throw error;
+    }
+  },
 }; 
